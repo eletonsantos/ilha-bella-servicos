@@ -33,7 +33,13 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
 
-  const uploadResult = await saveInvoiceFile(file, profile.id, closing.id)
+  let uploadResult
+  try {
+    uploadResult = await saveInvoiceFile(file, profile.id, closing.id)
+  } catch (uploadErr: unknown) {
+    const msg = uploadErr instanceof Error ? uploadErr.message : 'Erro ao salvar arquivo'
+    return NextResponse.json({ error: msg }, { status: 500 })
+  }
 
   const invoice = await prisma.invoice.create({
     data: {
