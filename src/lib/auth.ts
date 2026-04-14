@@ -25,11 +25,26 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           password: z.string().min(6),
         }).safeParse(credentials)
         if (!parsed.success) return null
-        const user = await prisma.user.findUnique({
-          where: { email: parsed.data.email },
-        })
-        if (!user) return null
-        return user
+
+        const adminEmail = process.env.ADMIN_EMAIL
+        const adminPassword = process.env.ADMIN_PASSWORD
+
+        // Login do admin com e-mail e senha fixos
+        if (
+          adminEmail &&
+          adminPassword &&
+          parsed.data.email === adminEmail &&
+          parsed.data.password === adminPassword
+        ) {
+          const user = await prisma.user.upsert({
+            where: { email: adminEmail },
+            update: { role: 'ADMIN' },
+            create: { email: adminEmail, role: 'ADMIN', name: 'Admin' },
+          })
+          return user
+        }
+
+        return null
       },
     }),
   ],
