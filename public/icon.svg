@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Fundo azul -->
+  <circle cx="50" cy="50" r="50" fill="#1A7DC1"/>
+  <!-- Divisórias -->
+  <rect x="47" y="8" width="6" height="84" fill="white" opacity="0.5" rx="3"/>
+  <rect x="8" y="47" width="84" height="6" fill="white" opacity="0.5" rx="3"/>
+  <!-- Plug (topo esquerdo) -->
+  <rect x="21" y="17" width="16" height="9" rx="2" fill="white"/>
+  <rect x="25" y="26" width="8" height="13" rx="2" fill="white"/>
+  <!-- Chave inglesa (topo direito) -->
+  <circle cx="72" cy="26" r="7" stroke="white" stroke-width="3.5" fill="none"/>
+  <rect x="68" y="30" width="8" height="13" rx="2" fill="white"/>
+  <!-- Chave (baixo esquerdo) -->
+  <circle cx="26" cy="70" r="7" stroke="white" stroke-width="3.5" fill="none"/>
+  <rect x="30" y="67" width="16" height="4" rx="2" fill="white"/>
+  <rect x="42" y="71" width="4" height="6" rx="1" fill="white"/>
+  <!-- Torneira (baixo direito) -->
+  <path d="M68 56 L60 73 Q60 82 70 82 Q80 82 80 73 Z" fill="white"/>
+  <rect x="72" y="52" width="10" height="5" rx="2" fill="white"/>
+</svg>
