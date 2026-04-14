@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { CLOSING_STATUS_LABELS, CLOSING_STATUS_COLORS } from '@/lib/constants-tecnico'
-import { ChevronRight, FileText } from 'lucide-react'
+import { ChevronRight, FileText, Plus } from 'lucide-react'
 
 export default async function AdminFechamentosPage() {
   const session = await auth()
@@ -16,9 +16,17 @@ export default async function AdminFechamentosPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-extrabold text-dark">Fechamentos</h1>
-        <p className="text-slate-500 text-sm mt-1">{closings.length} fechamento(s) no sistema</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-extrabold text-dark">Fechamentos</h1>
+          <p className="text-slate-500 text-sm mt-1">{closings.length} fechamento(s) no sistema</p>
+        </div>
+        <Link
+          href="/admin/fechamentos/novo"
+          className="inline-flex items-center gap-2 bg-brand-blue hover:bg-brand-blue-dark text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition-all"
+        >
+          <Plus size={16} /> Novo Fechamento
+        </Link>
       </div>
 
       <div className="space-y-3">

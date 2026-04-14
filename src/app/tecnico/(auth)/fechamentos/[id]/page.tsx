@@ -4,7 +4,7 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { ArrowLeft, CheckCircle } from 'lucide-react'
+import { ArrowLeft, CheckCircle, Download, FileText } from 'lucide-react'
 import { CLOSING_STATUS_LABELS, CLOSING_STATUS_COLORS } from '@/lib/constants-tecnico'
 import InvoiceUploadForm from '@/components/tecnico/InvoiceUploadForm'
 
@@ -64,6 +64,28 @@ export default async function FechamentoDetailPage({ params }: { params: { id: s
           </div>
         )}
       </div>
+
+      {/* Relatório PDF */}
+      {closing.reportFilePath && (
+        <div className="card p-6">
+          <h2 className="font-bold text-dark mb-3">Relatório de Serviços</h2>
+          <div className="flex items-center gap-3 bg-slate-50 rounded-xl px-4 py-3">
+            <FileText size={20} className="text-brand-blue flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-dark truncate">{closing.reportFileName ?? 'Relatório.pdf'}</p>
+              <p className="text-xs text-slate-400">Enviado pela Ilha Bella Serviços</p>
+            </div>
+            <a
+              href={closing.reportFilePath}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 bg-brand-blue hover:bg-brand-blue-dark text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+            >
+              <Download size={13} /> Baixar PDF
+            </a>
+          </div>
+        </div>
+      )}
 
       {/* Services list */}
       {closing.services.length > 0 && (

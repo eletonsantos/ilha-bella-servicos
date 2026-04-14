@@ -79,18 +79,21 @@ model TechnicianProfile {
 }
 
 model Closing {
-  id           String   @id @default(cuid())
-  technicianId String
-  competence   String
-  periodStart  DateTime
-  periodEnd    DateTime
-  totalValue   Float
-  serviceCount Int      @default(0)
-  status       String   @default("AWAITING_CLOSING")
-  observations String?
-  adminNotes   String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id             String   @id @default(cuid())
+  technicianId   String
+  competence     String
+  periodStart    DateTime
+  periodEnd      DateTime
+  totalValue     Float
+  serviceCount   Int      @default(0)
+  status         String   @default("AWAITING_CLOSING")
+  observations   String?
+  adminNotes     String?
+  reportFilePath String?
+  reportFileName String?
+  reportFileSize Int?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   technician TechnicianProfile @relation(fields: [technicianId], references: [id], onDelete: Cascade)
   services   ClosingService[]

@@ -38,7 +38,15 @@
       "Bash(\"C:\\\\Program Files\\\\nodejs\\\\npm.cmd\" list -g vercel)",
       "Bash(\"C:\\\\Program Files\\\\nodejs\\\\npm.cmd\" install -g vercel)",
       "Bash(not exist:*)",
-      "Bash(command -v npm)"
+      "Bash(command -v npm)",
+      "Bash(node -e ':*)",
+      "Bash('/c/Program Files/nodejs/node.exe' -e ':*)",
+      "Bash(gh run:*)",
+      "WebFetch(domain:vercel.com)",
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_FS2zojsfIK3u@ep-green-frost-anic88dl-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require\" DIRECT_URL=\"postgresql://neondb_owner:npg_FS2zojsfIK3u@ep-green-frost-anic88dl.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require\" \"/c/Program Files/nodejs/node.exe\" \"./node_modules/.bin/prisma\" db push)",
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_FS2zojsfIK3u@ep-green-frost-anic88dl-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require\" DIRECT_URL=\"postgresql://neondb_owner:npg_FS2zojsfIK3u@ep-green-frost-anic88dl.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require\" \"/c/Program Files/nodejs/node.exe\" \"./node_modules/prisma/build/index.js\" db push)",
+      "Bash(mkdir -p \"C:\\\\Users\\\\NOT SIMONE\\\\OneDrive\\\\Área de Trabalho\\\\site_ilhabella\\\\src\\\\app\\\\admin\\\\fechamentos\\\\[id]\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\NOT SIMONE\\\\OneDrive\\\\Área de Trabalho\\\\site_ilhabella\\\\src\\\\app\\\\api\\\\admin\\\\fechamentos\\\\[id]\\\\report\")"
     ]
   }
 }
