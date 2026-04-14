@@ -1,3 +1,4 @@
+import { put } from '@vercel/blob'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 
@@ -5,7 +6,7 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png']
 
 export interface UploadResult {
-  filePath: string
+  filePath: string   // URL pública (Blob) ou caminho local
   fileName: string
   fileSize: number
   mimeType: string
@@ -24,12 +25,23 @@ export async function saveInvoiceFile(
   }
 
   const ext = file.name.split('.').pop() ?? 'pdf'
-  const fileName = `nf_${technicianId}_${closingId}_${Date.now()}.${ext}`
+  const safeName = `invoices/${technicianId}/${closingId}_${Date.now()}.${ext}`
+
+  // Produção: usa Vercel Blob
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    const blob = await put(safeName, file, { access: 'public' })
+    return {
+      filePath: blob.url,
+      fileName: file.name,
+      fileSize: file.size,
+      mimeType: file.type,
+    }
+  }
+
+  // Desenvolvimento: salva no sistema de arquivos local
   const uploadPath = path.join(process.cwd(), 'uploads', 'invoices', technicianId)
-
   await mkdir(uploadPath, { recursive: true })
-
-  const absolutePath = path.join(uploadPath, fileName)
+  const absolutePath = path.join(uploadPath, `${closingId}_${Date.now()}.${ext}`)
   const bytes = await file.arrayBuffer()
   await writeFile(absolutePath, Buffer.from(bytes))
 
@@ -39,4 +51,26 @@ export async function saveInvoiceFile(
     fileSize: file.size,
     mimeType: file.type,
   }
+}
+
+export async function saveReportFile(
+  file: File,
+  technicianId: string
+): Promise<{ filePath: string; fileName: string; fileSize: number }> {
+  const safeName = `reports/${technicianId}/${Date.now()}.pdf`
+
+  // Produção: usa Vercel Blob
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    const blob = await put(safeName, file, { access: 'public' })
+    return { filePath: blob.url, fileName: file.name, fileSize: file.size }
+  }
+
+  // Desenvolvimento: salva localmente
+  const uploadPath = path.join(process.cwd(), 'uploads', 'reports')
+  await mkdir(uploadPath, { recursive: true })
+  const absolutePath = path.join(uploadPath, `${technicianId}_${Date.now()}.pdf`)
+  const bytes = await file.arrayBuffer()
+  await writeFile(absolutePath, Buffer.from(bytes))
+
+  return { filePath: absolutePath, fileName: file.name, fileSize: file.size }
 }

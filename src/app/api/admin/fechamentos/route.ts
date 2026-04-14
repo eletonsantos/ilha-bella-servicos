@@ -1,9 +1,7 @@
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile, mkdir } from 'fs/promises'
-import { join } from 'path'
-import { existsSync } from 'fs'
+import { saveReportFile } from '@/lib/upload'
 
 export async function GET() {
   const session = await auth()
@@ -49,18 +47,14 @@ export async function POST(req: NextRequest) {
 
     // Salva o PDF se enviado
     if (reportFile && reportFile.size > 0) {
-      const bytes = await reportFile.arrayBuffer()
-      const buffer = Buffer.from(bytes)
-      const uploadDir = join(process.cwd(), 'uploads', 'reports')
-      if (!existsSync(uploadDir)) await mkdir(uploadDir, { recursive: true })
-
-      const safeName = `${technicianId}_${Date.now()}.pdf`
-      const filePath = join(uploadDir, safeName)
-      await writeFile(filePath, buffer)
-
-      reportFilePath = `/api/admin/fechamentos/report/${safeName}`
-      reportFileName = reportFile.name
-      reportFileSize = reportFile.size
+      try {
+        const result = await saveReportFile(reportFile, technicianId)
+        reportFilePath = result.filePath
+        reportFileName = result.fileName
+        reportFileSize = result.fileSize
+      } catch (err) {
+        console.error('[upload] Report file error:', err)
+      }
     }
 
     const closing = await prisma.closing.create({
