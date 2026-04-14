@@ -9,9 +9,9 @@ interface LogoBrandProps {
 }
 
 const sizes = {
-  sm: { icon: 36, title: 'text-sm', sub: 'text-xs' },
-  md: { icon: 44, title: 'text-base', sub: 'text-xs' },
-  lg: { icon: 56, title: 'text-lg', sub: 'text-sm' },
+  sm: { icon: 44, title: 'text-sm', sub: 'text-xs' },
+  md: { icon: 56, title: 'text-base', sub: 'text-xs' },
+  lg: { icon: 72, title: 'text-lg', sub: 'text-sm' },
 }
 
 export default function LogoBrand({ size = 'md', light = false }: LogoBrandProps) {
