@@ -1,0 +1,10 @@
+Coloque aqui os arquivos de mídia do projeto:
+
+- logo.png         → Logo da empresa (fornecida pelo cliente)
+- og-image.jpg     → Imagem para redes sociais (1200x630px)
+- favicon.ico      → Ícone do site (pode gerar em: favicon.io)
+
+Para gerar o favicon a partir do logo:
+1. Acesse https://favicon.io/favicon-converter/
+2. Envie o logo.png
+3. Baixe e extraia os arquivos na pasta /public

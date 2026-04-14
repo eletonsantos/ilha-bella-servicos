@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --brand-blue: #1A7DC1;
+    --brand-gold: #C4992A;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-white text-dark antialiased;
+  }
+
+  * {
+    @apply border-slate-200;
+  }
+}
+
+@layer components {
+  .container-site {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-padding {
+    @apply py-16 sm:py-20 lg:py-24;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center gap-2 bg-brand-gold hover:bg-brand-gold-dark
+           text-white font-semibold px-6 py-3 rounded-lg
+           transition-all duration-200 shadow-md hover:shadow-lg
+           active:scale-95;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 bg-brand-blue hover:bg-brand-blue-dark
+           text-white font-semibold px-6 py-3 rounded-lg
+           transition-all duration-200 shadow-md hover:shadow-lg
+           active:scale-95;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center gap-2 border-2 border-white text-white
+           hover:bg-white hover:text-brand-blue font-semibold px-6 py-3 rounded-lg
+           transition-all duration-200 active:scale-95;
+  }
+
+  .btn-whatsapp {
+    @apply inline-flex items-center gap-2 bg-[#25D366] hover:bg-[#20BA5A]
+           text-white font-semibold px-6 py-3 rounded-lg
+           transition-all duration-200 shadow-md hover:shadow-lg
+           active:scale-95;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl shadow-sm border border-slate-100
+           hover:shadow-md transition-shadow duration-300;
+  }
+
+  .gradient-blue {
+    @apply bg-gradient-to-br from-brand-blue to-brand-blue-dark;
+  }
+
+  .gradient-dark {
+    @apply bg-gradient-to-br from-dark to-dark-surface;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
