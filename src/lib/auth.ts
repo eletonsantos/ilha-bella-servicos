@@ -98,7 +98,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     async redirect({ url, baseUrl }) {
       if (url.startsWith(baseUrl)) return url
-      return baseUrl + '/tecnico/painel'
+      return baseUrl + '/tecnico/painel' // painel verifica role e redireciona admin para /admin
     },
   },
   pages: {

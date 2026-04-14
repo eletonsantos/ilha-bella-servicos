@@ -20,6 +20,8 @@ export default async function PainelPage() {
     },
   })
 
+  // Admin não precisa de perfil de técnico
+  if (session.user.role === 'ADMIN') redirect('/admin')
   if (!profile) redirect('/tecnico/cadastro')
 
   const lastClosing = profile.closings[0]
