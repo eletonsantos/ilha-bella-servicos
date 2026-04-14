@@ -52,14 +52,16 @@ export async function sendInvoiceNotification(data: InvoiceNotificationData) {
 
   // Prepared for future use — configure SMTP credentials in .env.local
   try {
+    // Envia para o e-mail admin (Gmail) e também para o e-mail da empresa
+    const recipients = [adminEmail, process.env.SMTP_USER].filter(Boolean).join(', ')
     await transporter.sendMail({
       from: `"Ilha Bella Serviços" <${process.env.SMTP_USER}>`,
-      to: adminEmail,
-      subject: `Nova NF recebida — ${data.technicianName} | ${data.closingPeriod}`,
+      to: recipients,
+      subject: `📄 Nova NF recebida — ${data.technicianName} | ${data.closingPeriod}`,
       html,
     })
+    console.log('[email] Invoice notification sent to:', recipients)
   } catch (err) {
-    // Email sending failed — log but don't throw to not block the NF upload
     console.error('[email] Failed to send invoice notification:', err)
   }
 }
