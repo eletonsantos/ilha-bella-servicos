@@ -4,6 +4,7 @@ import './globals.css'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import WhatsAppButton from '@/components/layout/WhatsAppButton'
+import JsonLd from '@/components/ui/JsonLd'
 import { COMPANY } from '@/lib/constants'
 
 const inter = Inter({
@@ -20,16 +21,16 @@ export const metadata: Metadata = {
   },
   description: COMPANY.description,
   keywords: [
-    'serviços residenciais',
-    'encanador',
-    'eletricista',
-    'chaveiro',
-    'desentupimento',
+    'encanador Florianópolis',
+    'eletricista Florianópolis',
+    'chaveiro Florianópolis',
+    'desentupimento Florianópolis',
     'manutenção residencial',
-    'Florianópolis',
-    'Porto Alegre',
-    'atendimento 24 horas',
+    'serviços 24 horas',
+    'encanador Porto Alegre',
+    'eletricista Porto Alegre',
     'Ilha Bella Serviços',
+    'assistência emergencial',
   ],
   authors: [{ name: COMPANY.name, url: COMPANY.siteUrl }],
   creator: COMPANY.name,
@@ -40,14 +41,7 @@ export const metadata: Metadata = {
     title: `${COMPANY.name} | Serviços 24h`,
     description: COMPANY.description,
     siteName: COMPANY.name,
-    images: [
-      {
-        url: '/og-image.jpg',
-        width: 1200,
-        height: 630,
-        alt: COMPANY.name,
-      },
-    ],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: COMPANY.name }],
   },
   twitter: {
     card: 'summary_large_image',
@@ -65,18 +59,24 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
+    apple: '/apple-touch-icon.png',
+  },
 }
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR" className={inter.variable}>
-      <body>
+      <body className="flex flex-col min-h-screen">
+        <JsonLd />
         <Header />
-        <main>{children}</main>
+        <main className="flex-1">{children}</main>
         <Footer />
         <WhatsAppButton />
       </body>

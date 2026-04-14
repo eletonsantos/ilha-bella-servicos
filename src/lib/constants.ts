@@ -4,7 +4,7 @@ export const COMPANY = {
   email: 'adm@ilhabellaservicos.com.br',
   phones: ['(48) 3375-4123', '(48) 2132-1685'],
   // Substitua pelo número WhatsApp real (somente dígitos, com DDI 55)
-  whatsapp: '5548999999999',
+  whatsapp: '554833754123',
   whatsappMessage: 'Olá! Preciso de um orçamento. Pode me ajudar?',
   domain: 'www.ilhabellaservicos.com.br',
   siteUrl: 'https://www.ilhabellaservicos.com.br',
