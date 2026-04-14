@@ -6,6 +6,7 @@ import Footer from '@/components/layout/Footer'
 import WhatsAppButton from '@/components/layout/WhatsAppButton'
 import JsonLd from '@/components/ui/JsonLd'
 import { COMPANY } from '@/lib/constants'
+import SessionProvider from '@/components/providers/SessionProvider'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -74,11 +75,13 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className={inter.variable}>
       <body className="flex flex-col min-h-screen">
-        <JsonLd />
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
-        <WhatsAppButton />
+        <SessionProvider>
+          <JsonLd />
+          <Header />
+          <main className="flex-1">{children}</main>
+          <Footer />
+          <WhatsAppButton />
+        </SessionProvider>
       </body>
     </html>
   )

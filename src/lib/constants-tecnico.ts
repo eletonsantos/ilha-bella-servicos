@@ -1,0 +1,60 @@
+export type ClosingStatus =
+  | 'AWAITING_CLOSING'
+  | 'CLOSING_AVAILABLE'
+  | 'AWAITING_INVOICE'
+  | 'INVOICE_SENT'
+  | 'UNDER_REVIEW'
+  | 'PAYMENT_RELEASED'
+  | 'PAID'
+
+export type ProfileStatus =
+  | 'INITIATED'
+  | 'AWAITING_APPROVAL'
+  | 'APPROVED'
+  | 'LINKED'
+
+export type PixKeyType = 'CPF' | 'CNPJ' | 'EMAIL' | 'PHONE' | 'RANDOM'
+
+export type Role = 'ADMIN' | 'TECHNICIAN'
+
+export const CLOSING_STATUS_LABELS: Record<string, string> = {
+  AWAITING_CLOSING: 'Aguardando fechamento',
+  CLOSING_AVAILABLE: 'Fechamento disponível',
+  AWAITING_INVOICE: 'Aguardando NF',
+  INVOICE_SENT: 'NF enviada',
+  UNDER_REVIEW: 'Em conferência',
+  PAYMENT_RELEASED: 'Pagamento liberado',
+  PAID: 'Pago',
+}
+
+export const CLOSING_STATUS_COLORS: Record<string, string> = {
+  AWAITING_CLOSING: 'bg-slate-100 text-slate-600',
+  CLOSING_AVAILABLE: 'bg-blue-100 text-blue-700',
+  AWAITING_INVOICE: 'bg-amber-100 text-amber-700',
+  INVOICE_SENT: 'bg-purple-100 text-purple-700',
+  UNDER_REVIEW: 'bg-orange-100 text-orange-700',
+  PAYMENT_RELEASED: 'bg-emerald-100 text-emerald-700',
+  PAID: 'bg-green-100 text-green-700',
+}
+
+export const PROFILE_STATUS_LABELS: Record<string, string> = {
+  INITIATED: 'Cadastro iniciado',
+  AWAITING_APPROVAL: 'Aguardando aprovação',
+  APPROVED: 'Aprovado',
+  LINKED: 'Vinculado',
+}
+
+export const PROFILE_STATUS_COLORS: Record<string, string> = {
+  INITIATED: 'bg-slate-100 text-slate-600',
+  AWAITING_APPROVAL: 'bg-amber-100 text-amber-700',
+  APPROVED: 'bg-green-100 text-green-700',
+  LINKED: 'bg-blue-100 text-blue-700',
+}
+
+export const PIX_KEY_TYPE_LABELS: Record<string, string> = {
+  CPF: 'CPF',
+  CNPJ: 'CNPJ',
+  EMAIL: 'E-mail',
+  PHONE: 'Telefone',
+  RANDOM: 'Chave aleatória',
+}

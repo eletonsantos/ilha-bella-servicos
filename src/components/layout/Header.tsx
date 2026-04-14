@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X, Phone } from 'lucide-react'
+import { Menu, X, Phone, Lock } from 'lucide-react'
 import { clsx } from 'clsx'
 import { NAV_LINKS, COMPANY } from '@/lib/constants'
 import { getWhatsAppUrl } from '@/lib/whatsapp'
@@ -100,6 +100,20 @@ export default function Header() {
                   </li>
                 )
               })}
+              <li>
+                <Link
+                  href="/tecnico"
+                  className={clsx(
+                    'relative flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-lg transition-colors duration-150',
+                    pathname.startsWith('/tecnico')
+                      ? 'text-brand-blue bg-brand-blue/8 font-semibold'
+                      : 'text-slate-500 hover:text-brand-blue hover:bg-slate-50'
+                  )}
+                >
+                  <Lock size={12} />
+                  Área do Técnico
+                </Link>
+              </li>
             </ul>
 
             {/* CTA + hamburger */}
@@ -181,6 +195,20 @@ export default function Header() {
                 </li>
               )
             })}
+            <li>
+              <Link
+                href="/tecnico"
+                className={clsx(
+                  'flex items-center gap-2 px-4 py-3 rounded-xl font-medium text-sm transition-colors',
+                  pathname.startsWith('/tecnico')
+                    ? 'bg-brand-blue text-white'
+                    : 'text-slate-500 hover:bg-slate-50 hover:text-brand-blue'
+                )}
+              >
+                <Lock size={14} />
+                Área do Técnico
+              </Link>
+            </li>
           </ul>
         </nav>
 

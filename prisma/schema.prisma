@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  role          String    @default("TECHNICIAN")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts          Account[]
+  sessions          Session[]
+  technicianProfile TechnicianProfile?
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model TechnicianProfile {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  fullName      String
+  cpf           String   @unique
+  phone         String
+  email         String
+  city          String
+  pixKey        String
+  pixKeyType    String
+  iaAssistLogin String?
+  status        String   @default("INITIATED")
+  adminNotes    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  closings Closing[]
+}
+
+model Closing {
+  id           String   @id @default(cuid())
+  technicianId String
+  competence   String
+  periodStart  DateTime
+  periodEnd    DateTime
+  totalValue   Float
+  serviceCount Int      @default(0)
+  status       String   @default("AWAITING_CLOSING")
+  observations String?
+  adminNotes   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  technician TechnicianProfile @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+  services   ClosingService[]
+  invoice    Invoice?
+}
+
+model ClosingService {
+  id          String   @id @default(cuid())
+  closingId   String
+  description String
+  value       Float
+  serviceDate DateTime
+  createdAt   DateTime @default(now())
+
+  closing Closing @relation(fields: [closingId], references: [id], onDelete: Cascade)
+}
+
+model Invoice {
+  id            String   @id @default(cuid())
+  closingId     String   @unique
+  invoiceNumber String
+  competence    String
+  value         Float
+  observations  String?
+  filePath      String
+  fileName      String
+  fileSize      Int
+  mimeType      String
+  sentAt        DateTime @default(now())
+  createdAt     DateTime @default(now())
+
+  closing Closing @relation(fields: [closingId], references: [id], onDelete: Cascade)
+}
