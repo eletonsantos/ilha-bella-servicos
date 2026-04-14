@@ -34,24 +34,42 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
-    async signIn({ user }) {
-      // Se for o e-mail admin, garante que o papel seja ADMIN no banco
-      if (user.email === process.env.ADMIN_EMAIL) {
-        await prisma.user.update({
-          where: { email: user.email },
-          data: { role: 'ADMIN' },
-        })
+    async signIn({ user, profile }) {
+      // Pega o email do user ou do profile OAuth
+      const email = user.email ?? (profile?.email as string | undefined)
+      if (email && email === process.env.ADMIN_EMAIL) {
+        try {
+          await prisma.user.upsert({
+            where: { email },
+            update: { role: 'ADMIN' },
+            create: {
+              email,
+              name: user.name ?? '',
+              image: user.image ?? null,
+              role: 'ADMIN',
+            },
+          })
+        } catch {
+          // ignora erro se o upsert falhar, o jwt callback cobre
+        }
         user.role = 'ADMIN'
       }
       return true
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, account, profile }) {
       if (user) {
         token.id = user.id
         token.role = user.role
+        // Salva email no token no primeiro login
+        if (user.email) token.email = user.email
       }
-      // Garante papel ADMIN pelo e-mail mesmo sem relogin
-      if (token.email === process.env.ADMIN_EMAIL) {
+      // Pega email do profile OAuth se disponível
+      if (!token.email && profile?.email) {
+        token.email = profile.email as string
+      }
+      // Garante papel ADMIN pelo e-mail (cobre todos os casos)
+      const adminEmail = process.env.ADMIN_EMAIL
+      if (adminEmail && token.email === adminEmail) {
         token.role = 'ADMIN'
       }
       return token
