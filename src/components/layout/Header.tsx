@@ -70,7 +70,7 @@ export default function Header() {
 
         {/* Main nav */}
         <div className="container-site">
-          <nav className="flex items-center justify-between h-16 lg:h-[68px]">
+          <nav className="flex items-center justify-between h-[90px] lg:h-[96px]">
 
             {/* Logo */}
             <Link href="/" aria-label="Ilha Bella Serviços — Página inicial">

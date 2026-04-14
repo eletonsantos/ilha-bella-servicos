@@ -33,7 +33,7 @@ export default function Hero() {
       />
 
       {/* Content */}
-      <div className="container-site relative z-10 w-full pt-28 pb-20 lg:pt-36 lg:pb-24">
+      <div className="container-site relative z-10 w-full pt-36 pb-20 lg:pt-44 lg:pb-24">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
 
           {/* Left — headline + CTAs */}

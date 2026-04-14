@@ -10,7 +10,7 @@ interface LogoBrandProps {
 
 const sizes = {
   sm: { icon: 48, title: 'text-sm', sub: 'text-xs' },
-  md: { icon: 68, title: 'text-base', sub: 'text-xs' },
+  md: { icon: 90, title: 'text-base', sub: 'text-xs' },
   lg: { icon: 80, title: 'text-lg', sub: 'text-sm' },
 }
 

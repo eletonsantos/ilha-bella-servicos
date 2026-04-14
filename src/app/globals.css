@@ -57,7 +57,7 @@
 
   /* Page hero consistent across all inner pages */
   .page-hero {
-    @apply section-padding pt-36 lg:pt-40;
+    @apply section-padding pt-44 lg:pt-48;
     background: linear-gradient(135deg, #0b1c30 0%, #0f2744 50%, #0d1f38 100%);
   }
 }
