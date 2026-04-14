@@ -23,7 +23,7 @@ export default async function FechamentoDetailPage({ params }: { params: { id: s
   })
   if (!closing) notFound()
 
-  const canSendInvoice = closing.status === 'AWAITING_INVOICE' && !closing.invoice
+  const canSendInvoice = ['CLOSING_AVAILABLE', 'AWAITING_INVOICE'].includes(closing.status) && !closing.invoice
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
