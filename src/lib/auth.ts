@@ -34,10 +34,25 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
+    async signIn({ user }) {
+      // Se for o e-mail admin, garante que o papel seja ADMIN no banco
+      if (user.email === process.env.ADMIN_EMAIL) {
+        await prisma.user.update({
+          where: { email: user.email },
+          data: { role: 'ADMIN' },
+        })
+        user.role = 'ADMIN'
+      }
+      return true
+    },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id
         token.role = user.role
+      }
+      // Garante papel ADMIN pelo e-mail mesmo sem relogin
+      if (token.email === process.env.ADMIN_EMAIL) {
+        token.role = 'ADMIN'
       }
       return token
     },
@@ -49,7 +64,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return session
     },
     async redirect({ url, baseUrl }) {
-      return url.startsWith(baseUrl) ? url : baseUrl + '/tecnico/painel'
+      if (url.startsWith(baseUrl)) return url
+      return baseUrl + '/tecnico/painel'
     },
   },
   pages: {
