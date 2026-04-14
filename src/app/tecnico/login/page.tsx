@@ -1,6 +1,6 @@
 'use client'
 
-import { signIn } from 'next-auth/react'
+import { signIn, getSession } from 'next-auth/react'
 import { useState } from 'react'
 import Link from 'next/link'
 import { Wrench, Mail, Lock, AlertCircle } from 'lucide-react'
@@ -21,8 +21,17 @@ export default function LoginPage() {
       redirect: false,
     })
     setLoading(false)
-    if (res?.error) setError('E-mail ou senha inválidos.')
-    else window.location.href = '/tecnico/painel'
+    if (res?.error) {
+      setError('E-mail ou senha inválidos.')
+    } else {
+      // Verifica a role da sessão para redirecionar corretamente
+      const session = await getSession()
+      if (session?.user?.role === 'ADMIN') {
+        window.location.href = '/admin'
+      } else {
+        window.location.href = '/tecnico/painel'
+      }
+    }
   }
 
   async function handleGoogle() {
