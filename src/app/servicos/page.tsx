@@ -2,13 +2,20 @@ import type { Metadata } from 'next'
 import { MessageCircle, Search, Wrench, CheckCircle } from 'lucide-react'
 import SectionTitle from '@/components/ui/SectionTitle'
 import ServiceCard from '@/components/ui/ServiceCard'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 import CTA from '@/components/home/CTA'
 import { SERVICES } from '@/lib/constants'
 
 export const metadata: Metadata = {
-  title: 'Serviços',
+  title: 'Encanador, Eletricista, Chaveiro e Desentupimento 24h | Florianópolis e Porto Alegre',
   description:
-    'Encanador, eletricista, chaveiro, desentupimento, manutenção residencial e assistência emergencial 24h na Grande Florianópolis e Grande Porto Alegre. Orçamento pelo WhatsApp.',
+    'Serviços de encanador, eletricista, chaveiro, desentupimento e manutenção residencial com atendimento 24 horas. Técnicos na Grande Florianópolis (SC) e Grande Porto Alegre (RS). Orçamento pelo WhatsApp.',
+  keywords: [
+    'encanador 24h Florianópolis', 'eletricista 24h Florianópolis', 'chaveiro 24h Florianópolis',
+    'desentupimento Florianópolis', 'manutenção residencial SC', 'encanador emergencial Porto Alegre',
+    'eletricista residencial Porto Alegre', 'desentupimento Porto Alegre', 'chaveiro emergencial SC',
+    'assistência 24h São José SC', 'reparos hidráulicos Florianópolis', 'instalação elétrica Florianópolis',
+  ],
 }
 
 const steps = [
@@ -21,32 +28,29 @@ const steps = [
 export default function Servicos() {
   return (
     <>
-      {/* Page hero */}
       <section className="page-hero">
         <div className="container-site">
-          <div className="max-w-2xl">
-            <p className="text-brand-gold font-semibold text-sm uppercase tracking-widest mb-4">
-              O que fazemos
-            </p>
-            <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-5 text-balance leading-tight">
-              Serviços para{' '}
-              <span className="text-brand-gold">cada situação</span>
-            </h1>
-            <p className="text-slate-300 text-lg leading-relaxed max-w-xl">
-              Do reparo emergencial à manutenção preventiva. Atendemos residências,
-              empresas e condomínios com a mesma excelência.
-            </p>
-          </div>
+          <Breadcrumb items={[{ label: 'Serviços' }]} />
+          <p className="text-brand-gold font-semibold text-sm uppercase tracking-widest mb-4">
+            O que fazemos
+          </p>
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-5 text-balance leading-tight">
+            Serviços para{' '}
+            <span className="text-brand-gold">cada situação</span>
+          </h1>
+          <p className="text-slate-300 text-lg leading-relaxed max-w-xl">
+            Encanador, eletricista, chaveiro, desentupimento e manutenção 24h
+            na Grande Florianópolis e Grande Porto Alegre.
+          </p>
         </div>
       </section>
 
-      {/* All services */}
       <section className="section-padding bg-slate-50">
         <div className="container-site">
           <SectionTitle
             eyebrow="Especialidades"
             title="Todos os serviços disponíveis"
-            subtitle="Técnicos qualificados, materiais de qualidade e garantia em cada trabalho."
+            subtitle="Técnicos qualificados, materiais de qualidade e garantia em cada trabalho realizado em Florianópolis, Porto Alegre e região."
             centered
           />
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
@@ -57,7 +61,6 @@ export default function Servicos() {
         </div>
       </section>
 
-      {/* How it works */}
       <section className="section-padding bg-white">
         <div className="container-site">
           <SectionTitle
@@ -89,7 +92,6 @@ export default function Servicos() {
         </div>
       </section>
 
-      {/* Corporate CTA */}
       <section className="section-padding bg-slate-50">
         <div className="container-site">
           <div className="card p-8 lg:p-12 max-w-4xl mx-auto text-center">
@@ -100,15 +102,13 @@ export default function Servicos() {
               Contratos de manutenção preventiva e corretiva
             </h2>
             <p className="text-slate-500 text-base leading-relaxed mb-8 max-w-2xl mx-auto">
-              Atendemos empresas, condomínios e imobiliárias com planos sob medida,
-              SLA definido e relatórios técnicos. Fale com nossa equipe.
+              Atendemos empresas, condomínios e imobiliárias na Grande Florianópolis e Porto Alegre
+              com planos sob medida, SLA definido e relatórios técnicos.
             </p>
-            <a
-              href="/seja-parceiro"
+            <a href="/seja-parceiro"
               className="inline-flex items-center gap-2 bg-brand-blue hover:bg-brand-blue-dark
                          text-white font-semibold px-8 py-3.5 rounded-xl
-                         transition-all duration-200 shadow-md hover:shadow-lg"
-            >
+                         transition-all duration-200 shadow-md hover:shadow-lg">
               Saiba mais sobre parcerias
             </a>
           </div>

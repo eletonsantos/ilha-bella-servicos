@@ -2,13 +2,20 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Phone, Mail, MapPin, Clock } from 'lucide-react'
 import SectionTitle from '@/components/ui/SectionTitle'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 import { COMPANY } from '@/lib/constants'
 import { getWhatsAppUrl } from '@/lib/whatsapp'
 
 export const metadata: Metadata = {
-  title: 'Contato',
+  title: 'Contato | Encanador e Eletricista 24h — WhatsApp Florianópolis e Porto Alegre',
   description:
-    'Entre em contato com a Ilha Bella Serviços pelo WhatsApp, telefone ou e-mail. Atendimento 24 horas todos os dias.',
+    'Entre em contato com a Ilha Bella Serviços pelo WhatsApp ou telefone. Atendimento 24 horas, 7 dias por semana. Encanador, eletricista, chaveiro e desentupimento em Florianópolis e Porto Alegre.',
+  keywords: [
+    'contato encanador Florianópolis', 'WhatsApp eletricista Porto Alegre',
+    'telefone chaveiro 24h SC', 'chamar encanador emergência Florianópolis',
+    'solicitar eletricista São José SC', 'contato desentupimento Porto Alegre',
+    'orçamento serviços residenciais SC', 'chamar técnico hidráulico Florianópolis',
+  ],
 }
 
 const WhatsAppIcon = ({ className }: { className?: string }) => (
@@ -24,6 +31,7 @@ export default function Contato() {
       <section className="page-hero">
         <div className="container-site">
           <div className="max-w-2xl">
+            <Breadcrumb items={[{ label: 'Contato' }]} />
             <p className="text-brand-gold font-semibold text-sm uppercase tracking-widest mb-4">
               Fale conosco
             </p>

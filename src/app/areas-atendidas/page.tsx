@@ -1,12 +1,20 @@
 import type { Metadata } from 'next'
 import { MapPin, CheckCircle2, Clock, Zap } from 'lucide-react'
 import SectionTitle from '@/components/ui/SectionTitle'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 import CTA from '@/components/home/CTA'
 
 export const metadata: Metadata = {
-  title: 'Áreas Atendidas',
+  title: 'Áreas Atendidas | Encanador e Eletricista em Florianópolis, São José, Porto Alegre e Região',
   description:
-    'Atendemos toda a Grande Florianópolis (SC) e Grande Porto Alegre (RS) com serviços residenciais e empresariais 24 horas. Confira as cidades cobertas.',
+    'Atendemos toda a Grande Florianópolis (SC) — Florianópolis, São José, Palhoça, Biguaçu — e Grande Porto Alegre (RS) — Porto Alegre, Canoas, São Leopoldo, Novo Hamburgo. Serviços 24 horas.',
+  keywords: [
+    'encanador São José SC', 'eletricista Palhoça SC', 'chaveiro Biguaçu SC',
+    'desentupimento São José', 'encanador Canoas RS', 'eletricista Novo Hamburgo',
+    'chaveiro São Leopoldo RS', 'serviços residenciais Gravataí', 'manutenção Florianópolis região',
+    'encanador emergencial Grande Florianópolis', 'eletricista 24h Grande Porto Alegre',
+    'assistência hidráulica Santo Amaro da Imperatriz', 'manutenção predial Cachoeirinha RS',
+  ],
 }
 
 const florianopolis = [
@@ -33,6 +41,7 @@ export default function AreasAtendidas() {
       <section className="page-hero">
         <div className="container-site">
           <div className="max-w-2xl">
+            <Breadcrumb items={[{ label: 'Áreas Atendidas' }]} />
             <p className="text-brand-gold font-semibold text-sm uppercase tracking-widest mb-4">
               Cobertura regional
             </p>

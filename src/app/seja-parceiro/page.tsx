@@ -2,13 +2,21 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Building2, Users, Handshake, TrendingUp, CheckCircle2 } from 'lucide-react'
 import SectionTitle from '@/components/ui/SectionTitle'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 import CTA from '@/components/home/CTA'
 import { getWhatsAppUrl } from '@/lib/whatsapp'
 
 export const metadata: Metadata = {
-  title: 'Seja Parceiro',
+  title: 'Seja Parceiro | Contratos de Manutenção para Imobiliárias e Condomínios em Florianópolis',
   description:
-    'Parcerias para imobiliárias, condomínios, empresas e indicadores. Contratos de manutenção, atendimento prioritário e programa de indicação.',
+    'Parcerias para imobiliárias, condomínios, empresas e indicadores em Florianópolis e Porto Alegre. Contratos de manutenção preventiva e corretiva com SLA definido, atendimento prioritário 24h.',
+  keywords: [
+    'manutenção predial condomínio Florianópolis', 'contrato manutenção imobiliária SC',
+    'parceria imobiliária Porto Alegre', 'manutenção preventiva condomínio SC',
+    'empresa manutenção predial Florianópolis', 'terceirização manutenção RS',
+    'contrato serviços residenciais Porto Alegre', 'SLA manutenção Florianópolis',
+    'programa indicação serviços SC', 'manutenção corporativa Grande Florianópolis',
+  ],
 }
 
 const partnerTypes = [
@@ -78,6 +86,7 @@ export default function SejaParceiro() {
       <section className="page-hero">
         <div className="container-site">
           <div className="max-w-2xl">
+            <Breadcrumb items={[{ label: 'Seja Parceiro' }]} />
             <p className="text-brand-gold font-semibold text-sm uppercase tracking-widest mb-4">
               Parcerias estratégicas
             </p>

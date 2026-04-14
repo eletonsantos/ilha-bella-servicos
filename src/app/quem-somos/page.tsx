@@ -1,12 +1,20 @@
 import type { Metadata } from 'next'
 import { CheckCircle2, Target, Eye, Heart, Award } from 'lucide-react'
 import SectionTitle from '@/components/ui/SectionTitle'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 import CTA from '@/components/home/CTA'
 
 export const metadata: Metadata = {
-  title: 'Quem Somos',
+  title: 'Quem Somos | Empresa de Serviços Residenciais em Florianópolis e Porto Alegre',
   description:
-    'Conheça a Ilha Bella Serviços: nossa história, missão, valores e compromisso com a qualidade no atendimento residencial e empresarial na Grande Florianópolis e Porto Alegre.',
+    'Conheça a Ilha Bella Serviços: empresa especializada em encanador, eletricista, chaveiro e desentupimento 24h. Atendemos a Grande Florianópolis (SC) e Grande Porto Alegre (RS) com qualidade e garantia.',
+  keywords: [
+    'empresa de serviços residenciais Florianópolis', 'manutenção predial Florianópolis',
+    'empresa encanador Florianópolis', 'empresa eletricista Porto Alegre',
+    'serviços residenciais 24h SC', 'manutenção residencial Porto Alegre',
+    'empresa de reparos São José SC', 'assistência residencial Palhoça',
+    'Ilha Bella Serviços Florianópolis', 'técnicos qualificados Florianópolis',
+  ],
 }
 
 const values = [
@@ -55,6 +63,7 @@ export default function QuemSomos() {
       <section className="page-hero">
         <div className="container-site">
           <div className="max-w-2xl">
+            <Breadcrumb items={[{ label: 'Quem Somos' }]} />
             <p className="text-brand-gold font-semibold text-sm uppercase tracking-widest mb-4">
               Nossa história
             </p>
