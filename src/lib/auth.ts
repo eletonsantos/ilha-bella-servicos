@@ -12,6 +12,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Google({
       clientId: process.env.AUTH_GOOGLE_ID!,
       clientSecret: process.env.AUTH_GOOGLE_SECRET!,
+      allowDangerousEmailAccountLinking: true,
     }),
     Credentials({
       name: 'credentials',
@@ -49,24 +50,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
-    async signIn({ user, profile }) {
-      // Pega o email do user ou do profile OAuth
-      const email = user.email ?? (profile?.email as string | undefined)
-      if (email && email === process.env.ADMIN_EMAIL) {
-        try {
-          await prisma.user.upsert({
-            where: { email },
-            update: { role: 'ADMIN' },
-            create: {
-              email,
-              name: user.name ?? '',
-              image: user.image ?? null,
-              role: 'ADMIN',
-            },
-          })
-        } catch {
-          // ignora erro se o upsert falhar, o jwt callback cobre
-        }
+    async signIn({ user }) {
+      // Garante role ADMIN para o e-mail admin no banco
+      if (user.email === process.env.ADMIN_EMAIL) {
         user.role = 'ADMIN'
       }
       return true
