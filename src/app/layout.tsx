@@ -1,12 +1,10 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
-import Header from '@/components/layout/Header'
-import Footer from '@/components/layout/Footer'
-import WhatsAppButton from '@/components/layout/WhatsAppButton'
 import JsonLd from '@/components/ui/JsonLd'
 import { COMPANY } from '@/lib/constants'
 import SessionProvider from '@/components/providers/SessionProvider'
+import ConditionalLayout from '@/components/providers/ConditionalLayout'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -77,10 +75,7 @@ export default function RootLayout({
       <body className="flex flex-col min-h-screen">
         <SessionProvider>
           <JsonLd />
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
-          <WhatsAppButton />
+          <ConditionalLayout>{children}</ConditionalLayout>
         </SessionProvider>
       </body>
     </html>
