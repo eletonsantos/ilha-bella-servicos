@@ -61,7 +61,9 @@
       "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_FS2zojsfIK3u@ep-green-frost-anic88dl-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require\" DIRECT_URL=\"postgresql://neondb_owner:npg_FS2zojsfIK3u@ep-green-frost-anic88dl.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require\" npx prisma db push)",
       "Bash(node scripts/generate-seo-pages.mjs)",
       "Bash(node -e \"const d=JSON.parse\\(require\\('fs'\\).readFileSync\\('C:/Users/NOT SIMONE/OneDrive/Área de Trabalho/site_ilhabella/src/data/seo-pages.json','utf-8'\\)\\); console.log\\('Páginas geradas:', Object.keys\\(d\\).length\\); Object.keys\\(d\\).forEach\\(k=>console.log\\(' ✅',k\\)\\);\")",
-      "Bash(node scripts/generate-seo-template.mjs)"
+      "Bash(node scripts/generate-seo-template.mjs)",
+      "Bash(dotenv -e .env.local -- npx prisma db push)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

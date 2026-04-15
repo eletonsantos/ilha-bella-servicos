@@ -79,8 +79,10 @@ model TechnicianProfile {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   closings Closing[]
+  disputes ClosingDispute[]
+  advances PaymentAdvance[]
 }
 
 model Closing {
@@ -104,6 +106,43 @@ model Closing {
   technician TechnicianProfile @relation(fields: [technicianId], references: [id], onDelete: Cascade)
   services   ClosingService[]
   invoice    Invoice?
+  dispute    ClosingDispute?
+  advance    PaymentAdvance?
+}
+
+model ClosingDispute {
+  id           String   @id @default(cuid())
+  closingId    String   @unique
+  technicianId String
+  reason       String
+  claimedValue Float
+  status       String   @default("PENDING")
+  adminNotes   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  closing    Closing           @relation(fields: [closingId], references: [id], onDelete: Cascade)
+  technician TechnicianProfile @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+}
+
+model PaymentAdvance {
+  id            String   @id @default(cuid())
+  closingId     String   @unique
+  technicianId  String
+  originalValue Float
+  feePercent    Float    @default(10)
+  feeValue      Float
+  netValue      Float
+  status        String   @default("PENDING")
+  signedAt      DateTime
+  signedName    String
+  signedCnpj    String?
+  adminNotes    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  closing    Closing           @relation(fields: [closingId], references: [id], onDelete: Cascade)
+  technician TechnicianProfile @relation(fields: [technicianId], references: [id], onDelete: Cascade)
 }
 
 model ClosingService {

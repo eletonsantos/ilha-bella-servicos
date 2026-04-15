@@ -7,6 +7,8 @@ import { ptBR } from 'date-fns/locale'
 import { ArrowLeft, CheckCircle, Download, FileText, CalendarClock } from 'lucide-react'
 import { CLOSING_STATUS_LABELS, CLOSING_STATUS_COLORS } from '@/lib/constants-tecnico'
 import InvoiceUploadForm from '@/components/tecnico/InvoiceUploadForm'
+import ContestacaoSection from './ContestacaoSection'
+import AntecipacaoSection from './AntecipacaoSection'
 
 export default async function FechamentoDetailPage({ params }: { params: { id: string } }) {
   const session = await auth()
@@ -19,11 +21,18 @@ export default async function FechamentoDetailPage({ params }: { params: { id: s
 
   const closing = await prisma.closing.findFirst({
     where: { id: params.id, technicianId: profile.id },
-    include: { services: true, invoice: true },
+    include: {
+      services: true,
+      invoice:  true,
+      dispute:  true,
+      advance:  true,
+    },
   })
   if (!closing) notFound()
 
   const canSendInvoice = ['CLOSING_AVAILABLE', 'AWAITING_INVOICE'].includes(closing.status) && !closing.invoice
+  const canContest     = ['CLOSING_AVAILABLE', 'AWAITING_INVOICE'].includes(closing.status)
+  const canAdvance     = closing.status === 'PAYMENT_RELEASED' && !!closing.scheduledPaymentDate
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -57,6 +66,7 @@ export default async function FechamentoDetailPage({ params }: { params: { id: s
             </span>
           </div>
         </div>
+
         {closing.scheduledPaymentDate && (
           <div className="border-t border-slate-100 pt-4">
             <p className="text-xs text-slate-500 mb-1 flex items-center gap-1.5">
@@ -68,6 +78,7 @@ export default async function FechamentoDetailPage({ params }: { params: { id: s
             </p>
           </div>
         )}
+
         {closing.observations && (
           <div className="border-t border-slate-100 pt-4">
             <p className="text-xs text-slate-500 mb-1">Observações</p>
@@ -75,6 +86,42 @@ export default async function FechamentoDetailPage({ params }: { params: { id: s
           </div>
         )}
       </div>
+
+      {/* Contestação */}
+      <ContestacaoSection
+        closingId={closing.id}
+        totalValue={closing.totalValue}
+        canContest={canContest}
+        dispute={closing.dispute ? {
+          id:           closing.dispute.id,
+          status:       closing.dispute.status,
+          reason:       closing.dispute.reason,
+          claimedValue: closing.dispute.claimedValue,
+          adminNotes:   closing.dispute.adminNotes,
+          createdAt:    closing.dispute.createdAt,
+        } : null}
+      />
+
+      {/* Antecipação */}
+      <AntecipacaoSection
+        closingId={closing.id}
+        totalValue={closing.totalValue}
+        techName={profile.fullName}
+        techCnpj={profile.cnpj}
+        canRequest={canAdvance}
+        advance={closing.advance ? {
+          id:            closing.advance.id,
+          status:        closing.advance.status,
+          originalValue: closing.advance.originalValue,
+          feePercent:    closing.advance.feePercent,
+          feeValue:      closing.advance.feeValue,
+          netValue:      closing.advance.netValue,
+          signedName:    closing.advance.signedName,
+          signedCnpj:    closing.advance.signedCnpj,
+          signedAt:      closing.advance.signedAt,
+          adminNotes:    closing.advance.adminNotes,
+        } : null}
+      />
 
       {/* Relatório PDF */}
       {closing.reportFilePath && (

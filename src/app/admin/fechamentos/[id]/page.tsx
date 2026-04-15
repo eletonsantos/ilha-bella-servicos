@@ -6,6 +6,8 @@ import { ArrowLeft, Download, FileText, CalendarClock } from 'lucide-react'
 import { CLOSING_STATUS_LABELS, CLOSING_STATUS_COLORS } from '@/lib/constants-tecnico'
 import ClosingStatusActions from './ClosingStatusActions'
 import EditarFechamentoWrapper from './EditarFechamentoWrapper'
+import DisputaActions from './DisputaActions'
+import AntecipacaoActions from './AntecipacaoActions'
 
 interface Props { params: { id: string } }
 
@@ -17,7 +19,9 @@ export default async function AdminFechamentoDetailPage({ params }: Props) {
     where: { id: params.id },
     include: {
       technician: { include: { user: { select: { email: true } } } },
-      invoice: true,
+      invoice:    true,
+      dispute:    { include: { technician: { select: { fullName: true } } } },
+      advance:    true,
     },
   })
 
@@ -81,6 +85,42 @@ export default async function AdminFechamentoDetailPage({ params }: Props) {
           fields={fields}
         />
       </div>
+
+      {/* Contestação (se existir) */}
+      {closing.dispute && (
+        <DisputaActions
+          closingId={closing.id}
+          totalValue={closing.totalValue}
+          dispute={{
+            id:           closing.dispute.id,
+            status:       closing.dispute.status,
+            reason:       closing.dispute.reason,
+            claimedValue: closing.dispute.claimedValue,
+            adminNotes:   closing.dispute.adminNotes,
+            createdAt:    closing.dispute.createdAt,
+            technician:   { fullName: closing.dispute.technician.fullName },
+          }}
+        />
+      )}
+
+      {/* Antecipação (se existir) */}
+      {closing.advance && (
+        <AntecipacaoActions
+          closingId={closing.id}
+          advance={{
+            id:            closing.advance.id,
+            status:        closing.advance.status,
+            originalValue: closing.advance.originalValue,
+            feePercent:    closing.advance.feePercent,
+            feeValue:      closing.advance.feeValue,
+            netValue:      closing.advance.netValue,
+            signedName:    closing.advance.signedName,
+            signedCnpj:    closing.advance.signedCnpj,
+            signedAt:      closing.advance.signedAt,
+            adminNotes:    closing.advance.adminNotes,
+          }}
+        />
+      )}
 
       {/* Relatório PDF */}
       {closing.reportFilePath && (

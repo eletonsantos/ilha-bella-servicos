@@ -51,6 +51,30 @@ export const PROFILE_STATUS_COLORS: Record<string, string> = {
   LINKED: 'bg-blue-100 text-blue-700',
 }
 
+export const DISPUTE_STATUS_LABELS: Record<string, string> = {
+  PENDING:  'Aguardando análise',
+  APPROVED: 'Contestação aprovada',
+  REJECTED: 'Contestação recusada',
+}
+
+export const DISPUTE_STATUS_COLORS: Record<string, string> = {
+  PENDING:  'bg-amber-100 text-amber-700',
+  APPROVED: 'bg-green-100 text-green-700',
+  REJECTED: 'bg-red-100 text-red-700',
+}
+
+export const ADVANCE_STATUS_LABELS: Record<string, string> = {
+  PENDING:  'Aguardando aprovação',
+  APPROVED: 'Antecipação aprovada',
+  REJECTED: 'Antecipação recusada',
+}
+
+export const ADVANCE_STATUS_COLORS: Record<string, string> = {
+  PENDING:  'bg-amber-100 text-amber-700',
+  APPROVED: 'bg-emerald-100 text-emerald-700',
+  REJECTED: 'bg-red-100 text-red-700',
+}
+
 export const PIX_KEY_TYPE_LABELS: Record<string, string> = {
   CPF: 'CPF',
   CNPJ: 'CNPJ',
