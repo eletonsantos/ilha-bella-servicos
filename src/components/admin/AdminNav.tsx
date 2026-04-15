@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
-import { Users, FileText, LogOut, Settings, Zap } from 'lucide-react'
+import { Users, FileText, LogOut, Settings, Zap, LayoutDashboard } from 'lucide-react'
 import { clsx } from 'clsx'
 
 interface Props {
@@ -15,9 +15,10 @@ export default function AdminNav({ user, pendingAdvances = 0 }: Props) {
   const pathname = usePathname()
 
   const links = [
-    { href: '/admin/tecnicos',     label: 'Técnicos',     icon: Users,    badge: 0 },
-    { href: '/admin/fechamentos',  label: 'Fechamentos',  icon: FileText, badge: 0 },
-    { href: '/admin/antecipacao',  label: 'Antecipação',  icon: Zap,      badge: pendingAdvances },
+    { href: '/admin/dashboard',    label: 'Dashboard',    icon: LayoutDashboard, badge: 0 },
+    { href: '/admin/tecnicos',     label: 'Técnicos',     icon: Users,           badge: 0 },
+    { href: '/admin/fechamentos',  label: 'Fechamentos',  icon: FileText,        badge: 0 },
+    { href: '/admin/antecipacao',  label: 'Antecipação',  icon: Zap,             badge: pendingAdvances },
   ]
 
   return (

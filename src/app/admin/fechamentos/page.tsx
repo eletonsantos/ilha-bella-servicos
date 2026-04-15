@@ -64,6 +64,13 @@ export default async function AdminFechamentosPage() {
             <ChevronRight size={16} className="text-slate-300 group-hover:text-brand-blue transition-colors" />
           </Link>
         ))}
+
+        {closings.length === 0 && (
+          <div className="card p-10 text-center">
+            <FileText size={36} className="text-slate-200 mx-auto mb-3" />
+            <p className="text-slate-400 font-medium">Nenhum fechamento criado ainda.</p>
+          </div>
+        )}
       </div>
     </div>
   )

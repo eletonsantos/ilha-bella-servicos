@@ -14,7 +14,7 @@ export default async function AdminAntecipacaoPage() {
       technician: { select: { fullName: true, pixKey: true, pixKeyType: true } },
     },
     orderBy: [
-      { status: 'asc' },   // PENDING primeiro (P vem antes de A/R)
+      { status: 'asc' },
       { createdAt: 'desc' },
     ],
   }).catch(() => [])
