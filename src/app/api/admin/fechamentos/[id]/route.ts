@@ -15,6 +15,17 @@ const updateSchema = z.object({
   scheduledPaymentDate: z.string().datetime().optional().nullable(),
 })
 
+export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+  const session = await auth()
+  if (session?.user?.role !== 'ADMIN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  const closing = await prisma.closing.findUnique({ where: { id: params.id } })
+  if (!closing) return NextResponse.json({ error: 'Fechamento não encontrado' }, { status: 404 })
+
+  await prisma.closing.delete({ where: { id: params.id } })
+  return NextResponse.json({ success: true })
+}
+
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   const session = await auth()
   if (session?.user?.role !== 'ADMIN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })

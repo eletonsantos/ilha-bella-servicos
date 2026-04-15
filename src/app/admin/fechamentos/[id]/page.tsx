@@ -8,6 +8,7 @@ import ClosingStatusActions from './ClosingStatusActions'
 import EditarFechamentoWrapper from './EditarFechamentoWrapper'
 import DisputaActions from './DisputaActions'
 import AntecipacaoActions from './AntecipacaoActions'
+import DeleteFechamentoButton from './DeleteFechamentoButton'
 
 interface Props { params: { id: string } }
 
@@ -172,6 +173,13 @@ export default async function AdminFechamentoDetailPage({ params }: Props) {
 
       {/* Ações de status */}
       <ClosingStatusActions closingId={closing.id} currentStatus={closing.status} />
+
+      {/* Excluir fechamento */}
+      <DeleteFechamentoButton
+        closingId={closing.id}
+        competence={closing.competence}
+        techName={closing.technician.fullName}
+      />
     </div>
   )
 }
