@@ -69,9 +69,12 @@ model TechnicianProfile {
   pixKey        String
   pixKeyType    String
   iaAssistLogin String?
-  cnpj          String?
-  razaoSocial   String?
-  status        String   @default("INITIATED")
+  cnpj               String?
+  razaoSocial        String?
+  tabelaValoresPath  String?
+  tabelaValoresName  String?
+  tabelaValoresSize  Int?
+  status             String   @default("INITIATED")
   adminNotes    String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt

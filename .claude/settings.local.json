@@ -48,7 +48,20 @@
       "Bash(mkdir -p \"C:\\\\Users\\\\NOT SIMONE\\\\OneDrive\\\\Área de Trabalho\\\\site_ilhabella\\\\src\\\\app\\\\admin\\\\fechamentos\\\\[id]\")",
       "Bash(mkdir -p \"C:\\\\Users\\\\NOT SIMONE\\\\OneDrive\\\\Área de Trabalho\\\\site_ilhabella\\\\src\\\\app\\\\api\\\\admin\\\\fechamentos\\\\[id]\\\\report\")",
       "Bash(\"/c/Program Files/nodejs/node.exe\" \"./node_modules/.bin/npm\" install @vercel/blob)",
-      "Bash(\"/c/Program Files/nodejs/npm.cmd\" install @vercel/blob)"
+      "Bash(\"/c/Program Files/nodejs/npm.cmd\" install @vercel/blob)",
+      "Bash(npx prisma:*)",
+      "Bash(cmd /c \"cd /d \\\\\"C:\\\\Users\\\\NOT SIMONE\\\\OneDrive\\\\Área de Trabalho\\\\site_ilhabella\\\\\" && npx prisma db push 2>&1\")",
+      "Bash(cmd /c \"cd /d \\\\\"C:\\\\Users\\\\NOT SIMONE\\\\OneDrive\\\\Área de Trabalho\\\\site_ilhabella\\\\\" && npx prisma db push\")",
+      "Bash(node_modules/.bin/prisma db:*)",
+      "Bash(where node:*)",
+      "Read(//usr/local/bin/**)",
+      "Read(//c/Users/NOT SIMONE/.nvm/versions/**)",
+      "Bash(powershell -Command \"Get-Command node | Select-Object -ExpandProperty Source\")",
+      "Bash(export PATH=\"/c/Program Files/nodejs:$PATH\")",
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_FS2zojsfIK3u@ep-green-frost-anic88dl-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require\" DIRECT_URL=\"postgresql://neondb_owner:npg_FS2zojsfIK3u@ep-green-frost-anic88dl.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require\" npx prisma db push)",
+      "Bash(node scripts/generate-seo-pages.mjs)",
+      "Bash(node -e \"const d=JSON.parse\\(require\\('fs'\\).readFileSync\\('C:/Users/NOT SIMONE/OneDrive/Área de Trabalho/site_ilhabella/src/data/seo-pages.json','utf-8'\\)\\); console.log\\('Páginas geradas:', Object.keys\\(d\\).length\\); Object.keys\\(d\\).forEach\\(k=>console.log\\(' ✅',k\\)\\);\")",
+      "Bash(node scripts/generate-seo-template.mjs)"
     ]
   }
 }

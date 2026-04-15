@@ -5,9 +5,22 @@ import { z } from 'zod'
 
 const VALID_STATUSES = ['INITIATED', 'AWAITING_APPROVAL', 'APPROVED', 'LINKED'] as const
 
+// Schema para edição completa do cadastro pelo admin
 const patchSchema = z.object({
-  status: z.enum(VALID_STATUSES),
-  adminNotes: z.string().optional(),
+  // Status / notas
+  status:       z.enum(VALID_STATUSES).optional(),
+  adminNotes:   z.string().optional(),
+  // Dados pessoais
+  fullName:     z.string().min(3).optional(),
+  cpf:          z.string().regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/).optional(),
+  phone:        z.string().min(10).optional(),
+  email:        z.string().email().optional(),
+  city:         z.string().min(2).optional(),
+  pixKey:       z.string().min(1).optional(),
+  pixKeyType:   z.enum(['CPF', 'CNPJ', 'EMAIL', 'PHONE', 'RANDOM']).optional(),
+  iaAssistLogin: z.string().optional(),
+  cnpj:         z.string().optional(),
+  razaoSocial:  z.string().optional(),
 })
 
 export async function PATCH(
@@ -22,22 +35,15 @@ export async function PATCH(
   const body = await req.json()
   const parsed = patchSchema.safeParse(body)
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 })
+    return NextResponse.json({ error: 'Dados inválidos', details: parsed.error.flatten() }, { status: 400 })
   }
 
-  const tech = await prisma.technicianProfile.findUnique({
-    where: { id: params.id },
-  })
-  if (!tech) {
-    return NextResponse.json({ error: 'Técnico não encontrado' }, { status: 404 })
-  }
+  const tech = await prisma.technicianProfile.findUnique({ where: { id: params.id } })
+  if (!tech) return NextResponse.json({ error: 'Técnico não encontrado' }, { status: 404 })
 
   const updated = await prisma.technicianProfile.update({
     where: { id: params.id },
-    data: {
-      status: parsed.data.status,
-      ...(parsed.data.adminNotes !== undefined && { adminNotes: parsed.data.adminNotes }),
-    },
+    data: parsed.data,
   })
 
   return NextResponse.json({ success: true, profile: updated })
@@ -60,9 +66,6 @@ export async function GET(
     },
   })
 
-  if (!tech) {
-    return NextResponse.json({ error: 'Técnico não encontrado' }, { status: 404 })
-  }
-
+  if (!tech) return NextResponse.json({ error: 'Técnico não encontrado' }, { status: 404 })
   return NextResponse.json(tech)
 }

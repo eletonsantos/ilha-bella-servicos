@@ -2,8 +2,13 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { FileText, DollarSign, ChevronRight, Clock } from 'lucide-react'
-import { CLOSING_STATUS_LABELS, CLOSING_STATUS_COLORS, PROFILE_STATUS_LABELS, PROFILE_STATUS_COLORS } from '@/lib/constants-tecnico'
+import { FileText, DollarSign, ChevronRight, Clock, TableProperties } from 'lucide-react'
+import {
+  CLOSING_STATUS_LABELS,
+  CLOSING_STATUS_COLORS,
+  PROFILE_STATUS_LABELS,
+  PROFILE_STATUS_COLORS,
+} from '@/lib/constants-tecnico'
 
 export default async function PainelPage() {
   const session = await auth()
@@ -20,12 +25,12 @@ export default async function PainelPage() {
     },
   })
 
-  // Admin não precisa de perfil de técnico
   if (session.user.role === 'ADMIN') redirect('/admin')
   if (!profile) redirect('/tecnico/cadastro')
 
   const lastClosing = profile.closings[0]
-  const firstName = profile.fullName.split(' ')[0]
+  const firstName   = profile.fullName.split(' ')[0]
+  const hasTabela   = !!profile.tabelaValoresPath
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -38,7 +43,9 @@ export default async function PainelPage() {
       {/* Status do cadastro */}
       <div className="card p-6 flex items-center justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Status do cadastro</p>
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
+            Status do cadastro
+          </p>
           <span className={`inline-block text-sm font-semibold px-3 py-1 rounded-full ${PROFILE_STATUS_COLORS[profile.status]}`}>
             {PROFILE_STATUS_LABELS[profile.status]}
           </span>
@@ -55,7 +62,10 @@ export default async function PainelPage() {
         <div className="card p-6">
           <div className="flex items-center justify-between mb-5">
             <h2 className="font-bold text-dark">Último fechamento</h2>
-            <Link href="/tecnico/fechamentos" className="text-brand-blue text-sm font-medium hover:underline flex items-center gap-1">
+            <Link
+              href="/tecnico/fechamentos"
+              className="text-brand-blue text-sm font-medium hover:underline flex items-center gap-1"
+            >
               Ver todos <ChevronRight size={14} />
             </Link>
           </div>
@@ -107,13 +117,18 @@ export default async function PainelPage() {
         <div className="card p-10 text-center">
           <FileText size={40} className="text-slate-200 mx-auto mb-4" />
           <p className="text-slate-500">Nenhum fechamento disponível ainda.</p>
-          <p className="text-slate-400 text-sm mt-1">Seus fechamentos aparecerão aqui quando disponibilizados.</p>
+          <p className="text-slate-400 text-sm mt-1">
+            Seus fechamentos aparecerão aqui quando disponibilizados.
+          </p>
         </div>
       )}
 
       {/* Quick actions */}
       <div className="grid sm:grid-cols-2 gap-4">
-        <Link href="/tecnico/fechamentos" className="card p-5 flex items-center gap-4 hover:shadow-md transition-shadow group">
+        <Link
+          href="/tecnico/fechamentos"
+          className="card p-5 flex items-center gap-4 hover:shadow-md transition-shadow group"
+        >
           <div className="w-11 h-11 rounded-xl bg-brand-blue/10 flex items-center justify-center flex-shrink-0 group-hover:bg-brand-blue/20 transition-colors">
             <FileText size={20} className="text-brand-blue" />
           </div>
@@ -123,7 +138,40 @@ export default async function PainelPage() {
           </div>
           <ChevronRight size={16} className="text-slate-300 ml-auto" />
         </Link>
-        <Link href="/tecnico/fechamentos" className="card p-5 flex items-center gap-4 hover:shadow-md transition-shadow group">
+
+        {/* Tabela de Valores */}
+        {hasTabela ? (
+          <a
+            href={`/api/admin/tecnicos/${profile.id}/tabela`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="card p-5 flex items-center gap-4 hover:shadow-md transition-shadow group"
+          >
+            <div className="w-11 h-11 rounded-xl bg-green-50 flex items-center justify-center flex-shrink-0 group-hover:bg-green-100 transition-colors">
+              <TableProperties size={20} className="text-green-600" />
+            </div>
+            <div>
+              <p className="font-bold text-dark text-sm">Tabela de valores</p>
+              <p className="text-slate-500 text-xs">Clique para abrir o PDF</p>
+            </div>
+            <ChevronRight size={16} className="text-slate-300 ml-auto" />
+          </a>
+        ) : (
+          <div className="card p-5 flex items-center gap-4 opacity-50 cursor-not-allowed">
+            <div className="w-11 h-11 rounded-xl bg-slate-100 flex items-center justify-center flex-shrink-0">
+              <TableProperties size={20} className="text-slate-400" />
+            </div>
+            <div>
+              <p className="font-bold text-dark text-sm">Tabela de valores</p>
+              <p className="text-slate-500 text-xs">Ainda não disponível</p>
+            </div>
+          </div>
+        )}
+
+        <Link
+          href="/tecnico/fechamentos"
+          className="card p-5 flex items-center gap-4 hover:shadow-md transition-shadow group"
+        >
           <div className="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0 group-hover:bg-amber-100 transition-colors">
             <DollarSign size={20} className="text-amber-600" />
           </div>

@@ -53,6 +53,28 @@ export async function saveInvoiceFile(
   }
 }
 
+export async function saveTabelaFile(
+  file: File,
+  technicianId: string
+): Promise<{ filePath: string; fileName: string; fileSize: number }> {
+  if (file.size > MAX_FILE_SIZE) throw new Error('Arquivo muito grande. Máximo 10MB.')
+  if (file.type !== 'application/pdf') throw new Error('Apenas PDF é aceito para tabela de valores.')
+
+  const safeName = `tabelas/${technicianId}/${Date.now()}.pdf`
+
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    const blob = await put(safeName, file, { access: 'public' })
+    return { filePath: blob.url, fileName: file.name, fileSize: file.size }
+  }
+
+  const uploadPath = path.join(process.cwd(), 'uploads', 'tabelas')
+  await mkdir(uploadPath, { recursive: true })
+  const absolutePath = path.join(uploadPath, `${technicianId}_${Date.now()}.pdf`)
+  const bytes = await file.arrayBuffer()
+  await writeFile(absolutePath, Buffer.from(bytes))
+  return { filePath: absolutePath, fileName: file.name, fileSize: file.size }
+}
+
 export async function saveReportFile(
   file: File,
   technicianId: string

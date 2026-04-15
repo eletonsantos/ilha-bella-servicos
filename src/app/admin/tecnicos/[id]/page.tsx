@@ -9,6 +9,8 @@ import {
   PIX_KEY_TYPE_LABELS,
 } from '@/lib/constants-tecnico'
 import TecnicoStatusActions from './TecnicoStatusActions'
+import EditarCadastroWrapper from './EditarCadastroWrapper'
+import TabelaValoresUpload from './TabelaValoresUpload'
 
 interface Props {
   params: { id: string }
@@ -29,16 +31,16 @@ export default async function AdminTecnicoDetailPage({ params }: Props) {
   if (!tech) notFound()
 
   const fields = [
-    { label: 'Nome completo', value: tech.fullName },
-    { label: 'CPF', value: tech.cpf },
-    { label: 'Telefone', value: tech.phone },
-    { label: 'E-mail', value: tech.email },
-    { label: 'Cidade', value: tech.city },
-    { label: 'Chave Pix', value: `${tech.pixKey} (${PIX_KEY_TYPE_LABELS[tech.pixKeyType] ?? tech.pixKeyType})` },
-    { label: 'CNPJ', value: tech.cnpj ?? '—' },
-    { label: 'Razão Social', value: tech.razaoSocial ?? '—' },
-    { label: 'Login IA Assist', value: tech.iaAssistLogin ?? '—' },
-    { label: 'Cadastrado em', value: new Date(tech.createdAt).toLocaleDateString('pt-BR') },
+    { label: 'Nome completo',  value: tech.fullName },
+    { label: 'CPF',            value: tech.cpf },
+    { label: 'Telefone',       value: tech.phone },
+    { label: 'E-mail',         value: tech.email },
+    { label: 'Cidade',         value: tech.city },
+    { label: 'Chave Pix',      value: `${tech.pixKey} (${PIX_KEY_TYPE_LABELS[tech.pixKeyType] ?? tech.pixKeyType})` },
+    { label: 'CNPJ',           value: tech.cnpj ?? '—' },
+    { label: 'Razão Social',   value: tech.razaoSocial ?? '—' },
+    { label: 'Login IA Assist',value: tech.iaAssistLogin ?? '—' },
+    { label: 'Cadastrado em',  value: new Date(tech.createdAt).toLocaleDateString('pt-BR') },
   ]
 
   return (
@@ -52,30 +54,48 @@ export default async function AdminTecnicoDetailPage({ params }: Props) {
         Voltar para técnicos
       </Link>
 
-      {/* Header */}
+      {/* Header com status */}
       <div className="card p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-extrabold text-dark">{tech.fullName}</h1>
           <p className="text-slate-400 text-sm mt-0.5">{tech.user.email}</p>
         </div>
-        <span
-          className={`text-xs font-semibold px-3 py-1.5 rounded-full w-fit ${PROFILE_STATUS_COLORS[tech.status]}`}
-        >
+        <span className={`text-xs font-semibold px-3 py-1.5 rounded-full w-fit ${PROFILE_STATUS_COLORS[tech.status]}`}>
           {PROFILE_STATUS_LABELS[tech.status]}
         </span>
       </div>
 
-      {/* Dados do técnico */}
+      {/* Dados do cadastro — com botão Editar embutido */}
       <div className="card p-6">
-        <h2 className="text-base font-bold text-dark mb-4">Dados do cadastro</h2>
-        <dl className="grid sm:grid-cols-2 gap-x-8 gap-y-4">
-          {fields.map((f) => (
-            <div key={f.label}>
-              <dt className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">{f.label}</dt>
-              <dd className="text-sm font-medium text-dark">{f.value}</dd>
-            </div>
-          ))}
-        </dl>
+        <EditarCadastroWrapper
+          fields={fields}
+          tech={{
+            id:           tech.id,
+            fullName:     tech.fullName,
+            cpf:          tech.cpf,
+            phone:        tech.phone,
+            email:        tech.email,
+            city:         tech.city,
+            pixKey:       tech.pixKey,
+            pixKeyType:   tech.pixKeyType,
+            iaAssistLogin:tech.iaAssistLogin,
+            cnpj:         tech.cnpj,
+            razaoSocial:  tech.razaoSocial,
+          }}
+        />
+      </div>
+
+      {/* Tabela de Valores */}
+      <div className="card p-6">
+        <h2 className="text-base font-bold text-dark mb-1">Tabela de Valores</h2>
+        <p className="text-sm text-slate-400 mb-4">
+          Suba o PDF com a tabela de preços deste técnico. Ele poderá visualizar diretamente no painel.
+        </p>
+        <TabelaValoresUpload
+          techId={tech.id}
+          tabelaName={tech.tabelaValoresName ?? null}
+          tabelaSize={tech.tabelaValoresSize ?? null}
+        />
       </div>
 
       {/* Observações do admin */}
