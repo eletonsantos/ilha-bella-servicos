@@ -45,6 +45,7 @@ export default function AntecipacaoCard({ closing, techName, techCnpj, advance }
     e.preventDefault()
     if (!agreed) { setError('Você precisa aceitar os termos para continuar'); return }
     if (!signedName.trim()) { setError('Informe o nome completo'); return }
+    if (!signedCnpj.trim()) { setError('Informe o CNPJ'); return }
     setLoading(true)
     setError('')
     try {
@@ -206,13 +207,14 @@ export default function AntecipacaoCard({ closing, techName, techCnpj, advance }
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
-                CNPJ <span className="font-normal text-slate-400">(se houver)</span>
+                CNPJ *
               </label>
               <input
                 value={signedCnpj}
                 onChange={e => setSignedCnpj(e.target.value)}
                 placeholder="00.000.000/0001-00"
                 className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                required
               />
             </div>
           </div>

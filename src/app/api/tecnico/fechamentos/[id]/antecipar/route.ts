@@ -5,7 +5,7 @@ import { z } from 'zod'
 
 const schema = z.object({
   signedName: z.string().min(3, 'Informe o nome completo'),
-  signedCnpj: z.string().optional(),
+  signedCnpj: z.string().min(1, 'Informe o CNPJ'),
 })
 
 const FEE_PERCENT = 10
@@ -53,7 +53,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       status:        'PENDING',
       signedAt:      new Date(),
       signedName:    parsed.data.signedName,
-      signedCnpj:    parsed.data.signedCnpj ?? profile.cnpj ?? undefined,
+      signedCnpj:    parsed.data.signedCnpj,
     },
   })
 
