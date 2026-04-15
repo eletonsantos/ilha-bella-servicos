@@ -21,14 +21,15 @@ export default async function FechamentoDetailPage({ params }: { params: { id: s
 
   const closing = await prisma.closing.findFirst({
     where: { id: params.id, technicianId: profile.id },
-    include: {
-      services: true,
-      invoice:  true,
-      dispute:  true,
-      advance:  true,
-    },
+    include: { services: true, invoice: true },
   })
   if (!closing) notFound()
+
+  // Fetch dispute and advance separately so they don't break the page if tables are new
+  const [dispute, advance] = await Promise.all([
+    prisma.closingDispute.findUnique({ where: { closingId: closing.id } }).catch(() => null),
+    prisma.paymentAdvance.findUnique({ where: { closingId: closing.id } }).catch(() => null),
+  ])
 
   const canSendInvoice = ['CLOSING_AVAILABLE', 'AWAITING_INVOICE'].includes(closing.status) && !closing.invoice
   const canContest     = ['CLOSING_AVAILABLE', 'AWAITING_INVOICE'].includes(closing.status)
@@ -87,41 +88,45 @@ export default async function FechamentoDetailPage({ params }: { params: { id: s
         )}
       </div>
 
-      {/* Contestação */}
-      <ContestacaoSection
-        closingId={closing.id}
-        totalValue={closing.totalValue}
-        canContest={canContest}
-        dispute={closing.dispute ? {
-          id:           closing.dispute.id,
-          status:       closing.dispute.status,
-          reason:       closing.dispute.reason,
-          claimedValue: closing.dispute.claimedValue,
-          adminNotes:   closing.dispute.adminNotes,
-          createdAt:    closing.dispute.createdAt,
-        } : null}
-      />
+      {/* Contestação — visível sempre que canContest ou já enviada */}
+      {(canContest || dispute) && (
+        <ContestacaoSection
+          closingId={closing.id}
+          totalValue={closing.totalValue}
+          canContest={canContest}
+          dispute={dispute ? {
+            id:           dispute.id,
+            status:       dispute.status,
+            reason:       dispute.reason,
+            claimedValue: dispute.claimedValue,
+            adminNotes:   dispute.adminNotes,
+            createdAt:    dispute.createdAt,
+          } : null}
+        />
+      )}
 
       {/* Antecipação */}
-      <AntecipacaoSection
-        closingId={closing.id}
-        totalValue={closing.totalValue}
-        techName={profile.fullName}
-        techCnpj={profile.cnpj}
-        canRequest={canAdvance}
-        advance={closing.advance ? {
-          id:            closing.advance.id,
-          status:        closing.advance.status,
-          originalValue: closing.advance.originalValue,
-          feePercent:    closing.advance.feePercent,
-          feeValue:      closing.advance.feeValue,
-          netValue:      closing.advance.netValue,
-          signedName:    closing.advance.signedName,
-          signedCnpj:    closing.advance.signedCnpj,
-          signedAt:      closing.advance.signedAt,
-          adminNotes:    closing.advance.adminNotes,
-        } : null}
-      />
+      {(canAdvance || advance) && (
+        <AntecipacaoSection
+          closingId={closing.id}
+          totalValue={closing.totalValue}
+          techName={profile.fullName}
+          techCnpj={profile.cnpj}
+          canRequest={canAdvance}
+          advance={advance ? {
+            id:            advance.id,
+            status:        advance.status,
+            originalValue: advance.originalValue,
+            feePercent:    advance.feePercent,
+            feeValue:      advance.feeValue,
+            netValue:      advance.netValue,
+            signedName:    advance.signedName,
+            signedCnpj:    advance.signedCnpj,
+            signedAt:      advance.signedAt,
+            adminNotes:    advance.adminNotes,
+          } : null}
+        />
+      )}
 
       {/* Relatório PDF */}
       {closing.reportFilePath && (
