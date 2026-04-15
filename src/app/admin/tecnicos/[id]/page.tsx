@@ -35,6 +35,8 @@ export default async function AdminTecnicoDetailPage({ params }: Props) {
     { label: 'E-mail', value: tech.email },
     { label: 'Cidade', value: tech.city },
     { label: 'Chave Pix', value: `${tech.pixKey} (${PIX_KEY_TYPE_LABELS[tech.pixKeyType] ?? tech.pixKeyType})` },
+    { label: 'CNPJ', value: tech.cnpj ?? '—' },
+    { label: 'Razão Social', value: tech.razaoSocial ?? '—' },
     { label: 'Login IA Assist', value: tech.iaAssistLogin ?? '—' },
     { label: 'Cadastrado em', value: new Date(tech.createdAt).toLocaleDateString('pt-BR') },
   ]

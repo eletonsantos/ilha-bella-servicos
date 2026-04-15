@@ -16,6 +16,8 @@ const schema = z.object({
   pixKey: z.string().min(1, 'Chave Pix obrigatória'),
   pixKeyType: z.enum(['CPF', 'CNPJ', 'EMAIL', 'PHONE', 'RANDOM']),
   iaAssistLogin: z.string().optional(),
+  cnpj: z.string().optional(),
+  razaoSocial: z.string().optional(),
 })
 
 type FormData = z.infer<typeof schema>
@@ -108,6 +110,17 @@ export default function CadastroPage() {
                 <label className={labelClass}>Chave Pix *</label>
                 <input {...register('pixKey')} className={inputClass} placeholder="Sua chave Pix" />
                 {errors.pixKey && <p className={errorClass}>{errors.pixKey.message}</p>}
+              </div>
+              <div className="sm:col-span-2 border-t border-slate-100 pt-4">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Dados da empresa (se terceirizado)</p>
+              </div>
+              <div>
+                <label className={labelClass}>CNPJ <span className="text-slate-400 font-normal">(opcional)</span></label>
+                <input {...register('cnpj')} className={inputClass} placeholder="00.000.000/0001-00" />
+              </div>
+              <div>
+                <label className={labelClass}>Razão Social <span className="text-slate-400 font-normal">(opcional)</span></label>
+                <input {...register('razaoSocial')} className={inputClass} placeholder="Nome da empresa" />
               </div>
               <div className="sm:col-span-2">
                 <label className={labelClass}>Login no app IA Assist <span className="text-slate-400 font-normal">(opcional — para vinculação futura)</span></label>

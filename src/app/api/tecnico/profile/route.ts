@@ -12,6 +12,8 @@ const profileSchema = z.object({
   pixKey: z.string().min(1),
   pixKeyType: z.enum(['CPF', 'CNPJ', 'EMAIL', 'PHONE', 'RANDOM']),
   iaAssistLogin: z.string().optional(),
+  cnpj: z.string().optional(),
+  razaoSocial: z.string().optional(),
 })
 
 export async function GET() {

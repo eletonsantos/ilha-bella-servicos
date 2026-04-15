@@ -69,6 +69,8 @@ model TechnicianProfile {
   pixKey        String
   pixKeyType    String
   iaAssistLogin String?
+  cnpj          String?
+  razaoSocial   String?
   status        String   @default("INITIATED")
   adminNotes    String?
   createdAt     DateTime @default(now())
