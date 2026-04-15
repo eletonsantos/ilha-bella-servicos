@@ -5,8 +5,12 @@ export default auth((req) => {
   const { pathname } = req.nextUrl
   const session = req.auth
 
-  // Protect /tecnico/* (except login)
-  if (pathname.startsWith('/tecnico') && !pathname.startsWith('/tecnico/login')) {
+  // Protect /tecnico/* (except the portal landing and login pages)
+  if (
+    pathname.startsWith('/tecnico') &&
+    pathname !== '/tecnico' &&
+    !pathname.startsWith('/tecnico/login')
+  ) {
     if (!session) {
       return NextResponse.redirect(new URL('/tecnico/login', req.url))
     }
