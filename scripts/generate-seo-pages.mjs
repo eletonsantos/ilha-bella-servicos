@@ -11,7 +11,6 @@
  * ╚══════════════════════════════════════════════════════════════════╝
  */
 
-import { GoogleGenerativeAI } from '@google/generative-ai'
 import { readFileSync, writeFileSync, existsSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
@@ -101,19 +100,36 @@ function sleep(ms) {
 function extractJson(text) {
   // Remove blocos markdown ```json ... ```
   let cleaned = text
-    .replace(/^```json\s*/i, '')
-    .replace(/^```\s*/i, '')
-    .replace(/\s*```$/i, '')
+    .replace(/```json\s*/gi, '')
+    .replace(/```\s*/gi, '')
     .trim()
 
-  // Tenta encontrar o JSON dentro do texto se houver texto antes/depois
+  // Extrai apenas o objeto JSON (do { até o último })
   const start = cleaned.indexOf('{')
   const end = cleaned.lastIndexOf('}')
   if (start !== -1 && end !== -1 && end > start) {
     cleaned = cleaned.slice(start, end + 1)
   }
 
-  return JSON.parse(cleaned)
+  // Correções comuns em JSON gerado por LLMs
+  cleaned = cleaned
+    // Remove vírgulas antes de } ou ]
+    .replace(/,(\s*[}\]])/g, '$1')
+    // Substitui aspas "inteligentes" por aspas normais
+    .replace(/[\u201C\u201D\u201E\u201F]/g, '"')
+    .replace(/[\u2018\u2019\u201A\u201B]/g, "'")
+    // Remove caracteres de controle dentro de strings (exceto \n \t \r)
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '')
+
+  try {
+    return JSON.parse(cleaned)
+  } catch (e) {
+    // Última tentativa: remove linhas com problemas conhecidos
+    const lines = cleaned.split('\n')
+    const fixed = lines.filter(l => !l.includes('\\')).join('\n')
+      .replace(/,(\s*[}\]])/g, '$1')
+    return JSON.parse(fixed)
+  }
 }
 
 // ── Prompt para o Gemini ──────────────────────────────────────────────────────
@@ -195,14 +211,32 @@ async function main() {
   const forceAll = args.includes('--force-all')
   const forceSlug = args.includes('--force') ? args[args.indexOf('--force') + 1] : null
 
-  const genAI = new GoogleGenerativeAI(apiKey)
-  const model = genAI.getGenerativeModel({
-    model: 'gemini-1.5-flash',
-    generationConfig: {
-      temperature: 0.7,
-      maxOutputTokens: 2048,
-    },
-  })
+  const GEMINI_MODEL = 'gemini-2.5-flash'
+  const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`
+
+  async function callGemini(prompt) {
+    const res = await fetch(GEMINI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.4, maxOutputTokens: 2048 },
+      }),
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      const msg = err?.error?.message ?? res.statusText
+      // 503 = sobrecarga temporária — lança erro especial para backoff maior
+      if (res.status === 503) throw new Error(`OVERLOAD:${msg}`)
+      throw new Error(`HTTP ${res.status}: ${msg}`)
+    }
+    const json = await res.json()
+    const text = json?.candidates?.[0]?.content?.parts?.[0]?.text
+    if (!text) throw new Error('Resposta vazia do modelo')
+    return text
+  }
+
+  console.log(`   Modelo: ${GEMINI_MODEL}\n`)
 
   let data = loadData()
 
@@ -245,10 +279,20 @@ async function main() {
         tentativas++
         try {
           const prompt = buildPrompt(service, city)
-          const result = await model.generateContent(prompt)
-          const text = result.response.text()
+          const text = await callGemini(prompt)
 
-          const parsed = extractJson(text)
+          let parsed
+          try {
+            parsed = extractJson(text)
+          } catch (jsonErr) {
+            // Mostra trecho do JSON inválido para diagnóstico
+            const pos = jsonErr.message.match(/position (\d+)/)?.[1]
+            if (pos) {
+              const p = parseInt(pos)
+              console.error(`   JSON inválido perto da posição ${pos}: ...${text.slice(Math.max(0, p-60), p+60)}...`)
+            }
+            throw jsonErr
+          }
 
           // Valida campos obrigatórios
           if (!parsed.meta?.title || !parsed.h1 || !parsed.faqs?.length) {
@@ -270,15 +314,19 @@ async function main() {
           sucesso = true
 
           // Respeita rate limit: 5s entre requisições (12 RPM, limite é 15 RPM)
-          if (current < total) await sleep(5000)
+          // 8s entre requisições (~7 RPM, bem abaixo do limite de 20 RPM)
+          if (current < total) await sleep(8000)
 
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err)
+          const isOverload = msg.startsWith('OVERLOAD:')
+          const waitMs = isOverload ? 45000 : 20000
+          const waitLabel = isOverload ? '45s (sobrecarga)' : '20s'
           if (tentativas < 3) {
-            console.warn(`${progress} ⚠️  Tentativa ${tentativas}/3 falhou: ${msg}. Aguardando 15s...`)
-            await sleep(15000)
+            console.warn(`${progress} ⚠️  Tentativa ${tentativas}/3 falhou. Aguardando ${waitLabel}...`)
+            await sleep(waitMs)
           } else {
-            console.error(`${progress} ❌ Erro em ${key}: ${msg}`)
+            console.error(`${progress} ❌ Erro em ${key}: ${msg.replace('OVERLOAD:','')}`)
             errors++
           }
         }
