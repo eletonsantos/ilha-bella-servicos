@@ -6,15 +6,16 @@ import { useState } from 'react'
 interface LogoBrandProps {
   size?: 'sm' | 'md' | 'lg'
   light?: boolean
+  showText?: boolean
 }
 
 const sizes = {
   sm: { icon: 48, title: 'text-sm', sub: 'text-xs' },
-  md: { icon: 90, title: 'text-base', sub: 'text-xs' },
+  md: { icon: 72, title: 'text-base', sub: 'text-xs' },
   lg: { icon: 80, title: 'text-lg', sub: 'text-sm' },
 }
 
-export default function LogoBrand({ size = 'md', light = false }: LogoBrandProps) {
+export default function LogoBrand({ size = 'md', light = false, showText = false }: LogoBrandProps) {
   const [imgError, setImgError] = useState(false)
   const s = sizes[size]
 
@@ -58,14 +59,16 @@ export default function LogoBrand({ size = 'md', light = false }: LogoBrandProps
         )}
       </span>
 
-      <span className="leading-tight hidden xs:block">
-        <span className={`block font-extrabold tracking-wide ${s.title} ${light ? 'text-white' : 'text-brand-blue'}`}>
-          ILHA BELLA
+      {showText && (
+        <span className="leading-tight hidden xs:block">
+          <span className={`block font-extrabold tracking-wide ${s.title} ${light ? 'text-white' : 'text-brand-blue'}`}>
+            ILHA BELLA
+          </span>
+          <span className={`block font-medium ${s.sub} text-brand-gold`}>
+            Serviços
+          </span>
         </span>
-        <span className={`block font-medium ${s.sub} text-brand-gold`}>
-          Serviços
-        </span>
-      </span>
+      )}
     </span>
   )
 }
