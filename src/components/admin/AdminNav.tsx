@@ -3,20 +3,23 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
-import { Users, FileText, LogOut, Settings } from 'lucide-react'
+import { Users, FileText, LogOut, Settings, Zap } from 'lucide-react'
 import { clsx } from 'clsx'
 
 interface Props {
   user: { name?: string | null }
+  pendingAdvances?: number
 }
 
-const links = [
-  { href: '/admin/tecnicos', label: 'Técnicos', icon: Users },
-  { href: '/admin/fechamentos', label: 'Fechamentos', icon: FileText },
-]
-
-export default function AdminNav({ user }: Props) {
+export default function AdminNav({ user, pendingAdvances = 0 }: Props) {
   const pathname = usePathname()
+
+  const links = [
+    { href: '/admin/tecnicos',     label: 'Técnicos',     icon: Users,    badge: 0 },
+    { href: '/admin/fechamentos',  label: 'Fechamentos',  icon: FileText, badge: 0 },
+    { href: '/admin/antecipacao',  label: 'Antecipação',  icon: Zap,      badge: pendingAdvances },
+  ]
+
   return (
     <nav className="bg-slate-900 border-b border-slate-800 sticky top-0 z-40">
       <div className="container-site h-14 flex items-center justify-between">
@@ -25,14 +28,19 @@ export default function AdminNav({ user }: Props) {
             <Settings size={16} className="text-brand-gold" /> Admin
           </span>
           <div className="flex items-center gap-1">
-            {links.map(({ href, label, icon: Icon }) => (
+            {links.map(({ href, label, icon: Icon, badge }) => (
               <Link key={href} href={href}
                 className={clsx(
-                  'flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
+                  'relative flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
                   pathname.startsWith(href) ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white hover:bg-white/5'
                 )}>
                 <Icon size={14} />
                 {label}
+                {badge > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                    {badge}
+                  </span>
+                )}
               </Link>
             ))}
           </div>
