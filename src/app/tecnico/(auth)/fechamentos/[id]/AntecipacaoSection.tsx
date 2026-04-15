@@ -145,7 +145,7 @@ export default function AntecipacaoSection({ closingId, totalValue, techName, te
             <div className="border border-slate-200 rounded-xl p-4 max-h-56 overflow-y-auto text-xs text-slate-600 leading-relaxed space-y-3">
               <p className="font-bold text-dark text-sm">TERMO DE ANTECIPAÇÃO DE PAGAMENTO</p>
               <p>
-                Por meio deste instrumento, o(a) técnico(a) credenciado(a) ("Solicitante") solicita à <strong>Ilha Bella Serviços</strong> ("Empresa") a antecipação do valor referente ao fechamento identificado acima, nos termos e condições a seguir estabelecidos.
+                Por meio deste instrumento, o(a) técnico(a) credenciado(a) (&ldquo;Solicitante&rdquo;) solicita à <strong>Ilha Bella Serviços</strong> (&ldquo;Empresa&rdquo;) a antecipação do valor referente ao fechamento identificado acima, nos termos e condições a seguir estabelecidos.
               </p>
               <p>
                 <strong>1. DA ANTECIPAÇÃO</strong><br />
