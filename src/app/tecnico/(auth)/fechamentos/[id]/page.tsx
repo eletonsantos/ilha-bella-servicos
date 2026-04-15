@@ -4,7 +4,7 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { ArrowLeft, CheckCircle, Download, FileText } from 'lucide-react'
+import { ArrowLeft, CheckCircle, Download, FileText, CalendarClock } from 'lucide-react'
 import { CLOSING_STATUS_LABELS, CLOSING_STATUS_COLORS } from '@/lib/constants-tecnico'
 import InvoiceUploadForm from '@/components/tecnico/InvoiceUploadForm'
 
@@ -57,6 +57,17 @@ export default async function FechamentoDetailPage({ params }: { params: { id: s
             </span>
           </div>
         </div>
+        {closing.scheduledPaymentDate && (
+          <div className="border-t border-slate-100 pt-4">
+            <p className="text-xs text-slate-500 mb-1 flex items-center gap-1.5">
+              <CalendarClock size={12} className="text-emerald-500" />
+              Pagamento programado
+            </p>
+            <p className="text-sm font-semibold text-emerald-700">
+              {format(closing.scheduledPaymentDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+            </p>
+          </div>
+        )}
         {closing.observations && (
           <div className="border-t border-slate-100 pt-4">
             <p className="text-xs text-slate-500 mb-1">Observações</p>

@@ -49,6 +49,24 @@ export async function PATCH(
   return NextResponse.json({ success: true, profile: updated })
 }
 
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const session = await auth()
+  if (session?.user?.role !== 'ADMIN') {
+    return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
+  }
+
+  const tech = await prisma.technicianProfile.findUnique({ where: { id: params.id } })
+  if (!tech) return NextResponse.json({ error: 'Técnico não encontrado' }, { status: 404 })
+
+  // Delete the user — cascades to TechnicianProfile, Closings, Invoices via onDelete: Cascade
+  await prisma.user.delete({ where: { id: tech.userId } })
+
+  return NextResponse.json({ success: true })
+}
+
 export async function GET(
   _req: NextRequest,
   { params }: { params: { id: string } }

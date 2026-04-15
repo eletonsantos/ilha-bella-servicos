@@ -5,7 +5,14 @@ import { z } from 'zod'
 
 const updateSchema = z.object({
   status: z.enum(['AWAITING_CLOSING','CLOSING_AVAILABLE','AWAITING_INVOICE','INVOICE_SENT','UNDER_REVIEW','PAYMENT_RELEASED','PAID']).optional(),
-  adminNotes: z.string().optional(),
+  adminNotes:           z.string().optional(),
+  competence:           z.string().min(1).optional(),
+  periodStart:          z.string().datetime().optional(),
+  periodEnd:            z.string().datetime().optional(),
+  totalValue:           z.number().positive().optional(),
+  serviceCount:         z.number().int().min(0).optional(),
+  observations:         z.string().optional(),
+  scheduledPaymentDate: z.string().datetime().optional().nullable(),
 })
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {

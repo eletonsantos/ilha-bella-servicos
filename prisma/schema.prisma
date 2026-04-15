@@ -94,11 +94,12 @@ model Closing {
   status         String   @default("AWAITING_CLOSING")
   observations   String?
   adminNotes     String?
-  reportFilePath String?
-  reportFileName String?
-  reportFileSize Int?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  reportFilePath       String?
+  reportFileName       String?
+  reportFileSize       Int?
+  scheduledPaymentDate DateTime?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   technician TechnicianProfile @relation(fields: [technicianId], references: [id], onDelete: Cascade)
   services   ClosingService[]

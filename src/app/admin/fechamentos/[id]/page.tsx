@@ -2,9 +2,10 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Download, FileText } from 'lucide-react'
+import { ArrowLeft, Download, FileText, CalendarClock } from 'lucide-react'
 import { CLOSING_STATUS_LABELS, CLOSING_STATUS_COLORS } from '@/lib/constants-tecnico'
 import ClosingStatusActions from './ClosingStatusActions'
+import EditarFechamentoWrapper from './EditarFechamentoWrapper'
 
 interface Props { params: { id: string } }
 
@@ -23,7 +24,20 @@ export default async function AdminFechamentoDetailPage({ params }: Props) {
   if (!closing) notFound()
 
   const fmt = (v: number) => `R$ ${v.toFixed(2).replace('.', ',')}`
-  const fmtDate = (d: Date) => new Date(d).toLocaleDateString('pt-BR')
+  const fmtDate = (d: Date | null) => d ? new Date(d).toLocaleDateString('pt-BR') : '—'
+
+  const fields = [
+    { label: 'Período',        value: `${fmtDate(closing.periodStart)} a ${fmtDate(closing.periodEnd)}` },
+    { label: 'Valor total',    value: fmt(closing.totalValue) },
+    { label: 'Qtd. serviços',  value: String(closing.serviceCount) },
+    { label: 'Criado em',      value: fmtDate(closing.createdAt) },
+    ...(closing.observations
+      ? [{ label: 'Observações', value: closing.observations }]
+      : []),
+    ...(closing.scheduledPaymentDate
+      ? [{ label: 'Pagamento programado', value: fmtDate(closing.scheduledPaymentDate) }]
+      : []),
+  ]
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -38,38 +52,34 @@ export default async function AdminFechamentoDetailPage({ params }: Props) {
           <p className="text-slate-400 text-sm mt-0.5">{closing.technician.user.email}</p>
           <p className="text-slate-500 text-sm mt-1">Competência: <span className="font-semibold text-dark">{closing.competence}</span></p>
         </div>
-        <span className={`text-xs font-semibold px-3 py-1.5 rounded-full w-fit ${CLOSING_STATUS_COLORS[closing.status]}`}>
-          {CLOSING_STATUS_LABELS[closing.status]}
-        </span>
+        <div className="flex flex-col items-end gap-2">
+          <span className={`text-xs font-semibold px-3 py-1.5 rounded-full w-fit ${CLOSING_STATUS_COLORS[closing.status]}`}>
+            {CLOSING_STATUS_LABELS[closing.status]}
+          </span>
+          {closing.scheduledPaymentDate && (
+            <span className="inline-flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full font-medium">
+              <CalendarClock size={12} />
+              Pagamento: {fmtDate(closing.scheduledPaymentDate)}
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* Dados do fechamento */}
+      {/* Dados do fechamento — editável */}
       <div className="card p-6">
-        <h2 className="font-bold text-dark mb-4">Dados do fechamento</h2>
-        <dl className="grid sm:grid-cols-2 gap-x-8 gap-y-4">
-          <div>
-            <dt className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Período</dt>
-            <dd className="text-sm font-medium text-dark">{fmtDate(closing.periodStart)} a {fmtDate(closing.periodEnd)}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Valor total</dt>
-            <dd className="text-lg font-extrabold text-dark">{fmt(closing.totalValue)}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Qtd. serviços</dt>
-            <dd className="text-sm font-medium text-dark">{closing.serviceCount}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Criado em</dt>
-            <dd className="text-sm font-medium text-dark">{fmtDate(closing.createdAt)}</dd>
-          </div>
-        </dl>
-        {closing.observations && (
-          <div className="mt-4 pt-4 border-t border-slate-100">
-            <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Observações</p>
-            <p className="text-sm text-slate-700 whitespace-pre-line">{closing.observations}</p>
-          </div>
-        )}
+        <EditarFechamentoWrapper
+          closing={{
+            id:                   closing.id,
+            competence:           closing.competence,
+            periodStart:          closing.periodStart,
+            periodEnd:            closing.periodEnd,
+            totalValue:           closing.totalValue,
+            serviceCount:         closing.serviceCount,
+            observations:         closing.observations,
+            scheduledPaymentDate: closing.scheduledPaymentDate,
+          }}
+          fields={fields}
+        />
       </div>
 
       {/* Relatório PDF */}

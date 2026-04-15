@@ -11,6 +11,7 @@ import {
 import TecnicoStatusActions from './TecnicoStatusActions'
 import EditarCadastroWrapper from './EditarCadastroWrapper'
 import TabelaValoresUpload from './TabelaValoresUpload'
+import DeleteTecnicoButton from './DeleteTecnicoButton'
 
 interface Props {
   params: { id: string }
@@ -108,6 +109,9 @@ export default async function AdminTecnicoDetailPage({ params }: Props) {
 
       {/* Ações de status */}
       <TecnicoStatusActions techId={tech.id} currentStatus={tech.status} />
+
+      {/* Excluir técnico */}
+      <DeleteTecnicoButton techId={tech.id} techName={tech.fullName} />
     </div>
   )
 }
