@@ -1,4 +1,5 @@
-import { HelpCircle, ChevronDown } from 'lucide-react'
+import { HelpCircle, ChevronDown, MessageCircle } from 'lucide-react'
+import { getWhatsAppUrl } from '@/lib/whatsapp'
 
 const sections = [
   {
@@ -40,6 +41,10 @@ const sections = [
       {
         q: 'Preciso emitir NF pelo meu CNPJ ou CPF?',
         a: 'Aceitamos nota fiscal de MEI, RPA (Recibo de Pagamento a Autônomo) para autônomos, ou nota de empresa. O importante é que o documento identifique você como prestador e o valor corresponda ao fechamento.',
+      },
+      {
+        q: 'Quais dados usar para emitir a nota fiscal?',
+        a: '__DADOS_NF__',
       },
     ],
   },
@@ -96,7 +101,18 @@ const sections = [
   },
 ]
 
+const dadosNF = [
+  { label: 'Razão Social',   value: 'ILHA BELLA SERVICOS & ASSISTENCIA 24 HORAS LTDA' },
+  { label: 'Nome Fantasia',  value: 'ILHA BELLA SERVIÇOS' },
+  { label: 'CNPJ',           value: '28.864.149/0001-38' },
+  { label: 'Endereço',       value: 'Praça Nereu Ramos, 90, Sala do Empreendedor' },
+  { label: 'Bairro/Cidade',  value: 'Centro — Biguaçu/SC' },
+  { label: 'CEP',            value: '88160-116' },
+]
+
 export default function AjudaPage() {
+  const whatsappUrl = getWhatsAppUrl('Olá! Sou técnico parceiro e preciso de ajuda.')
+
   return (
     <div className="max-w-2xl mx-auto space-y-8">
 
@@ -126,7 +142,26 @@ export default function AjudaPage() {
                   />
                 </summary>
                 <div className="pb-3 pt-1">
-                  <p className="text-sm text-slate-600 leading-relaxed">{a}</p>
+                  {a === '__DADOS_NF__' ? (
+                    <div className="space-y-2">
+                      <p className="text-sm text-slate-600 mb-3">
+                        Emita a NF tendo como <strong>tomador dos serviços</strong> os dados abaixo:
+                      </p>
+                      <div className="bg-slate-50 rounded-xl p-4 space-y-2 border border-slate-100">
+                        {dadosNF.map(({ label, value }) => (
+                          <div key={label} className="flex gap-2 text-sm">
+                            <span className="text-slate-400 w-28 flex-shrink-0">{label}</span>
+                            <span className="font-semibold text-dark">{value}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-xs text-slate-500 mt-2">
+                        O valor da nota deve ser igual ao valor do fechamento.
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-600 leading-relaxed">{a}</p>
+                  )}
                 </div>
               </details>
             ))}
@@ -135,11 +170,19 @@ export default function AjudaPage() {
       ))}
 
       {/* Contato */}
-      <div className="card p-6 border-l-4 border-brand-blue">
-        <p className="font-bold text-dark text-sm mb-1">Não encontrou o que precisava?</p>
-        <p className="text-slate-500 text-sm">
-          Entre em contato com a equipe Ilha Bella pelo WhatsApp e responderemos o mais rápido possível.
-        </p>
+      <div className="card p-6 border-l-4 border-brand-blue flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <p className="font-bold text-dark text-sm mb-1">Não encontrou o que precisava?</p>
+          <p className="text-slate-500 text-sm">Fale com a equipe Ilha Bella pelo WhatsApp.</p>
+        </div>
+        <a
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 bg-[#25D366] hover:bg-[#20BA5A] text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors flex-shrink-0"
+        >
+          <MessageCircle size={15} /> Abrir WhatsApp
+        </a>
       </div>
 
     </div>
