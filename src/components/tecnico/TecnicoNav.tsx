@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
-import { Wrench, FileText, LayoutDashboard, LogOut } from 'lucide-react'
+import { Wrench, FileText, LayoutDashboard, LogOut, Zap } from 'lucide-react'
 import { clsx } from 'clsx'
 import type { TechnicianProfile } from '@prisma/client'
 // TechnicianProfile is imported from @prisma/client which uses String fields for enums
@@ -14,8 +14,9 @@ interface Props {
 }
 
 const links = [
-  { href: '/tecnico/painel', label: 'Painel', icon: LayoutDashboard },
-  { href: '/tecnico/fechamentos', label: 'Fechamentos', icon: FileText },
+  { href: '/tecnico/painel',       label: 'Painel',       icon: LayoutDashboard },
+  { href: '/tecnico/fechamentos',  label: 'Fechamentos',  icon: FileText },
+  { href: '/tecnico/antecipacao',  label: 'Antecipação',  icon: Zap },
 ]
 
 export default function TecnicoNav({ user, profile }: Props) {
