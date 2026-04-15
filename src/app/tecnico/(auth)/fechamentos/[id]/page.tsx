@@ -33,7 +33,8 @@ export default async function FechamentoDetailPage({ params }: { params: { id: s
 
   const canSendInvoice = ['CLOSING_AVAILABLE', 'AWAITING_INVOICE'].includes(closing.status) && !closing.invoice
   const canContest     = ['CLOSING_AVAILABLE', 'AWAITING_INVOICE'].includes(closing.status)
-  const canAdvance     = closing.status === 'PAYMENT_RELEASED' && !!closing.scheduledPaymentDate
+  // scheduledPaymentDate é opcional — basta o pagamento estar liberado
+  const canAdvance     = closing.status === 'PAYMENT_RELEASED'
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">

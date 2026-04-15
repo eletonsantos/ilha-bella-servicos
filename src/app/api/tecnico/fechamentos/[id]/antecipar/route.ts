@@ -29,10 +29,6 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     return NextResponse.json({ error: 'Antecipação disponível apenas quando o pagamento estiver liberado' }, { status: 400 })
   }
 
-  if (!closing.scheduledPaymentDate) {
-    return NextResponse.json({ error: 'Não há data de pagamento agendada para este fechamento' }, { status: 400 })
-  }
-
   if (closing.advance) {
     return NextResponse.json({ error: 'Já existe uma solicitação de antecipação para este fechamento' }, { status: 409 })
   }
