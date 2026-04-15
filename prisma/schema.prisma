@@ -172,3 +172,26 @@ model Invoice {
 
   closing Closing @relation(fields: [closingId], references: [id], onDelete: Cascade)
 }
+
+model TechnicianApplication {
+  id                     String   @id @default(cuid())
+  fullName               String
+  cpfCnpj                String
+  whatsapp               String
+  email                  String
+  cidade                 String
+  bairro                 String?
+  especialidadePrincipal String
+  outrasEspecialidades   String?
+  atende24h              Boolean  @default(false)
+  possuiVeiculo          Boolean  @default(false)
+  emiteNotaFiscal        Boolean  @default(false)
+  trabalhoTipo           String?
+  disponibilidade        String?
+  tempoExperiencia       String?
+  observacoes            String?
+  status                 String   @default("PENDING")
+  adminNotes             String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}

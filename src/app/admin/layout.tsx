@@ -7,14 +7,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const session = await auth()
   if (!session || session.user.role !== 'ADMIN') redirect('/tecnico/login')
 
-  // Badge de pendentes para a aba Antecipação
-  const pendingAdvances = await prisma.paymentAdvance.count({
-    where: { status: 'PENDING' },
-  }).catch(() => 0)
+  // Badges de pendentes para as abas Antecipação e Candidaturas
+  const [pendingAdvances, pendingApplications] = await Promise.all([
+    prisma.paymentAdvance.count({ where: { status: 'PENDING' } }).catch(() => 0),
+    prisma.technicianApplication.count({ where: { status: 'PENDING' } }).catch(() => 0),
+  ])
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <AdminNav user={session.user} pendingAdvances={pendingAdvances} />
+      <AdminNav user={session.user} pendingAdvances={pendingAdvances} pendingApplications={pendingApplications} />
       <main className="container-site py-8">{children}</main>
     </div>
   )
