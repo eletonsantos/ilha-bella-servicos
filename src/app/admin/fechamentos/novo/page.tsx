@@ -44,8 +44,8 @@ export default function NovoFechamentoPage() {
         setError('Apenas arquivos PDF são aceitos.')
         return
       }
-      if (f.size > 10 * 1024 * 1024) {
-        setError('Arquivo muito grande. Máximo 10MB.')
+      if (f.size > 4 * 1024 * 1024) {
+        setError('Arquivo muito grande. O limite é 4 MB.')
         return
       }
       setFile(f)
@@ -80,8 +80,12 @@ export default function NovoFechamentoPage() {
       })
 
       if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || 'Erro ao criar fechamento')
+        // Resposta pode não ser JSON (ex: 413 do Vercel por arquivo grande)
+        const text = await res.text()
+        let message = 'Erro ao criar fechamento'
+        try { message = JSON.parse(text).error ?? message } catch { /* não é JSON */ }
+        if (res.status === 413) message = 'Arquivo PDF muito grande. Use um arquivo menor que 4 MB.'
+        throw new Error(message)
       }
 
       router.push('/admin/fechamentos')
@@ -223,7 +227,7 @@ export default function NovoFechamentoPage() {
             <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-xl p-8 cursor-pointer hover:border-brand-blue hover:bg-blue-50/50 transition-all">
               <Upload size={28} className="text-slate-300 mb-3" />
               <p className="text-sm font-medium text-slate-600">Clique para selecionar o PDF</p>
-              <p className="text-xs text-slate-400 mt-1">Máximo 10MB</p>
+              <p className="text-xs text-slate-400 mt-1">Máximo 4 MB</p>
               <input type="file" accept=".pdf,application/pdf" onChange={handleFile} className="hidden" />
             </label>
           ) : (
