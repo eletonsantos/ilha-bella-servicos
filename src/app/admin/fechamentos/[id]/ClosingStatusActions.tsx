@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2, CheckCircle, Clock, XCircle, DollarSign } from 'lucide-react'
+import { Loader2, CheckCircle, Clock, XCircle, DollarSign, Send } from 'lucide-react'
 
 interface Props {
   closingId: string
@@ -10,12 +10,13 @@ interface Props {
 }
 
 const actions = [
-  { label: 'NF em conferência', status: 'UNDER_REVIEW', color: 'bg-orange-500 hover:bg-orange-600 text-white', icon: Clock, show: ['INVOICE_SENT'] },
-  { label: 'Liberar pagamento', status: 'PAYMENT_RELEASED', color: 'bg-emerald-600 hover:bg-emerald-700 text-white', icon: DollarSign, show: ['UNDER_REVIEW'] },
-  { label: 'Marcar como Pago', status: 'PAID', color: 'bg-green-600 hover:bg-green-700 text-white', icon: CheckCircle, show: ['PAYMENT_RELEASED'] },
-  { label: 'Aguardando NF', status: 'AWAITING_INVOICE', color: 'bg-amber-500 hover:bg-amber-600 text-white', icon: Clock, show: ['CLOSING_AVAILABLE'] },
-  { label: 'Reabrir fechamento', status: 'CLOSING_AVAILABLE', color: 'bg-blue-500 hover:bg-blue-600 text-white', icon: Clock, show: ['AWAITING_INVOICE', 'UNDER_REVIEW'] },
-  { label: 'Cancelar', status: 'AWAITING_CLOSING', color: 'bg-red-500 hover:bg-red-600 text-white', icon: XCircle, show: ['CLOSING_AVAILABLE', 'AWAITING_INVOICE'] },
+  { label: 'Disponibilizar para o técnico', status: 'CLOSING_AVAILABLE',  color: 'bg-brand-blue hover:bg-brand-blue-dark text-white', icon: Send,        show: ['AWAITING_CLOSING'] },
+  { label: 'NF em conferência',             status: 'UNDER_REVIEW',        color: 'bg-orange-500 hover:bg-orange-600 text-white',      icon: Clock,        show: ['INVOICE_SENT'] },
+  { label: 'Liberar pagamento',             status: 'PAYMENT_RELEASED',    color: 'bg-emerald-600 hover:bg-emerald-700 text-white',    icon: DollarSign,   show: ['UNDER_REVIEW'] },
+  { label: 'Marcar como Pago',              status: 'PAID',                color: 'bg-green-600 hover:bg-green-700 text-white',        icon: CheckCircle,  show: ['PAYMENT_RELEASED'] },
+  { label: 'Aguardando NF',                status: 'AWAITING_INVOICE',    color: 'bg-amber-500 hover:bg-amber-600 text-white',        icon: Clock,        show: ['CLOSING_AVAILABLE'] },
+  { label: 'Reabrir fechamento',            status: 'CLOSING_AVAILABLE',   color: 'bg-blue-500 hover:bg-blue-600 text-white',          icon: Clock,        show: ['AWAITING_INVOICE', 'UNDER_REVIEW'] },
+  { label: 'Cancelar',                      status: 'AWAITING_CLOSING',    color: 'bg-red-500 hover:bg-red-600 text-white',            icon: XCircle,      show: ['CLOSING_AVAILABLE', 'AWAITING_INVOICE'] },
 ]
 
 export default function ClosingStatusActions({ closingId, currentStatus }: Props) {
