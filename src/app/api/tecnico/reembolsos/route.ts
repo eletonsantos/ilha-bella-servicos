@@ -4,14 +4,14 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET() {
   const session = await auth()
-  if (session?.user?.role !== 'ADMIN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const profile = await prisma.technicianProfile.findUnique({ where: { userId: session.user.id } })
+  if (!profile) return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
 
   const reimbursements = await prisma.reimbursement.findMany({
-    include: {
-      technician: { select: { fullName: true, cpf: true } },
-      items: true,
-      _count: { select: { attachments: true } },
-    },
+    where: { technicianId: profile.id },
+    include: { items: true, _count: { select: { attachments: true } } },
     orderBy: { createdAt: 'desc' },
   })
 
@@ -20,28 +20,28 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const session = await auth()
-  if (session?.user?.role !== 'ADMIN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const profile = await prisma.technicianProfile.findUnique({ where: { userId: session.user.id } })
+  if (!profile) return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
 
   try {
     const body = await req.json()
-    const { technicianId, description, items } = body
+    const { description, items } = body
 
-    if (!technicianId || !description || !items?.length) {
+    if (!description || !items?.length) {
       return NextResponse.json({ error: 'Dados obrigatórios ausentes' }, { status: 400 })
     }
-
-    const tech = await prisma.technicianProfile.findUnique({ where: { id: technicianId } })
-    if (!tech) return NextResponse.json({ error: 'Técnico não encontrado' }, { status: 404 })
 
     const totalValue = items.reduce((s: number, i: { value: number }) => s + i.value, 0)
 
     const reimbursement = await prisma.reimbursement.create({
       data: {
-        technicianId,
+        technicianId: profile.id,
         description,
         totalValue,
-        pixKey: tech.pixKey,
-        pixKeyType: tech.pixKeyType,
+        pixKey: profile.pixKey,
+        pixKeyType: profile.pixKeyType,
         items: {
           create: items.map((i: { category: string; description: string; value: number }) => ({
             category: i.category,

@@ -1,16 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Plus, Trash2, Upload, Loader2, FileText, X, Receipt } from 'lucide-react'
-
-interface Technician {
-  id: string
-  fullName: string
-  cpf: string
-  status: string
-}
 
 interface Item {
   category: string
@@ -26,33 +19,17 @@ const CATEGORIES = [
   { value: 'OTHER',      label: 'Outros' },
 ]
 
-export default function NovoReembolsoPage() {
+export default function NovoReembolsoTecnicoPage() {
   const router = useRouter()
-  const [technicians, setTechnicians] = useState<Technician[]>([])
   const [loading, setLoading] = useState(false)
   const [uploadingFiles, setUploadingFiles] = useState(false)
   const [error, setError] = useState('')
   const [files, setFiles] = useState<File[]>([])
 
-  const [form, setForm] = useState({
-    technicianId: '',
-    description: '',
-  })
-
+  const [description, setDescription] = useState('')
   const [items, setItems] = useState<Item[]>([
     { category: 'MATERIAL', description: '', value: '' },
   ])
-
-  useEffect(() => {
-    fetch('/api/admin/tecnicos')
-      .then(r => r.json())
-      .then(data => setTechnicians(data.filter((t: Technician) => t.status === 'APPROVED' || t.status === 'LINKED')))
-      .catch(() => setError('Erro ao carregar técnicos'))
-  }, [])
-
-  function handleTechnicianChange(techId: string) {
-    setForm(f => ({ ...f, technicianId: techId }))
-  }
 
   function addItem() {
     setItems(prev => [...prev, { category: 'MATERIAL', description: '', value: '' }])
@@ -70,26 +47,24 @@ export default function NovoReembolsoPage() {
 
   function handleFiles(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = Array.from(e.target.files ?? [])
-    const valid = selected.filter(f => f.size <= 10 * 1024 * 1024)
-    setFiles(prev => [...prev, ...valid])
+    setFiles(prev => [...prev, ...selected.filter(f => f.size <= 10 * 1024 * 1024)])
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.technicianId) { setError('Selecione um técnico.'); return }
-    if (!form.description) { setError('Informe a descrição/motivo.'); return }
+    if (!description) { setError('Informe o motivo da solicitação.'); return }
     if (items.some(i => !i.description || !i.value)) { setError('Preencha descrição e valor de todos os itens.'); return }
+    if (files.length === 0) { setError('Anexe pelo menos um comprovante.'); return }
 
     setLoading(true)
     setError('')
 
     try {
-      const res = await fetch('/api/admin/reembolsos', {
+      const res = await fetch('/api/tecnico/reembolsos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          technicianId: form.technicianId,
-          description: form.description,
+          description,
           items: items.map(i => ({
             category: i.category,
             description: i.description,
@@ -98,36 +73,35 @@ export default function NovoReembolsoPage() {
         }),
       })
 
-      if (!res.ok) throw new Error((await res.json()).error ?? 'Erro ao criar reembolso')
+      if (!res.ok) throw new Error((await res.json()).error ?? 'Erro ao criar solicitação')
       const { reimbursement } = await res.json()
-      const id = reimbursement.id
 
-      if (files.length > 0) {
-        setUploadingFiles(true)
-        const fd = new FormData()
-        files.forEach(f => fd.append('files', f))
-        await fetch(`/api/admin/reembolsos/${id}/upload`, { method: 'POST', body: fd })
-        setUploadingFiles(false)
-      }
+      // Upload comprovantes
+      setUploadingFiles(true)
+      const fd = new FormData()
+      files.forEach(f => fd.append('files', f))
+      await fetch(`/api/tecnico/reembolsos/${reimbursement.id}/upload`, { method: 'POST', body: fd })
+      setUploadingFiles(false)
 
-      router.push(`/admin/reembolsos/${id}`)
+      router.push('/tecnico/reembolsos')
       router.refresh()
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Erro desconhecido')
     } finally {
       setLoading(false)
+      setUploadingFiles(false)
     }
   }
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <Link href="/admin/reembolsos" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-brand-blue transition-colors">
+      <Link href="/tecnico/reembolsos" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-brand-blue transition-colors">
         <ArrowLeft size={16} /> Voltar para reembolsos
       </Link>
 
       <div>
-        <h1 className="text-2xl font-extrabold text-dark">Novo Reembolso</h1>
-        <p className="text-slate-500 text-sm mt-1">Registre despesas para ressarcimento ao técnico</p>
+        <h1 className="text-2xl font-extrabold text-dark">Nova solicitação de reembolso</h1>
+        <p className="text-slate-500 text-sm mt-1">Informe as despesas para ressarcimento. O pagamento será feito via PIX cadastrado no seu perfil.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -135,40 +109,23 @@ export default function NovoReembolsoPage() {
           <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl">{error}</div>
         )}
 
-        {/* Técnico */}
-        <div className="card p-6 space-y-4">
-          <h2 className="font-bold text-dark">Técnico</h2>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Selecione o técnico *</label>
-            <select
-              value={form.technicianId}
-              onChange={e => handleTechnicianChange(e.target.value)}
-              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue"
-              required
-            >
-              <option value="">-- Selecione --</option>
-              {technicians.map(t => (
-                <option key={t.id} value={t.id}>{t.fullName}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Motivo / Descrição *</label>
-            <input
-              type="text"
-              value={form.description}
-              onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-              placeholder="Ex: Materiais para manutenção elétrica – OS #1234"
-              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue"
-              required
-            />
-          </div>
+        {/* Motivo */}
+        <div className="card p-6">
+          <h2 className="font-bold text-dark mb-4">Motivo / Descrição</h2>
+          <input
+            type="text"
+            value={description}
+            onChange={e => setDescription(e.target.value)}
+            placeholder="Ex: Materiais para manutenção elétrica – OS #1234"
+            className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue"
+            required
+          />
         </div>
 
         {/* Itens */}
         <div className="card p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-bold text-dark">Itens de reembolso</h2>
+            <h2 className="font-bold text-dark">Itens de despesa</h2>
             <button type="button" onClick={addItem}
               className="inline-flex items-center gap-1.5 text-brand-blue text-sm font-medium hover:underline">
               <Plus size={15} /> Adicionar item
@@ -231,8 +188,8 @@ export default function NovoReembolsoPage() {
 
         {/* Comprovantes */}
         <div className="card p-6 space-y-4">
-          <h2 className="font-bold text-dark">Comprovantes</h2>
-          <p className="text-sm text-slate-500">Faça upload das notas fiscais, recibos ou fotos dos comprovantes (PDF, JPG ou PNG, máx. 10MB cada).</p>
+          <h2 className="font-bold text-dark">Comprovantes <span className="text-red-500">*</span></h2>
+          <p className="text-sm text-slate-500">Anexe as notas fiscais, recibos ou fotos dos comprovantes. Pelo menos um arquivo é obrigatório.</p>
 
           <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-xl p-6 cursor-pointer hover:border-brand-blue hover:bg-blue-50/50 transition-all">
             <Upload size={24} className="text-slate-300 mb-2" />
@@ -265,7 +222,7 @@ export default function NovoReembolsoPage() {
           disabled={loading || uploadingFiles}
           className="w-full bg-brand-blue hover:bg-brand-blue-dark text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
         >
-          {loading ? <><Loader2 size={18} className="animate-spin" /> {uploadingFiles ? 'Enviando comprovantes...' : 'Criando reembolso...'}</> : <><Receipt size={18} /> Criar Reembolso</>}
+          {loading ? <><Loader2 size={18} className="animate-spin" /> {uploadingFiles ? 'Enviando comprovantes...' : 'Criando solicitação...'}</> : <><Receipt size={18} /> Enviar solicitação</>}
         </button>
       </form>
     </div>

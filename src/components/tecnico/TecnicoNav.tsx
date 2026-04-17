@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
-import { Wrench, FileText, LayoutDashboard, LogOut, Zap, HelpCircle } from 'lucide-react'
+import { Wrench, FileText, LayoutDashboard, LogOut, Zap, HelpCircle, Receipt } from 'lucide-react'
 import { clsx } from 'clsx'
 import type { TechnicianProfile } from '@prisma/client'
 // TechnicianProfile is imported from @prisma/client which uses String fields for enums
@@ -17,6 +17,7 @@ const links = [
   { href: '/tecnico/painel',       label: 'Painel',       icon: LayoutDashboard },
   { href: '/tecnico/fechamentos',  label: 'Fechamentos',  icon: FileText },
   { href: '/tecnico/antecipacao',  label: 'Antecipação',  icon: Zap },
+  { href: '/tecnico/reembolsos',   label: 'Reembolsos',   icon: Receipt },
   { href: '/tecnico/ajuda',        label: 'Ajuda',        icon: HelpCircle },
 ]
 

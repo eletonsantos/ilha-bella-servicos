@@ -4,10 +4,9 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
 const updateSchema = z.object({
-  status: z.enum(['PENDING', 'APPROVED', 'PAYMENT_RELEASED', 'PAID', 'REJECTED']).optional(),
+  status: z.enum(['PENDING', 'UNDER_REVIEW', 'APPROVED', 'PAYMENT_RELEASED', 'PAID', 'REJECTED']).optional(),
   adminNotes: z.string().optional(),
-  pixKey: z.string().optional(),
-  pixKeyType: z.string().optional(),
+  scheduledPaymentDate: z.string().datetime().optional().nullable(),
 })
 
 export async function GET(_req: Request, { params }: { params: { id: string } }) {

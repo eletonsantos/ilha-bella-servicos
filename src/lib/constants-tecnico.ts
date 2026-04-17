@@ -100,15 +100,17 @@ export const APPLICATION_STATUS_COLORS: Record<string, string> = {
 }
 
 export const REIMBURSEMENT_STATUS_LABELS: Record<string, string> = {
-  PENDING:          'Aguardando aprovação',
+  PENDING:          'Aguardando análise',
+  UNDER_REVIEW:     'Em análise',
   APPROVED:         'Aprovado',
-  PAYMENT_RELEASED: 'Pagamento liberado',
+  PAYMENT_RELEASED: 'Pagamento agendado',
   PAID:             'Pago',
   REJECTED:         'Recusado',
 }
 
 export const REIMBURSEMENT_STATUS_COLORS: Record<string, string> = {
   PENDING:          'bg-amber-100 text-amber-700',
+  UNDER_REVIEW:     'bg-orange-100 text-orange-700',
   APPROVED:         'bg-blue-100 text-blue-700',
   PAYMENT_RELEASED: 'bg-emerald-100 text-emerald-700',
   PAID:             'bg-green-100 text-green-700',
