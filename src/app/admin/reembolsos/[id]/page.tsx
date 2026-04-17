@@ -12,6 +12,7 @@ import {
 } from '@/lib/constants-tecnico'
 import ReembolsoStatusActions from './ReembolsoStatusActions'
 import ReembolsoUpload from './ReembolsoUpload'
+import DeleteReembolsoButton from './DeleteReembolsoButton'
 
 interface Props { params: { id: string } }
 
@@ -141,6 +142,12 @@ export default async function AdminReembolsoDetailPage({ params }: Props) {
 
       {/* Ações */}
       <ReembolsoStatusActions reimbursementId={r.id} currentStatus={r.status} scheduledPaymentDate={r.scheduledPaymentDate} />
+
+      <DeleteReembolsoButton
+        reimbursementId={r.id}
+        description={r.description}
+        techName={r.technician.fullName}
+      />
     </div>
   )
 }
