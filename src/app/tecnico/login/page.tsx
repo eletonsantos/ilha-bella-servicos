@@ -3,10 +3,10 @@
 import { signIn, getSession } from 'next-auth/react'
 import { useState } from 'react'
 import Link from 'next/link'
-import { Wrench, Mail, Lock, AlertCircle } from 'lucide-react'
+import { Wrench, Hash, Lock, AlertCircle } from 'lucide-react'
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
+  const [login, setLogin] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -16,13 +16,13 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
     const res = await signIn('credentials', {
-      email, password,
+      login, password,
       callbackUrl: '/tecnico/painel',
       redirect: false,
     })
     setLoading(false)
     if (res?.error) {
-      setError('E-mail ou senha inválidos.')
+      setError('CPF ou senha inválidos.')
     } else {
       // Verifica a role da sessão para redirecionar corretamente
       const session = await getSession()
@@ -79,16 +79,16 @@ export default function LoginPage() {
 
           <form onSubmit={handleCredentials} className="space-y-4">
             <div>
-              <label className="text-slate-300 text-sm font-medium block mb-1.5">E-mail</label>
+              <label className="text-slate-300 text-sm font-medium block mb-1.5">CPF (somente números)</label>
               <div className="relative">
-                <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Hash size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
+                  type="text"
+                  value={login}
+                  onChange={e => setLogin(e.target.value)}
                   className="w-full bg-white/5 border border-white/15 text-white placeholder-slate-500
                              rounded-xl pl-9 pr-4 py-3 text-sm focus:outline-none focus:border-brand-blue focus:ring-1 focus:ring-brand-blue"
-                  placeholder="seu@email.com"
+                  placeholder="Somente os números do CPF"
                   required
                 />
               </div>

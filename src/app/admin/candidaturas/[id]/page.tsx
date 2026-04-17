@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ArrowLeft, Phone, MapPin, Wrench } from 'lucide-react'
 import { APPLICATION_STATUS_LABELS, APPLICATION_STATUS_COLORS } from '@/lib/constants-tecnico'
 import CandidaturaStatusActions from './CandidaturaStatusActions'
+import CriarAcessoForm from './CriarAcessoForm'
 
 interface Props { params: { id: string } }
 
@@ -138,6 +139,15 @@ export default async function AdminCandidaturaDetailPage({ params }: Props) {
           <h2 className="font-bold text-dark mb-2">Notas internas</h2>
           <p className="text-sm text-slate-600 leading-relaxed">{app.adminNotes}</p>
         </div>
+      )}
+
+      {/* Criar acesso — aparece apenas quando aprovado e ainda não convertido */}
+      {app.status === 'APPROVED' && (
+        <CriarAcessoForm
+          applicationId={app.id}
+          cpfCnpj={app.cpfCnpj}
+          fullName={app.fullName}
+        />
       )}
 
       {/* Ações */}

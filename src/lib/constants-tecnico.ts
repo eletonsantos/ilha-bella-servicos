@@ -88,6 +88,7 @@ export const APPLICATION_STATUS_LABELS: Record<string, string> = {
   EM_ANALISE: 'Em análise',
   APPROVED:   'Aprovado',
   REJECTED:   'Reprovado',
+  CONVERTED:  'Acesso criado',
 }
 
 export const APPLICATION_STATUS_COLORS: Record<string, string> = {
@@ -95,4 +96,5 @@ export const APPLICATION_STATUS_COLORS: Record<string, string> = {
   EM_ANALISE: 'bg-blue-100 text-blue-700',
   APPROVED:   'bg-green-100 text-green-700',
   REJECTED:   'bg-red-100 text-red-700',
+  CONVERTED:  'bg-indigo-100 text-indigo-700',
 }
