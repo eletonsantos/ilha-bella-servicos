@@ -1,8 +1,8 @@
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
-import { CLOSING_STATUS_LABELS, CLOSING_STATUS_COLORS } from '@/lib/constants-tecnico'
-import { TrendingUp, Percent, FileText, Zap } from 'lucide-react'
+import { CLOSING_STATUS_LABELS, CLOSING_STATUS_COLORS, REIMBURSEMENT_STATUS_LABELS, REIMBURSEMENT_STATUS_COLORS, REIMBURSEMENT_CATEGORY_LABELS } from '@/lib/constants-tecnico'
+import { TrendingUp, Percent, FileText, Zap, Receipt } from 'lucide-react'
 import Link from 'next/link'
 
 const STATUS_ORDER = [
@@ -41,7 +41,7 @@ export default async function AdminDashboardPage() {
   const session = await auth()
   if (session?.user?.role !== 'ADMIN') redirect('/tecnico/login')
 
-  const [closings, advances] = await Promise.all([
+  const [closings, advances, reimbursements] = await Promise.all([
     prisma.closing.findMany({
       include: { invoice: { select: { id: true } } },
       orderBy: { createdAt: 'desc' },
@@ -49,6 +49,7 @@ export default async function AdminDashboardPage() {
     prisma.paymentAdvance.findMany({
       orderBy: { createdAt: 'desc' },
     }),
+    prisma.reimbursement.findMany({ include: { items: true }, orderBy: { createdAt: 'desc' } }),
   ])
 
   // ── Fechamentos — totais ─────────────────────────────────────────────────────
@@ -94,6 +95,33 @@ export default async function AdminDashboardPage() {
   const totalAdvBruto     = advApproved.reduce((s, a) => s + a.originalValue, 0)
   const totalAdvLiq       = advApproved.reduce((s, a) => s + a.netValue, 0)
   const totalTaxas        = advApproved.reduce((s, a) => s + a.feeValue, 0)
+
+  // ── Reembolsos — totais ──────────────────────────────────────────────────────
+  const reimbTotal        = reimbursements.reduce((s, r) => s + r.totalValue, 0)
+  const reimbPending      = reimbursements.filter(r => r.status === 'PENDING')
+  const reimbApproved     = reimbursements.filter(r => r.status === 'APPROVED')
+  const reimbReleased     = reimbursements.filter(r => r.status === 'PAYMENT_RELEASED')
+  const reimbPaid         = reimbursements.filter(r => r.status === 'PAID')
+  const reimbRejected     = reimbursements.filter(r => r.status === 'REJECTED')
+
+  const reimbAllItems = reimbursements.flatMap(r => r.items)
+  const reimbByCategory: Record<string, number> = {}
+  for (const item of reimbAllItems) {
+    reimbByCategory[item.category] = (reimbByCategory[item.category] ?? 0) + item.value
+  }
+  const reimbCatList = Object.entries(reimbByCategory).sort((a, b) => b[1] - a[1])
+  const maxReimbCat = Math.max(...reimbCatList.map(([, v]) => v), 1)
+
+  // ── Reembolsos — últimos 6 meses ────────────────────────────────────────────
+  const reimbMonths = monthRange(6)
+  const reimbMonthly = reimbMonths.map(m => {
+    const items = reimbursements.filter(r => {
+      const d = new Date(r.createdAt)
+      return d.getFullYear() === m.year && d.getMonth() === m.month
+    })
+    return { label: m.label, total: items.reduce((s, r) => s + r.totalValue, 0), count: items.length }
+  })
+  const maxReimbMensal = Math.max(...reimbMonthly.map(m => m.total), 1)
 
   // ── Antecipações — últimos 6 meses ──────────────────────────────────────────
   const advMonths = monthRange(6)
@@ -216,6 +244,107 @@ export default async function AdminDashboardPage() {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════
+          REEMBOLSOS
+      ══════════════════════════════════════════════════ */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="font-extrabold text-dark flex items-center gap-2">
+            <Receipt size={16} className="text-brand-blue" /> Reembolsos
+          </h2>
+          <Link href="/admin/reembolsos" className="text-xs text-brand-blue hover:underline font-medium">
+            Ver todos →
+          </Link>
+        </div>
+
+        {reimbursements.length === 0 ? (
+          <div className="card p-8 text-center">
+            <Receipt size={32} className="text-slate-200 mx-auto mb-3" />
+            <p className="text-slate-400 text-sm">Nenhum reembolso registrado ainda.</p>
+          </div>
+        ) : (
+          <>
+            {/* Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+              <div className="card p-5">
+                <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">Total geral</p>
+                <p className="text-xl font-extrabold text-dark">{fmt(reimbTotal)}</p>
+                <p className="text-xs text-slate-400 mt-1">{reimbursements.length} reembolso(s)</p>
+              </div>
+              <div className="card p-5 border-l-4 border-amber-400">
+                <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">Aguardando</p>
+                <p className="text-xl font-extrabold text-amber-600">{fmt(reimbPending.reduce((s, r) => s + r.totalValue, 0))}</p>
+                <p className="text-xs text-slate-400 mt-1">{reimbPending.length} pendente(s)</p>
+              </div>
+              <div className="card p-5 border-l-4 border-emerald-400">
+                <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">Pgto. liberado</p>
+                <p className="text-xl font-extrabold text-emerald-600">{fmt(reimbReleased.reduce((s, r) => s + r.totalValue, 0))}</p>
+                <p className="text-xs text-slate-400 mt-1">{reimbReleased.length} liberado(s)</p>
+              </div>
+              <div className="card p-5 border-l-4 border-green-400">
+                <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">Pagos</p>
+                <p className="text-xl font-extrabold text-green-600">{fmt(reimbPaid.reduce((s, r) => s + r.totalValue, 0))}</p>
+                <p className="text-xs text-slate-400 mt-1">{reimbPaid.length} pago(s)</p>
+              </div>
+              <div className="card p-5 border-l-4 border-red-300">
+                <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">Recusados</p>
+                <p className="text-xl font-extrabold text-red-500">{fmt(reimbRejected.reduce((s, r) => s + r.totalValue, 0))}</p>
+                <p className="text-xs text-slate-400 mt-1">{reimbRejected.length} recusado(s)</p>
+              </div>
+            </div>
+
+            {/* Gráficos de reembolsos */}
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="card p-5">
+                <h3 className="font-bold text-dark text-sm mb-4 flex items-center gap-2">
+                  <Percent size={14} className="text-brand-blue" /> Distribuição por categoria
+                </h3>
+                <div className="space-y-3">
+                  {reimbCatList.map(([cat, value]) => (
+                    <div key={cat}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs text-slate-600 font-medium">{REIMBURSEMENT_CATEGORY_LABELS[cat] ?? cat}</span>
+                        <span className="text-sm font-bold text-dark">{fmt(value)}</span>
+                      </div>
+                      <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                        <div className="h-full bg-brand-blue rounded-full" style={{ width: `${(value / maxReimbCat) * 100}%` }} />
+                      </div>
+                    </div>
+                  ))}
+                  {reimbCatList.length === 0 && (
+                    <p className="text-sm text-slate-400 text-center py-4">Nenhum item ainda.</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="card p-5">
+                <h3 className="font-bold text-dark text-sm mb-4 flex items-center gap-2">
+                  <TrendingUp size={14} className="text-brand-blue" /> Últimos 6 meses
+                </h3>
+                <div className="space-y-3">
+                  {reimbMonthly.map(m => (
+                    <div key={m.label}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs text-slate-500 capitalize font-medium">{m.label}</span>
+                        <div className="text-right">
+                          <span className="text-sm font-bold text-dark">{m.total > 0 ? fmt(m.total) : '—'}</span>
+                          {m.count > 0 && <span className="text-xs text-slate-400 ml-2">{m.count}×</span>}
+                        </div>
+                      </div>
+                      <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                        {m.total > 0 && (
+                          <div className="h-full bg-brand-blue rounded-full" style={{ width: `${(m.total / maxReimbMensal) * 100}%` }} />
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </section>
 
       {/* ══════════════════════════════════════════════════

@@ -98,3 +98,35 @@ export const APPLICATION_STATUS_COLORS: Record<string, string> = {
   REJECTED:   'bg-red-100 text-red-700',
   CONVERTED:  'bg-indigo-100 text-indigo-700',
 }
+
+export const REIMBURSEMENT_STATUS_LABELS: Record<string, string> = {
+  PENDING:          'Aguardando aprovação',
+  APPROVED:         'Aprovado',
+  PAYMENT_RELEASED: 'Pagamento liberado',
+  PAID:             'Pago',
+  REJECTED:         'Recusado',
+}
+
+export const REIMBURSEMENT_STATUS_COLORS: Record<string, string> = {
+  PENDING:          'bg-amber-100 text-amber-700',
+  APPROVED:         'bg-blue-100 text-blue-700',
+  PAYMENT_RELEASED: 'bg-emerald-100 text-emerald-700',
+  PAID:             'bg-green-100 text-green-700',
+  REJECTED:         'bg-red-100 text-red-700',
+}
+
+export const REIMBURSEMENT_CATEGORY_LABELS: Record<string, string> = {
+  MATERIAL:   'Material',
+  FUEL:       'Combustível',
+  PARKING:    'Estacionamento',
+  TOLL:       'Pedágio',
+  OTHER:      'Outros',
+}
+
+export const REIMBURSEMENT_CATEGORY_COLORS: Record<string, string> = {
+  MATERIAL:   'bg-blue-100 text-blue-700',
+  FUEL:       'bg-orange-100 text-orange-700',
+  PARKING:    'bg-slate-100 text-slate-700',
+  TOLL:       'bg-purple-100 text-purple-700',
+  OTHER:      'bg-gray-100 text-gray-700',
+}

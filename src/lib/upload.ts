@@ -96,3 +96,27 @@ export async function saveReportFile(
 
   return { filePath: absolutePath, fileName: file.name, fileSize: file.size }
 }
+
+export async function saveReimbursementFile(
+  file: File,
+  technicianId: string,
+  reimbursementId: string
+): Promise<UploadResult> {
+  if (file.size > MAX_FILE_SIZE) throw new Error('Arquivo muito grande. Máximo 10MB.')
+  if (!ALLOWED_TYPES.includes(file.type)) throw new Error('Formato inválido. Use PDF, JPG ou PNG.')
+
+  const ext = file.name.split('.').pop() ?? 'jpg'
+  const safeName = `reimbursements/${technicianId}/${reimbursementId}_${Date.now()}.${ext}`
+
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    const blob = await put(safeName, file, { access: 'public' })
+    return { filePath: blob.url, fileName: file.name, fileSize: file.size, mimeType: file.type }
+  }
+
+  const uploadPath = path.join(process.cwd(), 'uploads', 'reimbursements', technicianId)
+  await mkdir(uploadPath, { recursive: true })
+  const absolutePath = path.join(uploadPath, `${reimbursementId}_${Date.now()}.${ext}`)
+  const bytes = await file.arrayBuffer()
+  await writeFile(absolutePath, Buffer.from(bytes))
+  return { filePath: absolutePath, fileName: file.name, fileSize: file.size, mimeType: file.type }
+}

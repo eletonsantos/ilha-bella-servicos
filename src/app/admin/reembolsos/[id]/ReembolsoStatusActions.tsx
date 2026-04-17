@@ -1,0 +1,68 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Loader2, CheckCircle, DollarSign, XCircle, ThumbsUp } from 'lucide-react'
+
+interface Props {
+  reimbursementId: string
+  currentStatus: string
+}
+
+const actions = [
+  { label: 'Aprovar',             status: 'APPROVED',          color: 'bg-blue-600 hover:bg-blue-700 text-white',      icon: ThumbsUp,     show: ['PENDING'] },
+  { label: 'Liberar pagamento',   status: 'PAYMENT_RELEASED',  color: 'bg-emerald-600 hover:bg-emerald-700 text-white', icon: DollarSign,   show: ['APPROVED'] },
+  { label: 'Marcar como Pago',    status: 'PAID',              color: 'bg-green-600 hover:bg-green-700 text-white',     icon: CheckCircle,  show: ['PAYMENT_RELEASED', 'APPROVED', 'PENDING'] },
+  { label: 'Recusar',             status: 'REJECTED',          color: 'bg-red-500 hover:bg-red-600 text-white',         icon: XCircle,      show: ['PENDING', 'APPROVED'] },
+  { label: 'Reabrir',             status: 'PENDING',           color: 'bg-amber-500 hover:bg-amber-600 text-white',     icon: ThumbsUp,     show: ['REJECTED'] },
+]
+
+export default function ReembolsoStatusActions({ reimbursementId, currentStatus }: Props) {
+  const router = useRouter()
+  const [loading, setLoading] = useState<string | null>(null)
+  const [error, setError] = useState('')
+
+  const available = actions.filter(a => a.show.includes(currentStatus))
+  if (available.length === 0) return null
+
+  async function handleAction(status: string) {
+    setLoading(status)
+    setError('')
+    try {
+      const res = await fetch(`/api/admin/reembolsos/${reimbursementId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      })
+      if (!res.ok) throw new Error('Erro ao atualizar status')
+      router.refresh()
+    } catch {
+      setError('Erro ao atualizar status')
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  return (
+    <div className="card p-6 space-y-4">
+      <h2 className="font-bold text-dark">Ações</h2>
+      {error && <p className="text-red-600 text-sm">{error}</p>}
+      <div className="flex flex-wrap gap-3">
+        {available.map(action => {
+          const Icon = action.icon
+          return (
+            <button
+              key={action.status}
+              onClick={() => handleAction(action.status)}
+              disabled={!!loading}
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 ${action.color}`}
+            >
+              {loading === action.status ? <Loader2 size={15} className="animate-spin" /> : <Icon size={15} />}
+              {action.label}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}

@@ -84,6 +84,7 @@ model TechnicianProfile {
   closings Closing[]
   disputes ClosingDispute[]
   advances PaymentAdvance[]
+  reimbursements Reimbursement[]
 }
 
 model Closing {
@@ -172,6 +173,46 @@ model Invoice {
   createdAt     DateTime @default(now())
 
   closing Closing @relation(fields: [closingId], references: [id], onDelete: Cascade)
+}
+
+model Reimbursement {
+  id           String   @id @default(cuid())
+  technicianId String
+  description  String
+  totalValue   Float
+  pixKey       String
+  pixKeyType   String   @default("CPF")
+  status       String   @default("PENDING")
+  adminNotes   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  technician  TechnicianProfile        @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+  items       ReimbursementItem[]
+  attachments ReimbursementAttachment[]
+}
+
+model ReimbursementItem {
+  id              String        @id @default(cuid())
+  reimbursementId String
+  description     String
+  category        String
+  value           Float
+  createdAt       DateTime      @default(now())
+
+  reimbursement   Reimbursement @relation(fields: [reimbursementId], references: [id], onDelete: Cascade)
+}
+
+model ReimbursementAttachment {
+  id              String        @id @default(cuid())
+  reimbursementId String
+  filePath        String
+  fileName        String
+  fileSize        Int
+  mimeType        String
+  createdAt       DateTime      @default(now())
+
+  reimbursement   Reimbursement @relation(fields: [reimbursementId], references: [id], onDelete: Cascade)
 }
 
 model TechnicianApplication {

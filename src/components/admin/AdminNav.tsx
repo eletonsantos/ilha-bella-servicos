@@ -3,16 +3,17 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
-import { Users, FileText, LogOut, Settings, Zap, LayoutDashboard, UserCheck } from 'lucide-react'
+import { Users, FileText, LogOut, Settings, Zap, LayoutDashboard, UserCheck, Receipt } from 'lucide-react'
 import { clsx } from 'clsx'
 
 interface Props {
   user: { name?: string | null }
   pendingAdvances?: number
   pendingApplications?: number
+  pendingReimbursements?: number
 }
 
-export default function AdminNav({ user, pendingAdvances = 0, pendingApplications = 0 }: Props) {
+export default function AdminNav({ user, pendingAdvances = 0, pendingApplications = 0, pendingReimbursements = 0 }: Props) {
   const pathname = usePathname()
 
   const links = [
@@ -21,6 +22,7 @@ export default function AdminNav({ user, pendingAdvances = 0, pendingApplication
     { href: '/admin/tecnicos',     label: 'Técnicos',     icon: Users,           badge: 0 },
     { href: '/admin/fechamentos',  label: 'Fechamentos',  icon: FileText,        badge: 0 },
     { href: '/admin/antecipacao',  label: 'Antecipação',  icon: Zap,             badge: pendingAdvances },
+    { href: '/admin/reembolsos',   label: 'Reembolsos',   icon: Receipt,         badge: pendingReimbursements },
   ]
 
   return (
