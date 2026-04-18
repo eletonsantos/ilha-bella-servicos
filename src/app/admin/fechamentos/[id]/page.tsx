@@ -9,6 +9,7 @@ import EditarFechamentoWrapper from './EditarFechamentoWrapper'
 import DisputaActions from './DisputaActions'
 import AntecipacaoActions from './AntecipacaoActions'
 import DeleteFechamentoButton from './DeleteFechamentoButton'
+import ClosingTimeline from '@/components/tecnico/ClosingTimeline'
 
 interface Props { params: { id: string } }
 
@@ -23,6 +24,10 @@ export default async function AdminFechamentoDetailPage({ params }: Props) {
       invoice:    true,
       dispute:    { include: { technician: { select: { fullName: true } } } },
       advance:    true,
+      events: {
+        orderBy: { createdAt: 'desc' },
+        include: { emailLog: { select: { recipient: true, template: true, status: true, sentAt: true } } },
+      },
     },
   })
 
@@ -194,6 +199,12 @@ export default async function AdminFechamentoDetailPage({ params }: Props) {
 
       {/* Ações de status */}
       <ClosingStatusActions closingId={closing.id} currentStatus={closing.status} />
+
+      {/* Histórico de eventos */}
+      <div className="card p-6">
+        <h2 className="font-bold text-dark mb-4">Histórico de eventos</h2>
+        <ClosingTimeline events={closing.events} showEmailDetails={true} />
+      </div>
 
       {/* Excluir fechamento */}
       <DeleteFechamentoButton

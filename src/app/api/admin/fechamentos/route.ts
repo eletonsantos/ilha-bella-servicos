@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { NextRequest, NextResponse } from 'next/server'
 import { saveReportFile } from '@/lib/upload'
+import { createClosingEvent } from '@/lib/closing-events'
 
 export async function GET() {
   const session = await auth()
@@ -72,6 +73,15 @@ export async function POST(req: NextRequest) {
         reportFileSize,
       },
     })
+
+    // Registra evento + dispara e-mail ao prestador
+    await createClosingEvent({
+      closingId:   closing.id,
+      eventType:   'CLOSING_CREATED',
+      statusTo:    'CLOSING_AVAILABLE',
+      description: 'Fechamento criado pelo administrador. Aguardando envio da Nota Fiscal.',
+      createdBy:   'admin',
+    }).catch(err => console.error('[event] Failed to create CLOSING_CREATED event:', err))
 
     return NextResponse.json({ success: true, closing })
   } catch (err) {

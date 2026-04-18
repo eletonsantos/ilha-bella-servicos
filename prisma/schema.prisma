@@ -111,6 +111,39 @@ model Closing {
   invoice    Invoice?
   dispute    ClosingDispute?
   advance    PaymentAdvance?
+  events     ClosingEvent[]
+  emailLogs  EmailLog[]
+}
+
+model ClosingEvent {
+  id          String   @id @default(cuid())
+  closingId   String
+  eventType   String
+  statusFrom  String?
+  statusTo    String?
+  description String?
+  adminNote   String?
+  createdBy   String   @default("system")
+  createdAt   DateTime @default(now())
+
+  closing  Closing   @relation(fields: [closingId], references: [id], onDelete: Cascade)
+  emailLog EmailLog?
+}
+
+model EmailLog {
+  id         String    @id @default(cuid())
+  closingId  String
+  eventId    String?   @unique
+  recipient  String
+  subject    String
+  template   String
+  status     String    @default("PENDING")
+  error      String?
+  sentAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  closing Closing       @relation(fields: [closingId], references: [id], onDelete: Cascade)
+  event   ClosingEvent? @relation(fields: [eventId], references: [id])
 }
 
 model ClosingDispute {

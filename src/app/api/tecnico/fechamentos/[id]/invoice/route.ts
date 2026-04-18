@@ -6,6 +6,7 @@ import { sendInvoiceNotification } from '@/lib/email'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { createHash } from 'crypto'
+import { createClosingEvent } from '@/lib/closing-events'
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   const session = await auth()
@@ -102,6 +103,16 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     fileName: uploadResult.fileName,
     closingId: closing.id,
   })
+
+  // Registra evento de NF enviada (sem e-mail — admin já recebe pelo sendInvoiceNotification)
+  await createClosingEvent({
+    closingId:   closing.id,
+    eventType:   'INVOICE_SUBMITTED',
+    statusFrom:  closing.status,
+    statusTo:    'INVOICE_SENT',
+    description: `Nota Fiscal enviada pelo prestador. NF nº ${invoiceNumber} — ${contractSignedName ? 'com contrato assinado' : 'sem contrato'}.`,
+    createdBy:   'technician',
+  }).catch(err => console.error('[event] Failed to create INVOICE_SUBMITTED event:', err))
 
   return NextResponse.json(invoice)
 }

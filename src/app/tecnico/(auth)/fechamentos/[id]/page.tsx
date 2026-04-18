@@ -9,6 +9,7 @@ import { CLOSING_STATUS_LABELS, CLOSING_STATUS_COLORS } from '@/lib/constants-te
 import InvoiceUploadForm from '@/components/tecnico/InvoiceUploadForm'
 import ContestacaoSection from './ContestacaoSection'
 import AntecipacaoSection from './AntecipacaoSection'
+import ClosingTimeline from '@/components/tecnico/ClosingTimeline'
 
 export default async function FechamentoDetailPage({ params }: { params: { id: string } }) {
   const session = await auth()
@@ -21,7 +22,14 @@ export default async function FechamentoDetailPage({ params }: { params: { id: s
 
   const closing = await prisma.closing.findFirst({
     where: { id: params.id, technicianId: profile.id },
-    include: { services: true, invoice: true },
+    include: {
+      services: true,
+      invoice: true,
+      events: {
+        orderBy: { createdAt: 'desc' },
+        include: { emailLog: { select: { recipient: true, template: true, status: true, sentAt: true } } },
+      },
+    },
   })
   if (!closing) notFound()
 
@@ -174,6 +182,14 @@ export default async function FechamentoDetailPage({ params }: { params: { id: s
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Histórico de andamento */}
+      {closing.events.length > 0 && (
+        <div className="card p-6">
+          <h2 className="font-bold text-dark mb-4">Andamento do fechamento</h2>
+          <ClosingTimeline events={closing.events} showEmailDetails={false} />
         </div>
       )}
 
