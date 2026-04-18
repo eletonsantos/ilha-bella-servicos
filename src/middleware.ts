@@ -1,5 +1,9 @@
-import { auth } from '@/lib/auth'
+import NextAuth from 'next-auth'
+import { authConfig } from '@/lib/auth.config'
 import { NextResponse } from 'next/server'
+
+// Middleware edge-safe: usa authConfig sem Prisma (apenas verifica JWT)
+const { auth } = NextAuth(authConfig)
 
 export default auth((req) => {
   const { pathname } = req.nextUrl

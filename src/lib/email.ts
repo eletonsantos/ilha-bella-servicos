@@ -1,4 +1,6 @@
-import nodemailer from 'nodemailer'
+import { Resend } from 'resend'
+
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 export type ClosingEmailTemplate =
   | 'closing_created'
@@ -7,15 +9,7 @@ export type ClosingEmailTemplate =
   | 'payment_released'
   | 'paid'
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT),
-  secure: true,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-})
+// ─── Notificação admin (nova NF recebida) ────────────────────────────────────
 
 export interface InvoiceNotificationData {
   technicianName: string
@@ -30,7 +24,7 @@ export interface InvoiceNotificationData {
 
 export async function sendInvoiceNotification(data: InvoiceNotificationData) {
   const adminEmail = process.env.ADMIN_EMAIL!
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL!
+  const siteUrl   = process.env.NEXT_PUBLIC_SITE_URL!
 
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -57,17 +51,15 @@ export async function sendInvoiceNotification(data: InvoiceNotificationData) {
     </div>
   `
 
-  // Prepared for future use — configure SMTP credentials in .env.local
   try {
-    // Envia para o e-mail admin (Gmail) e também para o e-mail da empresa
-    const recipients = [adminEmail, process.env.SMTP_USER].filter(Boolean).join(', ')
-    await transporter.sendMail({
-      from: `"Ilha Bella Serviços" <${process.env.SMTP_USER}>`,
-      to: recipients,
+    const recipients = [adminEmail, process.env.RESEND_FROM_EMAIL].filter(Boolean) as string[]
+    await resend.emails.send({
+      from:    `Ilha Bella Serviços <${process.env.RESEND_FROM_EMAIL}>`,
+      to:      recipients,
       subject: `📄 Nova NF recebida — ${data.technicianName} | ${data.closingPeriod}`,
       html,
     })
-    console.log('[email] Invoice notification sent to:', recipients)
+    console.log('[email] Invoice notification sent to:', recipients.join(', '))
   } catch (err) {
     console.error('[email] Failed to send invoice notification:', err)
   }
@@ -98,14 +90,14 @@ export async function sendClosingEmail({
   to: string
   data: ClosingEmailData
 }) {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ilhabellaservicos.com.br'
+  const siteUrl   = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ilhabellaservicos.com.br'
   const portalUrl = `${siteUrl}/tecnico/fechamentos/${data.closingId}`
 
-  const html = buildClosingEmailHtml({ template, data, portalUrl })
+  const html    = buildClosingEmailHtml({ template, data, portalUrl })
   const subject = subjectByTemplate(template, data.competence)
 
-  await transporter.sendMail({
-    from: `"Ilha Bella Serviços" <${process.env.SMTP_USER}>`,
+  await resend.emails.send({
+    from:    `Ilha Bella Serviços <${process.env.RESEND_FROM_EMAIL}>`,
     to,
     subject,
     html,
@@ -174,12 +166,12 @@ function buildClosingEmailHtml({
   const c = configs[template]
 
   const rows = [
-    data.competence           && row('Competência',            data.competence),
+    data.competence           && row('Competência',             data.competence),
     data.periodStart          && data.periodEnd && row('Período', `${data.periodStart} a ${data.periodEnd}`),
-    data.totalValue           && row('Valor',                  `<strong style="color:#16a34a">${data.totalValue}</strong>`),
-    data.invoiceNumber        && row('Nº da NF',               data.invoiceNumber),
-    data.invoiceValue         && row('Valor da NF',            data.invoiceValue),
-    data.observations         && row('Observações',            data.observations),
+    data.totalValue           && row('Valor',                   `<strong style="color:#16a34a">${data.totalValue}</strong>`),
+    data.invoiceNumber        && row('Nº da NF',                data.invoiceNumber),
+    data.invoiceValue         && row('Valor da NF',             data.invoiceValue),
+    data.observations         && row('Observações',             data.observations),
     data.scheduledPaymentDate && row('Pagamento previsto para', `<strong>${data.scheduledPaymentDate}</strong>`),
   ].filter(Boolean).join('')
 
