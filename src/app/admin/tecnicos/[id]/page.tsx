@@ -41,6 +41,7 @@ export default async function AdminTecnicoDetailPage({ params }: Props) {
     { label: 'CNPJ',           value: tech.cnpj ?? '—' },
     { label: 'Razão Social',   value: tech.razaoSocial ?? '—' },
     { label: 'Login IA Assist',value: tech.iaAssistLogin ?? '—' },
+    { label: 'Tipo de contratação', value: { PJ_TERCEIRIZADO: 'Terceirizado PJ', AUTONOMO: 'Autônomo', CLT: 'CLT' }[tech.contractType ?? 'AUTONOMO'] ?? '—' },
     { label: 'Cadastrado em',  value: new Date(tech.createdAt).toLocaleDateString('pt-BR') },
   ]
 
@@ -82,6 +83,7 @@ export default async function AdminTecnicoDetailPage({ params }: Props) {
             iaAssistLogin:tech.iaAssistLogin,
             cnpj:         tech.cnpj,
             razaoSocial:  tech.razaoSocial,
+            contractType: tech.contractType,
           }}
         />
       </div>

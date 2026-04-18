@@ -17,6 +17,7 @@ interface Props {
     iaAssistLogin: string | null
     cnpj: string | null
     razaoSocial: string | null
+    contractType: string | null
   }
   onCancel: () => void
 }
@@ -38,6 +39,7 @@ export default function EditarCadastroForm({ tech, onCancel }: Props) {
     iaAssistLogin: tech.iaAssistLogin ?? '',
     cnpj:         tech.cnpj ?? '',
     razaoSocial:  tech.razaoSocial ?? '',
+    contractType: tech.contractType ?? 'AUTONOMO',
   })
 
   function set(field: string, value: string) {
@@ -116,6 +118,16 @@ export default function EditarCadastroForm({ tech, onCancel }: Props) {
         <div className="sm:col-span-2">
           <label className={labelClass}>Chave Pix *</label>
           <input value={form.pixKey} onChange={e => set('pixKey', e.target.value)} className={inputClass} required />
+        </div>
+
+        {/* Tipo de contratação */}
+        <div className="sm:col-span-2 border-t border-slate-100 pt-3">
+          <label className={labelClass}>Tipo de contratação *</label>
+          <select value={form.contractType} onChange={e => set('contractType', e.target.value)} className={inputClass}>
+            <option value="AUTONOMO">Autônomo</option>
+            <option value="PJ_TERCEIRIZADO">Terceirizado PJ</option>
+            <option value="CLT">CLT</option>
+          </select>
         </div>
 
         {/* Dados da empresa */}

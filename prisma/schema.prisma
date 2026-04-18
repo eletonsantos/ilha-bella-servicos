@@ -76,6 +76,7 @@ model TechnicianProfile {
   tabelaValoresPath  String?
   tabelaValoresName  String?
   tabelaValoresSize  Int?
+  contractType       String?  @default("AUTONOMO")
   status             String   @default("INITIATED")
   adminNotes    String?
   createdAt     DateTime @default(now())

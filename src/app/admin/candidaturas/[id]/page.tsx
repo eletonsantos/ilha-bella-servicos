@@ -147,6 +147,9 @@ export default async function AdminCandidaturaDetailPage({ params }: Props) {
           applicationId={app.id}
           cpfCnpj={app.cpfCnpj}
           fullName={app.fullName}
+          phone={app.whatsapp}
+          email={app.email}
+          city={app.cidade}
         />
       )}
 

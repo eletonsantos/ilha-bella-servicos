@@ -63,7 +63,7 @@ export default async function AdminDashboardPage() {
   const qtdPago      = closings.filter(c => c.status === 'PAID').length
   const qtdLiberado  = closings.filter(c => c.status === 'PAYMENT_RELEASED').length
   const qtdAndamento = closings.filter(c => !['PAID', 'PAYMENT_RELEASED'].includes(c.status)).length
-  const semNF        = closings.filter(c => !c.invoice)
+  const semNF        = closings.filter(c => !c.invoice && c.status !== 'PAID')
   const totalSemNF   = semNF.reduce((s, c) => s + c.totalValue, 0)
 
   // ── Fechamentos — por status ─────────────────────────────────────────────────

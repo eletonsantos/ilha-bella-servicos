@@ -21,6 +21,7 @@ interface TechData {
   iaAssistLogin: string | null
   cnpj: string | null
   razaoSocial: string | null
+  contractType: string | null
 }
 
 interface Props {

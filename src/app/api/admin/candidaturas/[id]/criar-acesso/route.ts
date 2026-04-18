@@ -5,7 +5,16 @@ import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 
 const schema = z.object({
-  password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
+  password:     z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
+  fullName:     z.string().min(2).optional(),
+  phone:        z.string().min(8).optional(),
+  email:        z.string().email().optional(),
+  city:         z.string().min(2).optional(),
+  pixKey:       z.string().min(1).optional(),
+  pixKeyType:   z.enum(['CPF', 'CNPJ', 'EMAIL', 'PHONE', 'RANDOM']).optional(),
+  cnpj:         z.string().optional(),
+  razaoSocial:  z.string().optional(),
+  contractType: z.enum(['PJ_TERCEIRIZADO', 'AUTONOMO', 'CLT']).optional(),
 })
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
@@ -29,6 +38,16 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   const hashedPassword = await bcrypt.hash(parsed.data.password, 12)
 
+  // Merge form overrides with application defaults
+  const d = parsed.data
+  const profileFullName    = d.fullName    ?? application.fullName
+  const profilePhone       = d.phone       ?? application.whatsapp
+  const profileEmail       = d.email       ?? application.email
+  const profileCity        = d.city        ?? application.cidade
+  const profilePixKey      = d.pixKey      ?? ''
+  const profilePixKeyType  = d.pixKeyType  ?? 'CPF'
+  const profileContractType = d.contractType ?? 'AUTONOMO'
+
   // Cria User + TechnicianProfile em transação
   const internalEmail = `${cpf}@tecnico.interno`
 
@@ -37,7 +56,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       const user = await tx.user.create({
         data: {
           email: internalEmail,
-          name: application.fullName,
+          name: profileFullName,
           role: 'TECHNICIAN',
           password: hashedPassword,
         },
@@ -45,14 +64,17 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
       const profile = await tx.technicianProfile.create({
         data: {
-          userId: user.id,
-          fullName: application.fullName,
+          userId:       user.id,
+          fullName:     profileFullName,
           cpf,
-          phone: application.whatsapp,
-          email: application.email,
-          city: application.cidade,
-          pixKey: '',
-          pixKeyType: 'CPF',
+          phone:        profilePhone,
+          email:        profileEmail,
+          city:         profileCity,
+          pixKey:       profilePixKey,
+          pixKeyType:   profilePixKeyType,
+          contractType: profileContractType,
+          cnpj:         d.cnpj        || undefined,
+          razaoSocial:  d.razaoSocial || undefined,
           status: 'APPROVED',
         },
       })

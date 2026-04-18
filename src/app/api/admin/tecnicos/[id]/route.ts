@@ -21,6 +21,7 @@ const patchSchema = z.object({
   iaAssistLogin: z.string().optional(),
   cnpj:         z.string().optional(),
   razaoSocial:  z.string().optional(),
+  contractType: z.enum(['PJ_TERCEIRIZADO', 'AUTONOMO', 'CLT']).optional(),
 })
 
 export async function PATCH(
