@@ -79,7 +79,7 @@ export default function NovoReembolsoTecnicoPage() {
   }
 
   // Segundo passo: após assinar o contrato, envia
-  async function doSubmit(signedName: string, signedDocument: string) {
+  async function doSubmit(signedName: string, signedDocument: string, contractData: object) {
     setShowContrato(false)
     setLoading(true)
     setError('')
@@ -97,6 +97,7 @@ export default function NovoReembolsoTecnicoPage() {
           })),
           contractSignedName: signedName,
           contractSignedDocument: signedDocument,
+          contractData,
         }),
       })
 

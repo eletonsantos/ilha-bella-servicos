@@ -4,7 +4,7 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { ArrowLeft, CheckCircle, Download, FileText, CalendarClock } from 'lucide-react'
+import { ArrowLeft, CheckCircle, Download, FileText, CalendarClock, Shield } from 'lucide-react'
 import { CLOSING_STATUS_LABELS, CLOSING_STATUS_COLORS } from '@/lib/constants-tecnico'
 import InvoiceUploadForm from '@/components/tecnico/InvoiceUploadForm'
 import ContestacaoSection from './ContestacaoSection'
@@ -180,9 +180,19 @@ export default async function FechamentoDetailPage({ params }: { params: { id: s
       {/* Invoice section */}
       {closing.invoice ? (
         <div className="card p-6 border-l-4 border-green-400">
-          <div className="flex items-center gap-3 mb-3">
-            <CheckCircle size={20} className="text-green-500" />
-            <h2 className="font-bold text-dark">Nota fiscal enviada</h2>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <CheckCircle size={20} className="text-green-500" />
+              <h2 className="font-bold text-dark">Nota fiscal enviada</h2>
+            </div>
+            {closing.invoice.contractSignedAt && (
+              <Link
+                href={`/tecnico/fechamentos/${closing.id}/contrato`}
+                className="inline-flex items-center gap-1.5 text-indigo-600 hover:text-indigo-700 text-xs font-semibold transition-colors"
+              >
+                <Shield size={12} /> Ver contrato assinado
+              </Link>
+            )}
           </div>
           <div className="grid sm:grid-cols-2 gap-4 text-sm">
             <div><p className="text-slate-500">Número</p><p className="font-semibold">{closing.invoice.invoiceNumber}</p></div>

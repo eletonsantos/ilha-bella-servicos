@@ -2,7 +2,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Download, FileText, CalendarClock, Eye, EyeOff } from 'lucide-react'
+import { ArrowLeft, Download, FileText, CalendarClock, Eye, EyeOff, Shield } from 'lucide-react'
 import { CLOSING_STATUS_LABELS, CLOSING_STATUS_COLORS } from '@/lib/constants-tecnico'
 import ClosingStatusActions from './ClosingStatusActions'
 import EditarFechamentoWrapper from './EditarFechamentoWrapper'
@@ -168,14 +168,24 @@ export default async function AdminFechamentoDetailPage({ params }: Props) {
               <p className="text-sm font-medium text-dark truncate">{closing.invoice.fileName}</p>
               <p className="text-xs text-slate-500">NF {closing.invoice.invoiceNumber} · Enviada em {fmtDate(closing.invoice.sentAt)}</p>
             </div>
-            <a
-              href={`/api/tecnico/fechamentos/${closing.id}/invoice/download`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
-            >
-              <Download size={13} /> Baixar NF
-            </a>
+            <div className="flex items-center gap-2">
+              {closing.invoice?.contractSignedAt && (
+                <Link
+                  href={`/admin/fechamentos/${closing.id}/contrato`}
+                  className="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+                >
+                  <Shield size={13} /> Ver contrato
+                </Link>
+              )}
+              <a
+                href={`/api/tecnico/fechamentos/${closing.id}/invoice/download`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+              >
+                <Download size={13} /> Baixar NF
+              </a>
+            </div>
           </div>
         ) : (
           <p className="text-sm text-slate-400">O técnico ainda não enviou a nota fiscal.</p>

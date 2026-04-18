@@ -2,7 +2,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Download, FileText, Receipt, CalendarClock } from 'lucide-react'
+import { ArrowLeft, Download, FileText, Receipt, CalendarClock, Shield } from 'lucide-react'
 import {
   REIMBURSEMENT_STATUS_LABELS,
   REIMBURSEMENT_STATUS_COLORS,
@@ -131,6 +131,25 @@ export default async function AdminReembolsoDetailPage({ params }: Props) {
         )}
         <ReembolsoUpload reimbursementId={r.id} />
       </div>
+
+      {/* Contrato assinado */}
+      {r.contractSignedAt && (
+        <div className="card p-6">
+          <h2 className="font-bold text-dark mb-3 flex items-center gap-2">
+            <Shield size={16} className="text-indigo-600" /> Contrato assinado
+          </h2>
+          <div className="flex items-center justify-between bg-indigo-50 rounded-xl px-4 py-3">
+            <div>
+              <p className="text-sm font-semibold text-dark">{r.contractSignedName}</p>
+              <p className="text-xs text-slate-500">{r.contractSignedDocument} · Assinado em {fmtDate(r.contractSignedAt)}</p>
+            </div>
+            <Link href={`/admin/reembolsos/${r.id}/contrato`}
+              className="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
+              <Shield size={13} /> Ver contrato
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Notas admin */}
       {r.adminNotes && (

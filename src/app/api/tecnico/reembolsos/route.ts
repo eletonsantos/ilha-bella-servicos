@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json()
-    const { description, items, contractSignedName, contractSignedDocument } = body
+    const { description, items, contractSignedName, contractSignedDocument, contractData } = body
 
     if (!description || !items?.length) {
       return NextResponse.json({ error: 'Dados obrigatórios ausentes' }, { status: 400 })
@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
         contractSignedAt:       contractSignedName ? new Date() : null,
         contractSignedName:     contractSignedName ?? null,
         contractSignedDocument: contractSignedDocument ?? null,
+        contractData:           contractData ? JSON.stringify(contractData) : null,
         items: {
           create: items.map((i: { category: string; description: string; value: number }) => ({
             category: i.category,

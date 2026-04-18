@@ -67,7 +67,7 @@ export default function InvoiceUploadForm({
   }
 
   // Segundo passo: após assinar o contrato, envia
-  async function onContractConfirm(signedName: string, signedDocument: string) {
+  async function onContractConfirm(signedName: string, signedDocument: string, contractData: object) {
     if (!pendingData || !file) return
     setShowContrato(false)
     setLoading(true)
@@ -81,6 +81,7 @@ export default function InvoiceUploadForm({
       if (pendingData.observations) formData.append('observations', pendingData.observations)
       formData.append('contractSignedName', signedName)
       formData.append('contractSignedDocument', signedDocument)
+      formData.append('contractData', JSON.stringify(contractData))
 
       const res = await fetch(`/api/tecnico/fechamentos/${closingId}/invoice`, {
         method: 'POST',

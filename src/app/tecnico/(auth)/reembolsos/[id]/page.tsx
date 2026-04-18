@@ -2,7 +2,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Download, FileText, Receipt, CalendarClock } from 'lucide-react'
+import { ArrowLeft, Download, FileText, Receipt, CalendarClock, Shield } from 'lucide-react'
 import { REIMBURSEMENT_STATUS_LABELS, REIMBURSEMENT_STATUS_COLORS, REIMBURSEMENT_CATEGORY_LABELS, REIMBURSEMENT_CATEGORY_COLORS, PIX_KEY_TYPE_LABELS } from '@/lib/constants-tecnico'
 
 interface Props { params: { id: string } }
@@ -115,6 +115,25 @@ export default async function TecnicoReembolsoDetailPage({ params }: Props) {
           </div>
         )}
       </div>
+
+      {/* Contrato assinado */}
+      {r.contractSignedAt && (
+        <div className="card p-6">
+          <h2 className="font-bold text-dark mb-3 flex items-center gap-2">
+            <Shield size={16} className="text-indigo-600" /> Contrato assinado
+          </h2>
+          <div className="flex items-center justify-between bg-indigo-50 rounded-xl px-4 py-3">
+            <div>
+              <p className="text-sm font-semibold text-dark">{r.contractSignedName}</p>
+              <p className="text-xs text-slate-500">Assinado em {fmtDate(r.contractSignedAt)}</p>
+            </div>
+            <Link href={`/tecnico/reembolsos/${r.id}/contrato`}
+              className="inline-flex items-center gap-1.5 text-indigo-600 hover:text-indigo-700 text-xs font-semibold transition-colors">
+              <Shield size={12} /> Ver contrato assinado
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Notas do admin */}
       {r.adminNotes && (
