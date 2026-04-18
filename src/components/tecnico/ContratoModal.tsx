@@ -114,7 +114,8 @@ export default function ContratoModal({
       contratado: usaCnpj ? {
         tipo: 'PJ',
         nomeRepresentante: signedName.trim(),
-        cnpj: signedDoc.trim(),
+        // Fallback: se BrasilAPI falhou, usa CNPJ do cadastro do perfil
+        cnpj: signedDoc.trim() || techCnpj || '',
         razaoSocial: cnpjData?.razao_social ?? techName,
         nomeFantasia: cnpjData?.nome_fantasia ?? '',
         endereco: cnpjData
@@ -124,6 +125,9 @@ export default function ContratoModal({
         situacaoReceita: cnpjData?.descricao_situacao_cadastral ?? '',
         sociosPrincipais: cnpjData?.qsa?.map(s => s.nome_socio).join(', ') ?? '',
         dadosReceita: cnpjData ?? null,
+        // Indica se os dados vieram da BrasilAPI ou do cadastro (fallback)
+        brasilApiConsultado: !cnpjError && !!cnpjData,
+        brasilApiFallback: !!cnpjError,
       } : {
         tipo: 'PF',
         nomeCompleto: techName,

@@ -171,29 +171,32 @@ export default async function AdminContratoReembolsoPage({ params }: Props) {
           </div>
         </section>
 
-        <hr className="border-slate-100" />
-
-        {/* ASSINATURA */}
-        <section>
-          <h2 className="text-xs font-extrabold uppercase tracking-widest text-brand-blue mb-4">ASSINATURA ELETRÔNICA</h2>
-          <div className="grid sm:grid-cols-2 gap-6">
-            <div className="border border-slate-200 rounded-xl p-5 space-y-2">
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">CONTRATANTE</p>
-              <p className="font-bold text-dark">Ilha Bella Serviços</p>
-              <p className="text-sm text-slate-600">CNPJ: 28.864.149/0001-38</p>
-              <p className="text-sm text-slate-600">Rep.: Eleton Cristofe dos Santos</p>
-            </div>
-            <div className="border border-green-200 bg-green-50/50 rounded-xl p-5 space-y-2">
-              <p className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-3">CONTRATADO — ASSINADO ELETRONICAMENTE</p>
-              <p className="font-bold text-dark">{r.contractSignedName ?? r.technician.fullName}</p>
-              <p className="text-sm text-slate-600">{usaCnpj ? 'CNPJ' : 'CPF'}: {r.contractSignedDocument ?? (usaCnpj ? r.technician.cnpj : r.technician.cpf)}</p>
-              {signedAt && <p className="text-xs text-green-700 font-semibold">✓ Assinado em {signedAt}</p>}
-              {!!assinatura?.timestamp && (
-                <p className="text-xs text-slate-500 font-mono break-all">ID: {String(assinatura?.timestamp)}</p>
-              )}
-            </div>
-          </div>
-        </section>
+        {/* ASSINATURA — só exibe se houver assinatura registrada */}
+        {signedAt && (
+          <>
+            <hr className="border-slate-100" />
+            <section>
+              <h2 className="text-xs font-extrabold uppercase tracking-widest text-brand-blue mb-4">ASSINATURA ELETRÔNICA</h2>
+              <div className="grid sm:grid-cols-2 gap-6">
+                <div className="border border-slate-200 rounded-xl p-5 space-y-2">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">CONTRATANTE</p>
+                  <p className="font-bold text-dark">Ilha Bella Serviços</p>
+                  <p className="text-sm text-slate-600">CNPJ: 28.864.149/0001-38</p>
+                  <p className="text-sm text-slate-600">Rep.: Eleton Cristofe dos Santos</p>
+                </div>
+                <div className="border border-green-200 bg-green-50/50 rounded-xl p-5 space-y-2">
+                  <p className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-3">CONTRATADO — ASSINADO ELETRONICAMENTE</p>
+                  <p className="font-bold text-dark">{r.contractSignedName ?? r.technician.fullName}</p>
+                  <p className="text-sm text-slate-600">{usaCnpj ? 'CNPJ' : 'CPF'}: {r.contractSignedDocument ?? (usaCnpj ? r.technician.cnpj : r.technician.cpf)}</p>
+                  <p className="text-xs text-green-700 font-semibold">✓ Assinado em {signedAt}</p>
+                  {!!assinatura?.timestamp && (
+                    <p className="text-xs text-slate-500 font-mono break-all">ID: {String(assinatura?.timestamp)}</p>
+                  )}
+                </div>
+              </div>
+            </section>
+          </>
+        )}
 
         {/* Rodapé legal */}
         <div className="text-center text-xs text-slate-400 border-t border-slate-100 pt-4">
