@@ -1,14 +1,23 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Plus, Trash2, Upload, Loader2, FileText, X, Receipt } from 'lucide-react'
+import ContratoModal from '@/components/tecnico/ContratoModal'
 
 interface Item {
   category: string
   description: string
   value: string
+}
+
+interface TechProfile {
+  fullName: string
+  cnpj: string | null
+  cpf: string
+  pixKey: string
+  pixKeyType: string
 }
 
 const CATEGORIES = [
@@ -25,11 +34,20 @@ export default function NovoReembolsoTecnicoPage() {
   const [uploadingFiles, setUploadingFiles] = useState(false)
   const [error, setError] = useState('')
   const [files, setFiles] = useState<File[]>([])
+  const [profile, setProfile] = useState<TechProfile | null>(null)
+  const [showContrato, setShowContrato] = useState(false)
 
   const [description, setDescription] = useState('')
   const [items, setItems] = useState<Item[]>([
     { category: 'MATERIAL', description: '', value: '' },
   ])
+
+  useEffect(() => {
+    fetch('/api/tecnico/profile')
+      .then(r => r.json())
+      .then(data => setProfile(data))
+      .catch(() => {})
+  }, [])
 
   function addItem() {
     setItems(prev => [...prev, { category: 'MATERIAL', description: '', value: '' }])
@@ -50,12 +68,19 @@ export default function NovoReembolsoTecnicoPage() {
     setFiles(prev => [...prev, ...selected.filter(f => f.size <= 10 * 1024 * 1024)])
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  // Primeiro passo: valida e abre o contrato
+  function handlePreSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!description) { setError('Informe o motivo da solicitação.'); return }
     if (items.some(i => !i.description || !i.value)) { setError('Preencha descrição e valor de todos os itens.'); return }
     if (files.length === 0) { setError('Anexe pelo menos um comprovante.'); return }
+    setError('')
+    setShowContrato(true)
+  }
 
+  // Segundo passo: após assinar o contrato, envia
+  async function doSubmit(signedName: string, signedDocument: string) {
+    setShowContrato(false)
     setLoading(true)
     setError('')
 
@@ -70,6 +95,8 @@ export default function NovoReembolsoTecnicoPage() {
             description: i.description,
             value: parseFloat(i.value),
           })),
+          contractSignedName: signedName,
+          contractSignedDocument: signedDocument,
         }),
       })
 
@@ -95,6 +122,21 @@ export default function NovoReembolsoTecnicoPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
+      {showContrato && profile && (
+        <ContratoModal
+          techName={profile.fullName}
+          techCnpj={profile.cnpj}
+          techCpf={profile.cpf}
+          techPixKey={profile.pixKey}
+          techPixKeyType={profile.pixKeyType}
+          tipo="reembolso"
+          totalValue={totalValue}
+          reimbursementDescription={description}
+          onConfirm={doSubmit}
+          onCancel={() => setShowContrato(false)}
+        />
+      )}
+
       <Link href="/tecnico/reembolsos" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-brand-blue transition-colors">
         <ArrowLeft size={16} /> Voltar para reembolsos
       </Link>
@@ -104,7 +146,7 @@ export default function NovoReembolsoTecnicoPage() {
         <p className="text-slate-500 text-sm mt-1">Informe as despesas para ressarcimento. O pagamento será feito via PIX cadastrado no seu perfil.</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handlePreSubmit} className="space-y-5">
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl">{error}</div>
         )}
@@ -217,12 +259,16 @@ export default function NovoReembolsoTecnicoPage() {
           )}
         </div>
 
+        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-800">
+          Ao clicar em &ldquo;Continuar&rdquo;, você será solicitado a assinar um <strong>Recibo de Prestação de Serviços</strong> com validade jurídica antes do envio.
+        </div>
+
         <button
           type="submit"
           disabled={loading || uploadingFiles}
           className="w-full bg-brand-blue hover:bg-brand-blue-dark text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
         >
-          {loading ? <><Loader2 size={18} className="animate-spin" /> {uploadingFiles ? 'Enviando comprovantes...' : 'Criando solicitação...'}</> : <><Receipt size={18} /> Enviar solicitação</>}
+          {loading ? <><Loader2 size={18} className="animate-spin" /> {uploadingFiles ? 'Enviando comprovantes...' : 'Criando solicitação...'}</> : <><Receipt size={18} /> Continuar para assinar e enviar</>}
         </button>
       </form>
     </div>

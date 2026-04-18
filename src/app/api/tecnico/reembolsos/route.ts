@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json()
-    const { description, items } = body
+    const { description, items, contractSignedName, contractSignedDocument } = body
 
     if (!description || !items?.length) {
       return NextResponse.json({ error: 'Dados obrigatórios ausentes' }, { status: 400 })
@@ -42,6 +42,9 @@ export async function POST(req: NextRequest) {
         totalValue,
         pixKey: profile.pixKey,
         pixKeyType: profile.pixKeyType,
+        contractSignedAt:       contractSignedName ? new Date() : null,
+        contractSignedName:     contractSignedName ?? null,
+        contractSignedDocument: contractSignedDocument ?? null,
         items: {
           create: items.map((i: { category: string; description: string; value: number }) => ({
             category: i.category,

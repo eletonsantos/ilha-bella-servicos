@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { CLOSING_STATUS_LABELS, CLOSING_STATUS_COLORS } from '@/lib/constants-tecnico'
-import { ChevronRight, FileText, Plus } from 'lucide-react'
+import { ChevronRight, FileText, Plus, Eye, EyeOff } from 'lucide-react'
 
 export default async function AdminFechamentosPage() {
   const session = await auth()
@@ -33,7 +33,7 @@ export default async function AdminFechamentosPage() {
         {closings.map((closing) => (
           <Link key={closing.id} href={`/admin/fechamentos/${closing.id}`}
             className="card p-5 flex items-center gap-4 hover:shadow-md transition-all group">
-            <div className="flex-1 grid sm:grid-cols-5 gap-3 items-center">
+            <div className="flex-1 grid sm:grid-cols-6 gap-3 items-center">
               <div>
                 <p className="font-bold text-dark text-sm">{closing.technician.fullName}</p>
                 <p className="text-slate-400 text-xs">{closing.competence}</p>
@@ -58,6 +58,17 @@ export default async function AdminFechamentosPage() {
                   </span>
                 ) : (
                   <span className="text-xs text-slate-400">Sem NF</span>
+                )}
+              </div>
+              <div>
+                {closing.viewedAt ? (
+                  <span className="text-xs text-blue-600 flex items-center gap-1">
+                    <Eye size={12} /> Visualizado
+                  </span>
+                ) : (
+                  <span className="text-xs text-slate-400 flex items-center gap-1">
+                    <EyeOff size={12} /> Não aberto
+                  </span>
                 )}
               </div>
             </div>

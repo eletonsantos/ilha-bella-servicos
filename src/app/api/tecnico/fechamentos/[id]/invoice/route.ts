@@ -28,6 +28,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const competence = formData.get('competence') as string
   const value = parseFloat(formData.get('value') as string)
   const observations = formData.get('observations') as string | null
+  const contractSignedName     = formData.get('contractSignedName') as string | null
+  const contractSignedDocument = formData.get('contractSignedDocument') as string | null
 
   if (!file || !invoiceNumber || !competence || isNaN(value)) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -52,6 +54,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       fileName: uploadResult.fileName,
       fileSize: uploadResult.fileSize,
       mimeType: uploadResult.mimeType,
+      contractSignedAt:       contractSignedName ? new Date() : null,
+      contractSignedName:     contractSignedName ?? null,
+      contractSignedDocument: contractSignedDocument ?? null,
     },
   })
 

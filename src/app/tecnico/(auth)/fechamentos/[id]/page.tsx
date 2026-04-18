@@ -25,6 +25,14 @@ export default async function FechamentoDetailPage({ params }: { params: { id: s
   })
   if (!closing) notFound()
 
+  // Registra primeira visualização
+  if (!closing.viewedAt) {
+    await prisma.closing.update({
+      where: { id: closing.id },
+      data: { viewedAt: new Date() },
+    }).catch(() => {})
+  }
+
   // Fetch dispute and advance separately so they don't break the page if tables are new
   const [dispute, advance] = await Promise.all([
     prisma.closingDispute.findUnique({ where: { closingId: closing.id } }).catch(() => null),
@@ -184,7 +192,18 @@ export default async function FechamentoDetailPage({ params }: { params: { id: s
           </div>
         </div>
       ) : canSendInvoice ? (
-        <InvoiceUploadForm closingId={closing.id} competence={closing.competence} totalValue={closing.totalValue} />
+        <InvoiceUploadForm
+          closingId={closing.id}
+          competence={closing.competence}
+          totalValue={closing.totalValue}
+          periodStart={closing.periodStart}
+          periodEnd={closing.periodEnd}
+          techName={profile.fullName}
+          techCnpj={profile.cnpj}
+          techCpf={profile.cpf}
+          techPixKey={profile.pixKey}
+          techPixKeyType={profile.pixKeyType}
+        />
       ) : null}
     </div>
   )

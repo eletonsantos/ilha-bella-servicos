@@ -104,6 +104,7 @@ model Closing {
   scheduledPaymentDate DateTime?
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
+  viewedAt             DateTime?
 
   technician TechnicianProfile @relation(fields: [technicianId], references: [id], onDelete: Cascade)
   services   ClosingService[]
@@ -170,6 +171,9 @@ model Invoice {
   fileSize      Int
   mimeType      String
   sentAt        DateTime @default(now())
+  contractSignedAt       DateTime?
+  contractSignedName     String?
+  contractSignedDocument String?
   createdAt     DateTime @default(now())
 
   closing Closing @relation(fields: [closingId], references: [id], onDelete: Cascade)
@@ -184,6 +188,9 @@ model Reimbursement {
   pixKeyType   String   @default("CPF")
   status       String   @default("PENDING")
   adminNotes   String?
+  contractSignedAt       DateTime?
+  contractSignedName     String?
+  contractSignedDocument String?
   scheduledPaymentDate DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

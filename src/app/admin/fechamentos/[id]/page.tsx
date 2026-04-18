@@ -2,7 +2,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Download, FileText, CalendarClock } from 'lucide-react'
+import { ArrowLeft, Download, FileText, CalendarClock, Eye, EyeOff } from 'lucide-react'
 import { CLOSING_STATUS_LABELS, CLOSING_STATUS_COLORS } from '@/lib/constants-tecnico'
 import ClosingStatusActions from './ClosingStatusActions'
 import EditarFechamentoWrapper from './EditarFechamentoWrapper'
@@ -65,6 +65,17 @@ export default async function AdminFechamentoDetailPage({ params }: Props) {
             <span className="inline-flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full font-medium">
               <CalendarClock size={12} />
               Pagamento: {fmtDate(closing.scheduledPaymentDate)}
+            </span>
+          )}
+          {closing.viewedAt ? (
+            <span className="inline-flex items-center gap-1.5 text-xs text-blue-700 bg-blue-50 px-3 py-1.5 rounded-full font-medium">
+              <Eye size={12} />
+              Visualizado em {fmtDate(closing.viewedAt)}
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full font-medium">
+              <EyeOff size={12} />
+              Não visualizado
             </span>
           )}
         </div>
