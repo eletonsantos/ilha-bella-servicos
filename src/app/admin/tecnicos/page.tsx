@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { PROFILE_STATUS_LABELS, PROFILE_STATUS_COLORS } from '@/lib/constants-tecnico'
-import { Users, ChevronRight } from 'lucide-react'
+import { Users, ChevronRight, UserPlus } from 'lucide-react'
 
 export default async function AdminTecnicosPage() {
   const session = await auth()
@@ -21,6 +21,13 @@ export default async function AdminTecnicosPage() {
           <h1 className="text-2xl font-extrabold text-dark">Técnicos cadastrados</h1>
           <p className="text-slate-500 text-sm mt-1">{technicians.length} técnico(s) no sistema</p>
         </div>
+        <Link
+          href="/admin/tecnicos/novo"
+          className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition-all"
+        >
+          <UserPlus size={15} />
+          Novo técnico
+        </Link>
       </div>
 
       {technicians.length === 0 ? (
