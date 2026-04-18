@@ -5,6 +5,7 @@ import JsonLd from '@/components/ui/JsonLd'
 import { COMPANY } from '@/lib/constants'
 import SessionProvider from '@/components/providers/SessionProvider'
 import ConditionalLayout from '@/components/providers/ConditionalLayout'
+import RegisterSW from '@/components/providers/RegisterSW'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -47,6 +48,12 @@ export const metadata: Metadata = {
     title: `${COMPANY.name} | Serviços 24h`,
     description: COMPANY.description,
   },
+  themeColor: '#1A7DC1',
+  appleWebApp: {
+    capable: true,
+    title: 'IlhaBela',
+    statusBarStyle: 'default',
+  },
   robots: {
     index: true,
     follow: true,
@@ -74,6 +81,7 @@ export default function RootLayout({
     <html lang="pt-BR" className={inter.variable}>
       <body className="flex flex-col min-h-screen">
         <SessionProvider>
+          <RegisterSW />
           <JsonLd />
           <ConditionalLayout>{children}</ConditionalLayout>
         </SessionProvider>

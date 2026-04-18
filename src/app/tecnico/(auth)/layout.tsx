@@ -17,7 +17,7 @@ export default async function TecnicoAuthLayout({ children }: { children: React.
   return (
     <div className="min-h-screen bg-slate-50">
       <TecnicoNav user={session.user} profile={profile} />
-      <main className="container-site py-8">{children}</main>
+      <main className="container-site py-8 pb-24 sm:pb-8">{children}</main>
     </div>
   )
 }

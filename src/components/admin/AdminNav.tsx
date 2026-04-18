@@ -26,13 +26,17 @@ export default function AdminNav({ user, pendingAdvances = 0, pendingApplication
   ]
 
   return (
-    <nav className="bg-slate-900 border-b border-slate-800 sticky top-0 z-40">
-      <div className="container-site h-14 flex items-center justify-between">
-        <div className="flex items-center gap-6">
+    <>
+      {/* ── TOP BAR ── */}
+      <nav className="bg-slate-900 border-b border-slate-800 sticky top-0 z-40">
+        <div className="container-site h-14 flex items-center justify-between">
+          {/* Logo / brand — always visible */}
           <span className="text-white font-bold text-sm flex items-center gap-2">
             <Settings size={16} className="text-brand-gold" /> Admin
           </span>
-          <div className="flex items-center gap-1">
+
+          {/* Desktop links */}
+          <div className="hidden sm:flex items-center gap-1">
             {links.map(({ href, label, icon: Icon, badge }) => (
               <Link key={href} href={href}
                 className={clsx(
@@ -49,15 +53,51 @@ export default function AdminNav({ user, pendingAdvances = 0, pendingApplication
               </Link>
             ))}
           </div>
+
+          {/* Right actions — always visible */}
+          <div className="flex items-center gap-3">
+            <Link href="/" className="text-slate-400 hover:text-white text-xs transition-colors hidden sm:block">Ver site</Link>
+            <button
+              onClick={() => signOut({ callbackUrl: '/tecnico/login' })}
+              className="flex items-center gap-1.5 text-slate-400 hover:text-red-400 text-sm transition-colors"
+            >
+              <LogOut size={14} />
+              <span className="hidden sm:block text-xs">Sair</span>
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Link href="/" className="text-slate-400 hover:text-white text-xs transition-colors">Ver site</Link>
-          <button onClick={() => signOut({ callbackUrl: '/tecnico/login' })}
-            className="flex items-center gap-1.5 text-slate-400 hover:text-red-400 text-sm transition-colors">
-            <LogOut size={14} />
-          </button>
+      </nav>
+
+      {/* ── MOBILE BOTTOM TAB BAR ── */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-900 border-t border-slate-700"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <div className="flex">
+          {links.map(({ href, label, icon: Icon, badge }) => {
+            const active = pathname.startsWith(href)
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={clsx(
+                  'relative flex-1 flex flex-col items-center justify-center py-2 gap-0.5 transition-colors',
+                  active ? 'text-white' : 'text-slate-500'
+                )}
+              >
+                {active && (
+                  <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-brand-gold rounded-full" />
+                )}
+                <Icon size={20} />
+                <span className="text-[10px] font-medium leading-none">{label}</span>
+                {badge > 0 && (
+                  <span className="absolute top-1 right-2 min-w-[16px] h-4 px-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                    {badge > 9 ? '9+' : badge}
+                  </span>
+                )}
+              </Link>
+            )
+          })}
         </div>
       </div>
-    </nav>
+    </>
   )
 }
