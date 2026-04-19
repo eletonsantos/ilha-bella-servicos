@@ -32,32 +32,43 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const cpf = application.cpfCnpj.replace(/\D/g, '')
   if (cpf.length < 11) return NextResponse.json({ error: 'CPF/CNPJ inválido na candidatura' }, { status: 400 })
 
-  // Verifica se já existe perfil com esse CPF
-  const existing = await prisma.technicianProfile.findUnique({ where: { cpf } })
-  if (existing) return NextResponse.json({ error: 'Já existe um técnico cadastrado com esse CPF' }, { status: 409 })
+  const internalEmail = `${cpf}@tecnico.interno`
+
+  // Verifica se já existe perfil COMPLETO com esse CPF
+  const existingProfile = await prisma.technicianProfile.findUnique({ where: { cpf } })
+  if (existingProfile) return NextResponse.json({ error: 'Já existe um técnico cadastrado com esse CPF.' }, { status: 409 })
+
+  // Limpa registro de User incompleto (criado em tentativa anterior que falhou)
+  const orphanedUser = await prisma.user.findUnique({ where: { email: internalEmail } })
+  if (orphanedUser) {
+    // Só remove se realmente não tem perfil associado (segurança extra)
+    const hasProfile = await prisma.technicianProfile.findUnique({ where: { userId: orphanedUser.id } })
+    if (!hasProfile) {
+      await prisma.user.delete({ where: { id: orphanedUser.id } })
+    } else {
+      return NextResponse.json({ error: 'Já existe um técnico cadastrado com esse CPF.' }, { status: 409 })
+    }
+  }
 
   const hashedPassword = await bcrypt.hash(parsed.data.password, 12)
 
   // Merge form overrides with application defaults
   const d = parsed.data
-  const profileFullName    = d.fullName    ?? application.fullName
-  const profilePhone       = d.phone       ?? application.whatsapp
-  const profileEmail       = d.email       ?? application.email
-  const profileCity        = d.city        ?? application.cidade
-  const profilePixKey      = d.pixKey      ?? ''
-  const profilePixKeyType  = d.pixKeyType  ?? 'CPF'
+  const profileFullName     = d.fullName     ?? application.fullName
+  const profilePhone        = d.phone        ?? application.whatsapp
+  const profileEmail        = d.email        ?? application.email
+  const profileCity         = d.city         ?? application.cidade
+  const profilePixKey       = d.pixKey       ?? ''
+  const profilePixKeyType   = d.pixKeyType   ?? 'CPF'
   const profileContractType = d.contractType ?? 'AUTONOMO'
-
-  // Cria User + TechnicianProfile em transação
-  const internalEmail = `${cpf}@tecnico.interno`
 
   try {
     const result = await prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
         data: {
-          email: internalEmail,
-          name: profileFullName,
-          role: 'TECHNICIAN',
+          email:    internalEmail,
+          name:     profileFullName,
+          role:     'TECHNICIAN',
           password: hashedPassword,
         },
       })
@@ -75,13 +86,13 @@ export async function POST(req: Request, { params }: { params: { id: string } })
           contractType: profileContractType,
           cnpj:         d.cnpj        || undefined,
           razaoSocial:  d.razaoSocial || undefined,
-          status: 'APPROVED',
+          status:       'APPROVED',
         },
       })
 
       await tx.technicianApplication.update({
         where: { id: params.id },
-        data: { status: 'CONVERTED' },
+        data:  { status: 'CONVERTED' },
       })
 
       return { userId: user.id, profileId: profile.id }
@@ -89,7 +100,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
     return NextResponse.json({ success: true, ...result })
   } catch (err) {
-    console.error(err)
-    return NextResponse.json({ error: 'Erro ao criar acesso. CPF pode já estar cadastrado.' }, { status: 500 })
+    console.error('[criar-acesso]', err)
+    return NextResponse.json({ error: 'Erro ao criar acesso. Tente novamente.' }, { status: 500 })
   }
 }
