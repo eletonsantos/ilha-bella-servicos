@@ -6,6 +6,7 @@ import { ArrowLeft, Phone, MapPin, Wrench } from 'lucide-react'
 import { APPLICATION_STATUS_LABELS, APPLICATION_STATUS_COLORS } from '@/lib/constants-tecnico'
 import CandidaturaStatusActions from './CandidaturaStatusActions'
 import CriarAcessoForm from './CriarAcessoForm'
+import EditarCandidaturaForm from './EditarCandidaturaForm'
 
 interface Props { params: { id: string } }
 
@@ -139,6 +140,28 @@ export default async function AdminCandidaturaDetailPage({ params }: Props) {
           <h2 className="font-bold text-dark mb-2">Notas internas</h2>
           <p className="text-sm text-slate-600 leading-relaxed">{app.adminNotes}</p>
         </div>
+      )}
+
+      {/* Editar dados da candidatura */}
+      {app.status !== 'CONVERTED' && (
+        <EditarCandidaturaForm app={{
+          id: app.id,
+          fullName: app.fullName,
+          cpfCnpj: app.cpfCnpj,
+          whatsapp: app.whatsapp,
+          email: app.email,
+          cidade: app.cidade,
+          bairro: app.bairro,
+          especialidadePrincipal: app.especialidadePrincipal,
+          outrasEspecialidades: app.outrasEspecialidades,
+          atende24h: app.atende24h,
+          possuiVeiculo: app.possuiVeiculo,
+          emiteNotaFiscal: app.emiteNotaFiscal,
+          trabalhoTipo: app.trabalhoTipo,
+          disponibilidade: app.disponibilidade,
+          tempoExperiencia: app.tempoExperiencia,
+          observacoes: app.observacoes,
+        }} />
       )}
 
       {/* Criar acesso — aparece apenas quando aprovado e ainda não convertido */}

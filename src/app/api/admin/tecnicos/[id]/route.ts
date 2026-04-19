@@ -42,11 +42,20 @@ export async function PATCH(
   const tech = await prisma.technicianProfile.findUnique({ where: { id: params.id } })
   if (!tech) return NextResponse.json({ error: 'Técnico não encontrado' }, { status: 404 })
 
-  const updated = await prisma.technicianProfile.update({
-    where: { id: params.id },
-    data: parsed.data,
-  })
+  const { cpf, ...rest } = parsed.data
 
+  // Se CPF foi alterado, atualiza também o e-mail interno do User
+  if (cpf && cpf !== tech.cpf) {
+    const newInternalEmail = `${cpf.replace(/\D/g, '')}@tecnico.interno`
+    await prisma.$transaction([
+      prisma.technicianProfile.update({ where: { id: params.id }, data: { cpf, ...rest } }),
+      prisma.user.update({ where: { id: tech.userId }, data: { email: newInternalEmail } }),
+    ])
+  } else {
+    await prisma.technicianProfile.update({ where: { id: params.id }, data: rest })
+  }
+
+  const updated = await prisma.technicianProfile.findUnique({ where: { id: params.id } })
   return NextResponse.json({ success: true, profile: updated })
 }
 
