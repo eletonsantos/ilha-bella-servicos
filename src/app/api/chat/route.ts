@@ -95,9 +95,10 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ done: false, text })
   } catch (err) {
-    console.error('[chat POST]', err)
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('[chat POST]', msg)
     return NextResponse.json(
-      { done: false, text: 'Desculpe, tive um probleminha técnico. Pode repetir? 😅' },
+      { done: false, text: `[DEBUG] ${msg.slice(0, 200)}` },
       { status: 500 }
     )
   }
@@ -106,14 +107,14 @@ export async function POST(req: NextRequest) {
 // GET — saudação inicial
 export async function GET() {
   try {
-    const prompt = SYSTEM_PROMPT + '\n\n--- CONVERSA ---\nCLIENTE: Olá\nBIA:'
+    const prompt = SYSTEM_PROMPT + '\n\n--- CONVERSA ---\nCLIENTE: Olá\nBELLA:'
     const text = await callGemini(prompt)
     return NextResponse.json({ text })
   } catch (err) {
-    console.error('[chat GET]', err)
-    // Fallback caso a API falhe
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('[chat GET]', msg)
     return NextResponse.json({
-      text: 'Olá! 👋 Sou a Bella da Ilha Bella Serviços. Qual serviço você precisa hoje? (Encanador, Eletricista, Chaveiro, Desentupimento...)',
+      text: `[DEBUG GET] ${msg.slice(0, 200)}`,
     })
   }
 }
