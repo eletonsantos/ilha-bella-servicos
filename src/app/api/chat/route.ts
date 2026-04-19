@@ -34,10 +34,10 @@ ou
 function buildConversationPrompt(messages: Array<{ role: string; parts: Array<{ text: string }> }>): string {
   let prompt = SYSTEM_PROMPT + '\n\n--- CONVERSA ---\n'
   for (const msg of messages) {
-    const label = msg.role === 'user' ? 'CLIENTE' : 'BIA'
+    const label = msg.role === 'user' ? 'CLIENTE' : 'BELLA'
     prompt += `\n${label}: ${msg.parts[0].text}`
   }
-  prompt += '\nBIA:'
+  prompt += '\nBELLA:'
   return prompt
 }
 
@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
     const msg = err instanceof Error ? err.message : String(err)
     console.error('[chat POST]', msg)
     return NextResponse.json(
-      { done: false, text: `[DEBUG] ${msg.slice(0, 200)}` },
+      { done: false, text: 'Desculpe, tive um problema de comunicação. Por favor, tente novamente em instantes! 😅' },
       { status: 500 }
     )
   }
@@ -113,8 +113,9 @@ export async function GET() {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     console.error('[chat GET]', msg)
+    // Fallback amigável para o usuário
     return NextResponse.json({
-      text: `[DEBUG GET] ${msg.slice(0, 200)}`,
+      text: 'Olá! 👋 Sou a Bella da Ilha Bella Serviços. Qual serviço você precisa? (Encanador, Eletricista, Chaveiro, Desentupimento, Manutenção...)',
     })
   }
 }
