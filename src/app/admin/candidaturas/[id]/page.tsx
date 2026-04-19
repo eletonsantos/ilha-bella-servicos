@@ -7,6 +7,7 @@ import { APPLICATION_STATUS_LABELS, APPLICATION_STATUS_COLORS } from '@/lib/cons
 import CandidaturaStatusActions from './CandidaturaStatusActions'
 import CriarAcessoForm from './CriarAcessoForm'
 import EditarCandidaturaForm from './EditarCandidaturaForm'
+import CnpjInfoCard from './CnpjInfoCard'
 
 interface Props { params: { id: string } }
 
@@ -141,6 +142,9 @@ export default async function AdminCandidaturaDetailPage({ params }: Props) {
           <p className="text-sm text-slate-600 leading-relaxed">{app.adminNotes}</p>
         </div>
       )}
+
+      {/* Card CNPJ — aparece automaticamente se o candidato informou CNPJ */}
+      <CnpjInfoCard cpfCnpj={app.cpfCnpj} />
 
       {/* Editar dados da candidatura */}
       {app.status !== 'CONVERTED' && (

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { UserCheck, Loader2, Eye, EyeOff, CheckCircle, Search } from 'lucide-react'
 import { useCnpjLookup } from '@/hooks/useCnpjLookup'
@@ -29,6 +29,7 @@ export default function CriarAcessoForm({ applicationId, cpfCnpj, fullName, phon
   const { lookup, lookingUp, lookupError } = useCnpjLookup()
 
   const cpf = cpfCnpj.replace(/\D/g, '')
+  const isCnpj = cpf.length === 14
   const inputClass = 'w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue'
 
   const [form, setForm] = useState({
@@ -37,13 +38,29 @@ export default function CriarAcessoForm({ applicationId, cpfCnpj, fullName, phon
     email:        email,
     city:         city,
     pixKey:       '',
-    pixKeyType:   'CPF',
-    cnpj:         '',
+    pixKeyType:   isCnpj ? 'CNPJ' : 'CPF',
+    cnpj:         isCnpj ? cpfCnpj : '',
     razaoSocial:  '',
-    contractType: 'AUTONOMO',
+    contractType: isCnpj ? 'PJ_TERCEIRIZADO' : 'AUTONOMO',
     password:     '',
     confirm:      '',
   })
+
+  // Busca dados do CNPJ automaticamente se for PJ
+  useEffect(() => {
+    if (!isCnpj) return
+    fetch(`https://brasilapi.com.br/api/cnpj/v1/${cpf}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data) return
+        setForm(prev => ({
+          ...prev,
+          razaoSocial: data.razao_social || prev.razaoSocial,
+          city: prev.city || (data.municipio ? `${data.municipio} - ${data.uf}` : prev.city),
+        }))
+      })
+      .catch(() => {})
+  }, [])
 
   function set(field: string, value: string) {
     setForm(prev => ({ ...prev, [field]: value }))
