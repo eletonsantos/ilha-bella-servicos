@@ -124,6 +124,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
   }
 
+  const body = await req.json().catch(() => ({}))
+
+  // subject e html podem vir do gerador IA ou usar o template padrão de instalação
+  const customSubject: string | undefined = body.subject
+  const customHtml: string | undefined    = body.html
+
   // Busca todos os técnicos com email
   const technicians = await prisma.technicianProfile.findMany({
     select: { fullName: true, email: true },
@@ -141,12 +147,19 @@ export async function POST(req: Request) {
 
   for (let i = 0; i < technicians.length; i += BATCH) {
     const chunk = technicians.slice(i, i + BATCH)
-    const batch = chunk.map(t => ({
-      from:    `Ilha Bella Serviços <${process.env.RESEND_FROM_EMAIL}>`,
-      to:      [t.email],
-      subject: '📲 Novo! Instale o Portal do Prestador Ilha Bella no seu celular',
-      html:    buildHtml(t.fullName.split(' ')[0]),
-    }))
+    const batch = chunk.map(t => {
+      const firstName = t.fullName.split(' ')[0]
+      // Substitui {{nome}} no html gerado pela IA pelo primeiro nome do técnico
+      const html = customHtml
+        ? customHtml.replace(/\{\{nome\}\}/g, firstName)
+        : buildHtml(firstName)
+      return {
+        from:    `Ilha Bella Serviços <${process.env.RESEND_FROM_EMAIL}>`,
+        to:      [t.email],
+        subject: customSubject ?? '📲 Novo! Instale o Portal do Prestador Ilha Bella no seu celular',
+        html,
+      }
+    })
 
     try {
       const result = await resend.batch.send(batch)
