@@ -126,17 +126,26 @@ export async function POST(req: Request) {
 
   const body = await req.json().catch(() => ({}))
 
-  // subject e html podem vir do gerador IA ou usar o template padrão de instalação
   const customSubject: string | undefined = body.subject
   const customHtml: string | undefined    = body.html
 
-  // Busca todos os técnicos com email
-  const technicians = await prisma.technicianProfile.findMany({
-    select: { fullName: true, email: true },
-  })
+  // Aceita lista explícita de destinatários ou busca todos os técnicos
+  let recipients: { name: string; email: string }[] = []
 
-  if (technicians.length === 0) {
-    return NextResponse.json({ error: 'Nenhum técnico cadastrado.' }, { status: 400 })
+  if (Array.isArray(body.recipients) && body.recipients.length > 0) {
+    recipients = body.recipients.filter((r: { name?: string; email?: string }) =>
+      r.email && typeof r.email === 'string' && r.email.includes('@')
+    )
+  } else {
+    // Fallback: envia para todos os técnicos cadastrados
+    const technicians = await prisma.technicianProfile.findMany({
+      select: { fullName: true, email: true },
+    })
+    recipients = technicians.map(t => ({ name: t.fullName, email: t.email }))
+  }
+
+  if (recipients.length === 0) {
+    return NextResponse.json({ error: 'Nenhum destinatário válido.' }, { status: 400 })
   }
 
   // Envia em lotes de 50 (limite do Resend batch)
@@ -145,17 +154,16 @@ export async function POST(req: Request) {
   let failed = 0
   const errors: string[] = []
 
-  for (let i = 0; i < technicians.length; i += BATCH) {
-    const chunk = technicians.slice(i, i + BATCH)
-    const batch = chunk.map(t => {
-      const firstName = t.fullName.split(' ')[0]
-      // Substitui {{nome}} no html gerado pela IA pelo primeiro nome do técnico
+  for (let i = 0; i < recipients.length; i += BATCH) {
+    const chunk = recipients.slice(i, i + BATCH)
+    const batch = chunk.map(r => {
+      const firstName = r.name.split(' ')[0] || r.name
       const html = customHtml
         ? customHtml.replace(/\{\{nome\}\}/g, firstName)
         : buildHtml(firstName)
       return {
         from:    `Ilha Bella Serviços <${process.env.RESEND_FROM_EMAIL}>`,
-        to:      [t.email],
+        to:      [r.email],
         subject: customSubject ?? '📲 Novo! Instale o Portal do Prestador Ilha Bella no seu celular',
         html,
       }
@@ -163,7 +171,6 @@ export async function POST(req: Request) {
 
     try {
       const result = await resend.batch.send(batch)
-      // Count successes
       if (Array.isArray(result.data)) {
         sent += result.data.length
       } else {
@@ -178,7 +185,7 @@ export async function POST(req: Request) {
 
   return NextResponse.json({
     success: true,
-    total:   technicians.length,
+    total:   recipients.length,
     sent,
     failed,
     errors:  errors.length > 0 ? errors : undefined,
