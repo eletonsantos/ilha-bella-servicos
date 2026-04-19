@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
-import { Users, FileText, LogOut, Settings, Zap, LayoutDashboard, UserCheck, Receipt } from 'lucide-react'
+import { Users, FileText, LogOut, Settings, Zap, LayoutDashboard, UserCheck, Receipt, Megaphone } from 'lucide-react'
 import { clsx } from 'clsx'
 
 interface Props {
@@ -16,13 +16,20 @@ interface Props {
 export default function AdminNav({ user, pendingAdvances = 0, pendingApplications = 0, pendingReimbursements = 0 }: Props) {
   const pathname = usePathname()
 
-  const links = [
+  // Tabs do bottom mobile (os 6 principais)
+  const mobileLinks = [
     { href: '/admin/candidaturas', label: 'Candidaturas', icon: UserCheck,       badge: pendingApplications },
     { href: '/admin/dashboard',    label: 'Dashboard',    icon: LayoutDashboard, badge: 0 },
     { href: '/admin/tecnicos',     label: 'Técnicos',     icon: Users,           badge: 0 },
     { href: '/admin/fechamentos',  label: 'Fechamentos',  icon: FileText,        badge: 0 },
     { href: '/admin/antecipacao',  label: 'Antecipação',  icon: Zap,             badge: pendingAdvances },
     { href: '/admin/reembolsos',   label: 'Reembolsos',   icon: Receipt,         badge: pendingReimbursements },
+  ]
+
+  // Desktop inclui Comunicados também
+  const links = [
+    ...mobileLinks,
+    { href: '/admin/comunicados',  label: 'Comunicados',  icon: Megaphone,       badge: 0 },
   ]
 
   return (
@@ -72,7 +79,7 @@ export default function AdminNav({ user, pendingAdvances = 0, pendingApplication
       <div className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-900 border-t border-slate-700"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <div className="flex">
-          {links.map(({ href, label, icon: Icon, badge }) => {
+          {mobileLinks.map(({ href, label, icon: Icon, badge }) => {
             const active = pathname.startsWith(href)
             return (
               <Link
