@@ -148,7 +148,12 @@
       "mcp__b4d4bc7d-a129-4bec-9e9e-64c2af38deeb__get_deployment",
       "Bash(curl -s \"https://ilha-bella-servicos-933uhk8le-eletonsantos-projects.vercel.app/tecnico/login\" -o /dev/null -w \"%{http_code}\")",
       "Bash(curl -s -X POST https://ep-green-frost-anic88dl-pooler.c-6.us-east-1.aws.neon.tech/sql -H 'Content-Type: application/json' -H 'Neon-Connection-String: postgresql://neondb_owner:npg_FS2zojsfIK3u@ep-green-frost-anic88dl-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require' -d '{\"query\": \"SELECT column_name FROM information_schema.columns WHERE table_name = '\\\\''TechnicianProfile'\\\\'' AND column_name = '\\\\''contractType'\\\\''\"}')",
-      "Bash(curl -s -X POST https://ep-green-frost-anic88dl-pooler.c-6.us-east-1.aws.neon.tech/sql -H 'Content-Type: application/json' -H 'Neon-Connection-String: postgresql://neondb_owner:npg_FS2zojsfIK3u@ep-green-frost-anic88dl-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require' -d '{\"query\": \"ALTER TABLE \\\\\"TechnicianProfile\\\\\" ADD COLUMN IF NOT EXISTS \\\\\"contractType\\\\\" TEXT NOT NULL DEFAULT '\\\\''AUTONOMO'\\\\''\"}')"
+      "Bash(curl -s -X POST https://ep-green-frost-anic88dl-pooler.c-6.us-east-1.aws.neon.tech/sql -H 'Content-Type: application/json' -H 'Neon-Connection-String: postgresql://neondb_owner:npg_FS2zojsfIK3u@ep-green-frost-anic88dl-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require' -d '{\"query\": \"ALTER TABLE \\\\\"TechnicianProfile\\\\\" ADD COLUMN IF NOT EXISTS \\\\\"contractType\\\\\" TEXT NOT NULL DEFAULT '\\\\''AUTONOMO'\\\\''\"}')",
+      "Bash(next build *)",
+      "Bash(node_modules/.bin/next build *)",
+      "Bash(node_modules/.bin/next dev *)",
+      "Bash(node -e \"const { GoogleGenerativeAI } = require\\('@google/generative-ai'\\); const g = new GoogleGenerativeAI\\('AIzaSyCU6Mcsiu909gQ4UEZ9gWDytiZ_S4EgCs0'\\); g.getGenerativeModel\\({model:'gemini-2.0-flash'}\\).generateContent\\('oi'\\).then\\(r=>console.log\\('OK:',r.response.text\\(\\)\\)\\).catch\\(e=>console.error\\('ERR:',e.message\\)\\)\")",
+      "Bash(node -e \"require\\('openai'\\); console.log\\('ok'\\)\")"
     ]
   }
 }

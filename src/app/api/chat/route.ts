@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import OpenAI from 'openai'
 import { COMPANY } from '@/lib/constants'
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
 const WHATSAPP_NUMBER = COMPANY.whatsapp
 
@@ -31,16 +31,6 @@ Quando tiver TODAS as informações, responda SOMENTE com este JSON exato (sem t
 ou
 {"done":true,"nome":"...","servico":"...","problema":"...","local":"...","urgencia":"quer agendar"}`
 
-function buildConversationPrompt(messages: Array<{ role: string; parts: Array<{ text: string }> }>): string {
-  let prompt = SYSTEM_PROMPT + '\n\n--- CONVERSA ---\n'
-  for (const msg of messages) {
-    const label = msg.role === 'user' ? 'CLIENTE' : 'BELLA'
-    prompt += `\n${label}: ${msg.parts[0].text}`
-  }
-  prompt += '\nBELLA:'
-  return prompt
-}
-
 function buildWhatsAppMessage(data: {
   nome: string
   servico: string
@@ -59,10 +49,13 @@ function buildWhatsAppMessage(data: {
 Aguardo retorno, obrigado(a)! 🙏`
 }
 
-async function callGemini(prompt: string): Promise<string> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
-  const result = await model.generateContent(prompt)
-  return result.response.text().trim()
+type ChatMessage = { role: string; parts: Array<{ text: string }> }
+
+function toOpenAIMessages(messages: ChatMessage[]): OpenAI.Chat.ChatCompletionMessageParam[] {
+  return messages.map(m => ({
+    role: m.role === 'user' ? 'user' : 'assistant',
+    content: m.parts[0].text,
+  }))
 }
 
 // POST — processa mensagem do cliente
@@ -70,8 +63,17 @@ export async function POST(req: NextRequest) {
   try {
     const { messages } = await req.json()
 
-    const prompt = buildConversationPrompt(messages)
-    const text = await callGemini(prompt)
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPT },
+        ...toOpenAIMessages(messages),
+      ],
+      max_tokens: 300,
+      temperature: 0.7,
+    })
+
+    const text = response.choices[0].message.content?.trim() ?? ''
 
     // Detecta JSON de conclusão
     const jsonMatch = text.match(/\{[\s\S]*?"done"\s*:\s*true[\s\S]*?\}/)
@@ -107,13 +109,21 @@ export async function POST(req: NextRequest) {
 // GET — saudação inicial
 export async function GET() {
   try {
-    const prompt = SYSTEM_PROMPT + '\n\n--- CONVERSA ---\nCLIENTE: Olá\nBELLA:'
-    const text = await callGemini(prompt)
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: 'Olá' },
+      ],
+      max_tokens: 150,
+      temperature: 0.7,
+    })
+
+    const text = response.choices[0].message.content?.trim() ?? ''
     return NextResponse.json({ text })
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     console.error('[chat GET]', msg)
-    // Fallback amigável para o usuário
     return NextResponse.json({
       text: 'Olá! 👋 Sou a Bella da Ilha Bella Serviços. Qual serviço você precisa? (Encanador, Eletricista, Chaveiro, Desentupimento, Manutenção...)',
     })

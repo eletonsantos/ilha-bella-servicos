@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
-import WhatsAppButton from '@/components/layout/WhatsAppButton'
+import ChatWidget from '@/components/layout/ChatWidget'
 
 export default function ConditionalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -18,7 +18,7 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
       <Header />
       <main className="flex-1">{children}</main>
       <Footer />
-      <WhatsAppButton />
+      <ChatWidget />
     </>
   )
 }

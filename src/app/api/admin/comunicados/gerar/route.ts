@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import OpenAI from 'openai'
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
 const SYSTEM_PROMPT = `Você é um assistente especializado em criar e-mails profissionais para a empresa Ilha Bella Serviços & Assistência 24h.
 
@@ -39,14 +39,17 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: `Crie um e-mail para os técnicos sobre o seguinte:\n\n${prompt.trim()}` },
+      ],
+      max_tokens: 2000,
+      temperature: 0.7,
+    })
 
-    const result = await model.generateContent([
-      { text: SYSTEM_PROMPT },
-      { text: `Crie um e-mail para os técnicos sobre o seguinte:\n\n${prompt.trim()}` },
-    ])
-
-    const raw = result.response.text().trim()
+    const raw = response.choices[0].message.content?.trim() ?? ''
 
     // Limpa possível markdown wrapper
     const cleaned = raw
@@ -59,7 +62,6 @@ export async function POST(req: NextRequest) {
     try {
       parsed = JSON.parse(cleaned)
     } catch {
-      // Tenta extrair JSON de dentro do texto
       const match = cleaned.match(/\{[\s\S]*\}/)
       if (!match) throw new Error('Resposta inválida da IA')
       parsed = JSON.parse(match[0])
