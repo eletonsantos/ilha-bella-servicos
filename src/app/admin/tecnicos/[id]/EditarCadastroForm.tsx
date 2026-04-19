@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Save, Loader2, X } from 'lucide-react'
+import { Save, Loader2, X, Search } from 'lucide-react'
+import { useCnpjLookup } from '@/hooks/useCnpjLookup'
 
 interface Props {
   tech: {
@@ -27,6 +28,7 @@ export default function EditarCadastroForm({ tech, onCancel }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const { lookup, lookingUp, lookupError } = useCnpjLookup()
 
   const [form, setForm] = useState({
     fullName:     tech.fullName,
@@ -46,6 +48,17 @@ export default function EditarCadastroForm({ tech, onCancel }: Props) {
     setForm((prev) => ({ ...prev, [field]: value }))
     setError('')
     setSuccess(false)
+  }
+
+  async function handleCnpjBlur() {
+    const data = await lookup(form.cnpj)
+    if (!data) return
+    setForm(prev => ({
+      ...prev,
+      razaoSocial: data.razao_social || prev.razaoSocial,
+      fullName:    prev.fullName || data.nome_fantasia || data.razao_social || prev.fullName,
+      city:        prev.city || (data.municipio ? `${data.municipio} - ${data.uf}` : prev.city),
+    }))
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -130,17 +143,42 @@ export default function EditarCadastroForm({ tech, onCancel }: Props) {
           </select>
         </div>
 
-        {/* Dados da empresa */}
+        {/* Dados da empresa com consulta CNPJ */}
         <div className="sm:col-span-2 border-t border-slate-100 pt-3">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Dados da empresa (terceirizado)</p>
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+            Dados da empresa — digite o CNPJ para preencher automaticamente
+          </p>
         </div>
         <div>
           <label className={labelClass}>CNPJ</label>
-          <input value={form.cnpj} onChange={e => set('cnpj', e.target.value)} className={inputClass} placeholder="00.000.000/0001-00" />
+          <div className="relative">
+            <input
+              value={form.cnpj}
+              onChange={e => set('cnpj', e.target.value)}
+              onBlur={handleCnpjBlur}
+              className={inputClass + ' pr-10'}
+              placeholder="00.000.000/0001-00"
+            />
+            {lookingUp && (
+              <Loader2 size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-blue animate-spin" />
+            )}
+            {!lookingUp && form.cnpj.replace(/\D/g,'').length === 14 && (
+              <Search size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300" />
+            )}
+          </div>
+          {lookupError && <p className="text-xs text-red-500 mt-1">{lookupError}</p>}
+          {!lookupError && form.cnpj.replace(/\D/g,'').length > 0 && form.cnpj.replace(/\D/g,'').length < 14 && (
+            <p className="text-xs text-slate-400 mt-1">Digite os 14 dígitos para buscar automaticamente</p>
+          )}
         </div>
         <div>
           <label className={labelClass}>Razão Social</label>
-          <input value={form.razaoSocial} onChange={e => set('razaoSocial', e.target.value)} className={inputClass} />
+          <input
+            value={form.razaoSocial}
+            onChange={e => set('razaoSocial', e.target.value)}
+            className={inputClass}
+            placeholder="Preenchido pelo CNPJ"
+          />
         </div>
         <div className="sm:col-span-2">
           <label className={labelClass}>Login IA Assist</label>

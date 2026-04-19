@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Save, Loader2, X, Pencil } from 'lucide-react'
+import { Save, Loader2, X, Pencil, Search } from 'lucide-react'
+import { useCnpjLookup } from '@/hooks/useCnpjLookup'
 
 interface Candidatura {
   id: string
@@ -29,6 +30,7 @@ export default function EditarCandidaturaForm({ app }: { app: Candidatura }) {
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState('')
   const [success, setSuccess] = useState(false)
+  const { lookup, lookingUp, lookupError } = useCnpjLookup()
 
   const [form, setForm] = useState({
     fullName:               app.fullName,
@@ -52,6 +54,18 @@ export default function EditarCandidaturaForm({ app }: { app: Candidatura }) {
     setForm(prev => ({ ...prev, [field]: value }))
     setError('')
     setSuccess(false)
+  }
+
+  async function handleCpfCnpjBlur() {
+    const digits = form.cpfCnpj.replace(/\D/g, '')
+    if (digits.length !== 14) return // só tenta se for CNPJ (14 dígitos)
+    const data = await lookup(form.cpfCnpj)
+    if (!data) return
+    setForm(prev => ({
+      ...prev,
+      fullName: prev.fullName || data.nome_fantasia || data.razao_social || prev.fullName,
+      cidade:   prev.cidade   || (data.municipio ? `${data.municipio} - ${data.uf}` : prev.cidade),
+    }))
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -127,7 +141,26 @@ export default function EditarCandidaturaForm({ app }: { app: Candidatura }) {
             </div>
             <div>
               <label className={labelClass}>CPF / CNPJ *</label>
-              <input value={form.cpfCnpj} onChange={e => set('cpfCnpj', e.target.value)} className={inputClass} placeholder="000.000.000-00" required />
+              <div className="relative">
+                <input
+                  value={form.cpfCnpj}
+                  onChange={e => set('cpfCnpj', e.target.value)}
+                  onBlur={handleCpfCnpjBlur}
+                  className={inputClass + ' pr-10'}
+                  placeholder="000.000.000-00 ou 00.000.000/0001-00"
+                  required
+                />
+                {lookingUp && (
+                  <Loader2 size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-blue animate-spin" />
+                )}
+                {!lookingUp && form.cpfCnpj.replace(/\D/g,'').length === 14 && (
+                  <Search size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300" />
+                )}
+              </div>
+              {lookupError && <p className="text-xs text-red-500 mt-1">{lookupError}</p>}
+              {form.cpfCnpj.replace(/\D/g,'').length === 14 && !lookingUp && !lookupError && (
+                <p className="text-xs text-slate-400 mt-1">CNPJ detectado — saia do campo para buscar dados automaticamente</p>
+              )}
             </div>
             <div>
               <label className={labelClass}>WhatsApp *</label>

@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { UserPlus, Loader2, Eye, EyeOff, CheckCircle } from 'lucide-react'
+import { UserPlus, Loader2, Eye, EyeOff, CheckCircle, Search } from 'lucide-react'
+import { useCnpjLookup } from '@/hooks/useCnpjLookup'
 
 const inputClass =
   'w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent'
@@ -15,6 +16,7 @@ export default function NovoTecnicoForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const { lookup, lookingUp, lookupError } = useCnpjLookup()
 
   const [form, setForm] = useState({
     fullName:      '',
@@ -35,6 +37,17 @@ export default function NovoTecnicoForm() {
   function set(field: string, value: string) {
     setForm(prev => ({ ...prev, [field]: value }))
     setError('')
+  }
+
+  async function handleCnpjBlur() {
+    const data = await lookup(form.cnpj)
+    if (!data) return
+    setForm(prev => ({
+      ...prev,
+      razaoSocial: data.razao_social || prev.razaoSocial,
+      fullName:    prev.fullName || data.nome_fantasia || data.razao_social || prev.fullName,
+      city:        prev.city || (data.municipio ? `${data.municipio} - ${data.uf}` : prev.city),
+    }))
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -145,7 +158,7 @@ export default function NovoTecnicoForm() {
               value={form.city}
               onChange={e => set('city', e.target.value)}
               className={inputClass}
-              placeholder="Ex: Ilhabela"
+              placeholder="Ex: Florianópolis"
               required
             />
           </div>
@@ -208,23 +221,40 @@ export default function NovoTecnicoForm() {
               placeholder="Opcional"
             />
           </div>
+
+          {/* CNPJ com consulta automática */}
           <div>
             <label className={labelClass}>
               CNPJ <span className="normal-case font-normal text-slate-400">(se PJ)</span>
             </label>
-            <input
-              value={form.cnpj}
-              onChange={e => set('cnpj', e.target.value)}
-              className={inputClass}
-              placeholder="00.000.000/0001-00"
-            />
+            <div className="relative">
+              <input
+                value={form.cnpj}
+                onChange={e => set('cnpj', e.target.value)}
+                onBlur={handleCnpjBlur}
+                className={inputClass + ' pr-10'}
+                placeholder="00.000.000/0001-00"
+              />
+              {lookingUp && (
+                <Loader2 size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-blue animate-spin" />
+              )}
+              {!lookingUp && form.cnpj.replace(/\D/g,'').length === 14 && (
+                <Search size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300" />
+              )}
+            </div>
+            {lookupError && <p className="text-xs text-red-500 mt-1">{lookupError}</p>}
+            {!lookupError && form.cnpj.replace(/\D/g,'').length > 0 && form.cnpj.replace(/\D/g,'').length < 14 && (
+              <p className="text-xs text-slate-400 mt-1">Digite os 14 dígitos para buscar automaticamente</p>
+            )}
           </div>
+
           <div>
             <label className={labelClass}>Razão Social</label>
             <input
               value={form.razaoSocial}
               onChange={e => set('razaoSocial', e.target.value)}
               className={inputClass}
+              placeholder="Preenchido automaticamente pelo CNPJ"
             />
           </div>
         </div>
