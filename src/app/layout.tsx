@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import JsonLd from '@/components/ui/JsonLd'
@@ -12,6 +12,10 @@ const inter = Inter({
   variable: '--font-inter',
   display: 'swap',
 })
+
+export const viewport: Viewport = {
+  themeColor: '#1A7DC1',
+}
 
 export const metadata: Metadata = {
   metadataBase: new URL(COMPANY.siteUrl),
@@ -48,7 +52,6 @@ export const metadata: Metadata = {
     title: `${COMPANY.name} | Serviços 24h`,
     description: COMPANY.description,
   },
-  themeColor: '#1A7DC1',
   appleWebApp: {
     capable: true,
     title: 'IlhaBela',
