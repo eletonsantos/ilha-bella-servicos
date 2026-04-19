@@ -38,21 +38,16 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const existingProfile = await prisma.technicianProfile.findUnique({ where: { cpf } })
   if (existingProfile) return NextResponse.json({ error: 'Já existe um técnico cadastrado com esse CPF.' }, { status: 409 })
 
-  // Limpa registro de User incompleto (criado em tentativa anterior que falhou)
+  // Limpa User órfão de tentativa anterior que falhou
   const orphanedUser = await prisma.user.findUnique({ where: { email: internalEmail } })
   if (orphanedUser) {
-    // Só remove se realmente não tem perfil associado (segurança extra)
     const hasProfile = await prisma.technicianProfile.findUnique({ where: { userId: orphanedUser.id } })
-    if (!hasProfile) {
-      await prisma.user.delete({ where: { id: orphanedUser.id } })
-    } else {
-      return NextResponse.json({ error: 'Já existe um técnico cadastrado com esse CPF.' }, { status: 409 })
-    }
+    if (hasProfile) return NextResponse.json({ error: 'Já existe um técnico cadastrado com esse CPF.' }, { status: 409 })
+    await prisma.user.delete({ where: { id: orphanedUser.id } })
   }
 
   const hashedPassword = await bcrypt.hash(parsed.data.password, 12)
 
-  // Merge form overrides with application defaults
   const d = parsed.data
   const profileFullName     = d.fullName     ?? application.fullName
   const profilePhone        = d.phone        ?? application.whatsapp
@@ -62,45 +57,60 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const profilePixKeyType   = d.pixKeyType   ?? 'CPF'
   const profileContractType = d.contractType ?? 'AUTONOMO'
 
+  // Cria User
+  let userId: string
   try {
-    const result = await prisma.$transaction(async (tx) => {
-      const user = await tx.user.create({
-        data: {
-          email:    internalEmail,
-          name:     profileFullName,
-          role:     'TECHNICIAN',
-          password: hashedPassword,
-        },
-      })
-
-      const profile = await tx.technicianProfile.create({
-        data: {
-          userId:       user.id,
-          fullName:     profileFullName,
-          cpf,
-          phone:        profilePhone,
-          email:        profileEmail,
-          city:         profileCity,
-          pixKey:       profilePixKey,
-          pixKeyType:   profilePixKeyType,
-          contractType: profileContractType,
-          cnpj:         d.cnpj        || undefined,
-          razaoSocial:  d.razaoSocial || undefined,
-          status:       'APPROVED',
-        },
-      })
-
-      await tx.technicianApplication.update({
-        where: { id: params.id },
-        data:  { status: 'CONVERTED' },
-      })
-
-      return { userId: user.id, profileId: profile.id }
+    const user = await prisma.user.create({
+      data: {
+        email:    internalEmail,
+        name:     profileFullName,
+        role:     'TECHNICIAN',
+        password: hashedPassword,
+      },
     })
-
-    return NextResponse.json({ success: true, ...result })
+    userId = user.id
   } catch (err) {
-    console.error('[criar-acesso]', err)
-    return NextResponse.json({ error: 'Erro ao criar acesso. Tente novamente.' }, { status: 500 })
+    console.error('[criar-acesso] user.create', err)
+    return NextResponse.json({ error: 'Erro ao criar usuário. Tente novamente.' }, { status: 500 })
   }
+
+  // Cria TechnicianProfile
+  let profileId: string
+  try {
+    const profile = await prisma.technicianProfile.create({
+      data: {
+        userId,
+        fullName:     profileFullName,
+        cpf,
+        phone:        profilePhone,
+        email:        profileEmail,
+        city:         profileCity,
+        pixKey:       profilePixKey,
+        pixKeyType:   profilePixKeyType,
+        contractType: profileContractType,
+        cnpj:         d.cnpj        || undefined,
+        razaoSocial:  d.razaoSocial || undefined,
+        status:       'APPROVED',
+      },
+    })
+    profileId = profile.id
+  } catch (err) {
+    // Se o perfil falhou, remove o user criado para não ficar órfão
+    console.error('[criar-acesso] profile.create', err)
+    await prisma.user.delete({ where: { id: userId } }).catch(() => {})
+    return NextResponse.json({ error: 'Erro ao criar perfil do técnico. Tente novamente.' }, { status: 500 })
+  }
+
+  // Marca candidatura como CONVERTED
+  try {
+    await prisma.technicianApplication.update({
+      where: { id: params.id },
+      data:  { status: 'CONVERTED' },
+    })
+  } catch (err) {
+    console.error('[criar-acesso] application.update', err)
+    // Não é crítico — o técnico foi criado, apenas a candidatura não foi marcada
+  }
+
+  return NextResponse.json({ success: true, userId, profileId })
 }

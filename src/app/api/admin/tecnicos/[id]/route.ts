@@ -47,10 +47,8 @@ export async function PATCH(
   // Se CPF foi alterado, atualiza também o e-mail interno do User
   if (cpf && cpf !== tech.cpf) {
     const newInternalEmail = `${cpf.replace(/\D/g, '')}@tecnico.interno`
-    await prisma.$transaction([
-      prisma.technicianProfile.update({ where: { id: params.id }, data: { cpf, ...rest } }),
-      prisma.user.update({ where: { id: tech.userId }, data: { email: newInternalEmail } }),
-    ])
+    await prisma.technicianProfile.update({ where: { id: params.id }, data: { cpf, ...rest } })
+    await prisma.user.update({ where: { id: tech.userId }, data: { email: newInternalEmail } })
   } else {
     await prisma.technicianProfile.update({ where: { id: params.id }, data: rest })
   }

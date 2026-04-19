@@ -44,43 +44,56 @@ export async function POST(req: NextRequest) {
 
   const d = parsed.data
   const cpfRaw = d.cpf.replace(/\D/g, '')
+  const internalEmail = `${cpfRaw}@tecnico.interno`
 
   const existing = await prisma.technicianProfile.findUnique({ where: { cpf: cpfRaw } })
   if (existing) return NextResponse.json({ error: 'Já existe um técnico com esse CPF' }, { status: 409 })
 
+  // Limpa User órfão de tentativa anterior
+  const orphanedUser = await prisma.user.findUnique({ where: { email: internalEmail } })
+  if (orphanedUser) {
+    const hasProfile = await prisma.technicianProfile.findUnique({ where: { userId: orphanedUser.id } })
+    if (hasProfile) return NextResponse.json({ error: 'Já existe um técnico com esse CPF' }, { status: 409 })
+    await prisma.user.delete({ where: { id: orphanedUser.id } })
+  }
+
   const hashedPassword = await bcrypt.hash(d.password, 12)
-  const internalEmail  = `${cpfRaw}@tecnico.interno`
 
+  // Cria User
+  let userId: string
   try {
-    const result = await prisma.$transaction(async (tx) => {
-      const user = await tx.user.create({
-        data: { email: internalEmail, name: d.fullName, role: 'TECHNICIAN', password: hashedPassword },
-      })
-
-      const profile = await tx.technicianProfile.create({
-        data: {
-          userId:        user.id,
-          fullName:      d.fullName,
-          cpf:           cpfRaw,
-          phone:         d.phone,
-          email:         d.email,
-          city:          d.city,
-          pixKey:        d.pixKey,
-          pixKeyType:    d.pixKeyType,
-          contractType:  d.contractType,
-          cnpj:          d.cnpj          || undefined,
-          razaoSocial:   d.razaoSocial   || undefined,
-          iaAssistLogin: d.iaAssistLogin || undefined,
-          status:        'APPROVED',
-        },
-      })
-
-      return { profileId: profile.id }
+    const user = await prisma.user.create({
+      data: { email: internalEmail, name: d.fullName, role: 'TECHNICIAN', password: hashedPassword },
     })
-
-    return NextResponse.json({ success: true, ...result })
+    userId = user.id
   } catch (err) {
-    console.error(err)
-    return NextResponse.json({ error: 'Erro ao criar técnico.' }, { status: 500 })
+    console.error('[novo-tecnico] user.create', err)
+    return NextResponse.json({ error: 'Erro ao criar usuário. Tente novamente.' }, { status: 500 })
+  }
+
+  // Cria TechnicianProfile
+  try {
+    const profile = await prisma.technicianProfile.create({
+      data: {
+        userId,
+        fullName:      d.fullName,
+        cpf:           cpfRaw,
+        phone:         d.phone,
+        email:         d.email,
+        city:          d.city,
+        pixKey:        d.pixKey,
+        pixKeyType:    d.pixKeyType,
+        contractType:  d.contractType,
+        cnpj:          d.cnpj          || undefined,
+        razaoSocial:   d.razaoSocial   || undefined,
+        iaAssistLogin: d.iaAssistLogin || undefined,
+        status:        'APPROVED',
+      },
+    })
+    return NextResponse.json({ success: true, profileId: profile.id })
+  } catch (err) {
+    console.error('[novo-tecnico] profile.create', err)
+    await prisma.user.delete({ where: { id: userId } }).catch(() => {})
+    return NextResponse.json({ error: 'Erro ao criar técnico. Tente novamente.' }, { status: 500 })
   }
 }
