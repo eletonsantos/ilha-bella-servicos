@@ -63,6 +63,14 @@
 }
 
 @layer utilities {
+  /* Esconde scrollbar mas mantém scroll funcional (barra mobile admin) */
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
   .text-balance {
     text-wrap: balance;
   }
