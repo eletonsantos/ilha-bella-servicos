@@ -19,9 +19,9 @@ function maybeCleanup() {
   if (cleanupCounter < 1000) return
   cleanupCounter = 0
   const now = Date.now()
-  for (const [key, entry] of store) {
+  store.forEach((entry, key) => {
     if (now > entry.resetAt) store.delete(key)
-  }
+  })
 }
 
 export interface RateLimitResult {
