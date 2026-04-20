@@ -1,6 +1,6 @@
 import NextAuth from 'next-auth'
 import { authConfig } from '@/lib/auth.config'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { rateLimit } from '@/lib/rate-limit'
 
 // Middleware edge-safe: usa authConfig sem Prisma (apenas verifica JWT)
@@ -12,7 +12,7 @@ const RATE_LIMITED: Record<string, { limit: number; windowMs: number }> = {
   '/api/chat':        { limit: 30, windowMs: 60_000 },  // 30 msgs/min no chat
 }
 
-function getIP(req: Parameters<typeof auth>[0]): string {
+function getIP(req: NextRequest): string {
   return (req.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() || 'unknown'
 }
 
