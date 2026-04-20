@@ -6,6 +6,7 @@ import { COMPANY } from '@/lib/constants'
 import SessionProvider from '@/components/providers/SessionProvider'
 import ConditionalLayout from '@/components/providers/ConditionalLayout'
 import RegisterSW from '@/components/providers/RegisterSW'
+import { TrackPageView } from '@/components/TrackPageView'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -85,6 +86,7 @@ export default function RootLayout({
       <body className="flex flex-col min-h-screen">
         <SessionProvider>
           <RegisterSW />
+          <TrackPageView />
           <JsonLd />
           <ConditionalLayout>{children}</ConditionalLayout>
         </SessionProvider>

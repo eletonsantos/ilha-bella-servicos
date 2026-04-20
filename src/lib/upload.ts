@@ -1,122 +1,113 @@
 import { put } from '@vercel/blob'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
+import crypto from 'crypto'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
-const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png']
+
+// MIME types e seus magic bytes para validação real do conteúdo
+const FILE_SIGNATURES: Record<string, { mimes: string[]; magic: number[][] }> = {
+  pdf:  { mimes: ['application/pdf'], magic: [[0x25, 0x50, 0x44, 0x46]] },            // %PDF
+  jpeg: { mimes: ['image/jpeg'],      magic: [[0xFF, 0xD8, 0xFF]] },
+  png:  { mimes: ['image/png'],       magic: [[0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A]] },
+}
+
+const ALLOWED_MIMES = Object.values(FILE_SIGNATURES).flatMap(v => v.mimes)
 
 export interface UploadResult {
-  filePath: string   // URL pública (Blob) ou caminho local
+  filePath: string
   fileName: string
   fileSize: number
   mimeType: string
 }
 
-export async function saveInvoiceFile(
-  file: File,
-  technicianId: string,
-  closingId: string
-): Promise<UploadResult> {
-  if (file.size > MAX_FILE_SIZE) {
-    throw new Error('Arquivo muito grande. Máximo 10MB.')
+/** Verifica magic bytes — não confia somente no MIME type declarado pelo cliente */
+async function validateMagicBytes(file: File): Promise<void> {
+  const header = await file.slice(0, 12).arrayBuffer()
+  const buf = Buffer.from(header)
+  for (const sig of Object.values(FILE_SIGNATURES)) {
+    if (!sig.mimes.includes(file.type)) continue
+    const ok = sig.magic.some(bytes => bytes.every((b, i) => buf[i] === b))
+    if (!ok) throw new Error('Conteúdo do arquivo não corresponde ao formato declarado.')
+    return
   }
-  if (!ALLOWED_TYPES.includes(file.type)) {
-    throw new Error('Formato inválido. Use PDF, JPG ou PNG.')
-  }
-
-  const ext = file.name.split('.').pop() ?? 'pdf'
-  const safeName = `invoices/${technicianId}/${closingId}_${Date.now()}.${ext}`
-
-  // Produção: usa Vercel Blob
-  if (process.env.BLOB_READ_WRITE_TOKEN) {
-    const blob = await put(safeName, file, { access: 'public' })
-    return {
-      filePath: blob.url,
-      fileName: file.name,
-      fileSize: file.size,
-      mimeType: file.type,
-    }
-  }
-
-  // Desenvolvimento: salva no sistema de arquivos local
-  const uploadPath = path.join(process.cwd(), 'uploads', 'invoices', technicianId)
-  await mkdir(uploadPath, { recursive: true })
-  const absolutePath = path.join(uploadPath, `${closingId}_${Date.now()}.${ext}`)
-  const bytes = await file.arrayBuffer()
-  await writeFile(absolutePath, Buffer.from(bytes))
-
-  return {
-    filePath: absolutePath,
-    fileName: file.name,
-    fileSize: file.size,
-    mimeType: file.type,
-  }
+  throw new Error('Formato de arquivo não permitido.')
 }
 
-export async function saveTabelaFile(
-  file: File,
-  technicianId: string
-): Promise<{ filePath: string; fileName: string; fileSize: number }> {
+function validateFile(file: File, pdfOnly = false) {
   if (file.size > MAX_FILE_SIZE) throw new Error('Arquivo muito grande. Máximo 10MB.')
-  if (file.type !== 'application/pdf') throw new Error('Apenas PDF é aceito para tabela de valores.')
-
-  const safeName = `tabelas/${technicianId}/${Date.now()}.pdf`
-
-  if (process.env.BLOB_READ_WRITE_TOKEN) {
-    const blob = await put(safeName, file, { access: 'public' })
-    return { filePath: blob.url, fileName: file.name, fileSize: file.size }
-  }
-
-  const uploadPath = path.join(process.cwd(), 'uploads', 'tabelas')
-  await mkdir(uploadPath, { recursive: true })
-  const absolutePath = path.join(uploadPath, `${technicianId}_${Date.now()}.pdf`)
-  const bytes = await file.arrayBuffer()
-  await writeFile(absolutePath, Buffer.from(bytes))
-  return { filePath: absolutePath, fileName: file.name, fileSize: file.size }
+  const allowed = pdfOnly ? ['application/pdf'] : ALLOWED_MIMES
+  if (!allowed.includes(file.type)) throw new Error(
+    pdfOnly ? 'Apenas PDF é aceito.' : 'Formato inválido. Use PDF, JPG ou PNG.'
+  )
 }
 
-export async function saveReportFile(
-  file: File,
-  technicianId: string
-): Promise<{ filePath: string; fileName: string; fileSize: number }> {
-  const safeName = `reports/${technicianId}/${Date.now()}.pdf`
-
-  // Produção: usa Vercel Blob
-  if (process.env.BLOB_READ_WRITE_TOKEN) {
-    const blob = await put(safeName, file, { access: 'public' })
-    return { filePath: blob.url, fileName: file.name, fileSize: file.size }
-  }
-
-  // Desenvolvimento: salva localmente
-  const uploadPath = path.join(process.cwd(), 'uploads', 'reports')
-  await mkdir(uploadPath, { recursive: true })
-  const absolutePath = path.join(uploadPath, `${technicianId}_${Date.now()}.pdf`)
-  const bytes = await file.arrayBuffer()
-  await writeFile(absolutePath, Buffer.from(bytes))
-
-  return { filePath: absolutePath, fileName: file.name, fileSize: file.size }
+function getExt(mimeType: string): string {
+  return { 'application/pdf': 'pdf', 'image/jpeg': 'jpg', 'image/png': 'png' }[mimeType] ?? 'bin'
 }
 
-export async function saveReimbursementFile(
-  file: File,
-  technicianId: string,
-  reimbursementId: string
-): Promise<UploadResult> {
-  if (file.size > MAX_FILE_SIZE) throw new Error('Arquivo muito grande. Máximo 10MB.')
-  if (!ALLOWED_TYPES.includes(file.type)) throw new Error('Formato inválido. Use PDF, JPG ou PNG.')
+/** Nome de arquivo gerado no servidor — sem dependência do nome original do cliente */
+function safeName(prefix: string, ext: string): string {
+  return `${prefix}_${Date.now()}_${crypto.randomBytes(8).toString('hex')}.${ext}`
+}
 
-  const ext = file.name.split('.').pop() ?? 'jpg'
-  const safeName = `reimbursements/${technicianId}/${reimbursementId}_${Date.now()}.${ext}`
+async function toBlob(blobPath: string, file: File): Promise<string> {
+  const blob = await put(blobPath, file, { access: 'public' })
+  return blob.url
+}
 
-  if (process.env.BLOB_READ_WRITE_TOKEN) {
-    const blob = await put(safeName, file, { access: 'public' })
-    return { filePath: blob.url, fileName: file.name, fileSize: file.size, mimeType: file.type }
-  }
+async function toLocal(dir: string, fileName: string, file: File): Promise<string> {
+  const fullDir = path.join(process.cwd(), 'uploads', dir)
+  await mkdir(fullDir, { recursive: true })
+  const dest = path.join(fullDir, fileName)
+  await writeFile(dest, Buffer.from(await file.arrayBuffer()))
+  return dest
+}
 
-  const uploadPath = path.join(process.cwd(), 'uploads', 'reimbursements', technicianId)
-  await mkdir(uploadPath, { recursive: true })
-  const absolutePath = path.join(uploadPath, `${reimbursementId}_${Date.now()}.${ext}`)
-  const bytes = await file.arrayBuffer()
-  await writeFile(absolutePath, Buffer.from(bytes))
-  return { filePath: absolutePath, fileName: file.name, fileSize: file.size, mimeType: file.type }
+// ── Nota Fiscal ───────────────────────────────────────────────────────────────
+export async function saveInvoiceFile(file: File, technicianId: string, closingId: string): Promise<UploadResult> {
+  validateFile(file)
+  await validateMagicBytes(file)
+  const ext  = getExt(file.type)
+  const name = safeName(`inv_${closingId}`, ext)
+  const dir  = `invoices/${technicianId}`
+  const filePath = process.env.BLOB_READ_WRITE_TOKEN
+    ? await toBlob(`${dir}/${name}`, file)
+    : await toLocal(dir, name, file)
+  return { filePath, fileName: name, fileSize: file.size, mimeType: file.type }
+}
+
+// ── Tabela de valores ─────────────────────────────────────────────────────────
+export async function saveTabelaFile(file: File, technicianId: string): Promise<{ filePath: string; fileName: string; fileSize: number }> {
+  validateFile(file, true)
+  await validateMagicBytes(file)
+  const name = safeName(`tab_${technicianId}`, 'pdf')
+  const filePath = process.env.BLOB_READ_WRITE_TOKEN
+    ? await toBlob(`tabelas/${technicianId}/${name}`, file)
+    : await toLocal('tabelas', name, file)
+  return { filePath, fileName: name, fileSize: file.size }
+}
+
+// ── Relatório ─────────────────────────────────────────────────────────────────
+export async function saveReportFile(file: File, technicianId: string): Promise<{ filePath: string; fileName: string; fileSize: number }> {
+  validateFile(file, true)
+  await validateMagicBytes(file)
+  const name = safeName(`rep_${technicianId}`, 'pdf')
+  const filePath = process.env.BLOB_READ_WRITE_TOKEN
+    ? await toBlob(`reports/${technicianId}/${name}`, file)
+    : await toLocal('reports', name, file)
+  return { filePath, fileName: name, fileSize: file.size }
+}
+
+// ── Reembolso ─────────────────────────────────────────────────────────────────
+export async function saveReimbursementFile(file: File, technicianId: string, reimbursementId: string): Promise<UploadResult> {
+  validateFile(file)
+  await validateMagicBytes(file)
+  const ext  = getExt(file.type)
+  const name = safeName(`rei_${reimbursementId}`, ext)
+  const dir  = `reimbursements/${technicianId}`
+  const filePath = process.env.BLOB_READ_WRITE_TOKEN
+    ? await toBlob(`${dir}/${name}`, file)
+    : await toLocal(dir, name, file)
+  return { filePath, fileName: name, fileSize: file.size, mimeType: file.type }
 }

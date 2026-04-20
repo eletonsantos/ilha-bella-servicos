@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
-import { Users, FileText, LogOut, Settings, Zap, LayoutDashboard, UserCheck, Receipt, Megaphone } from 'lucide-react'
+import { Users, FileText, LogOut, Settings, Zap, LayoutDashboard, UserCheck, Receipt, Megaphone, ShieldCheck, BarChart2 } from 'lucide-react'
 import { clsx } from 'clsx'
 
 interface Props {
@@ -26,10 +26,12 @@ export default function AdminNav({ user, pendingAdvances = 0, pendingApplication
     { href: '/admin/reembolsos',   label: 'Reembolsos',   icon: Receipt,         badge: pendingReimbursements },
   ]
 
-  // Desktop inclui Comunicados também
+  // Desktop inclui Comunicados, Auditoria e Visitas também
   const links = [
     ...mobileLinks,
-    { href: '/admin/comunicados',  label: 'Comunicados',  icon: Megaphone,       badge: 0 },
+    { href: '/admin/comunicados', label: 'Comunicados', icon: Megaphone,    badge: 0 },
+    { href: '/admin/visitas',     label: 'Visitas',     icon: BarChart2,    badge: 0 },
+    { href: '/admin/auditoria',   label: 'Auditoria',   icon: ShieldCheck,  badge: 0 },
   ]
 
   return (
