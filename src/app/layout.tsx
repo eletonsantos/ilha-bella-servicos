@@ -7,6 +7,8 @@ import SessionProvider from '@/components/providers/SessionProvider'
 import ConditionalLayout from '@/components/providers/ConditionalLayout'
 import RegisterSW from '@/components/providers/RegisterSW'
 import { TrackPageView } from '@/components/TrackPageView'
+import { GoogleAnalytics } from '@/components/GoogleAnalytics'
+import { Analytics } from '@vercel/analytics/next'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -87,6 +89,8 @@ export default function RootLayout({
         <SessionProvider>
           <RegisterSW />
           <TrackPageView />
+          <GoogleAnalytics />
+          <Analytics />
           <JsonLd />
           <ConditionalLayout>{children}</ConditionalLayout>
         </SessionProvider>
