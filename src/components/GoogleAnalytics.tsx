@@ -8,7 +8,7 @@ import Script from 'next/script'
  * Sem o ID, o componente não renderiza nada.
  */
 export function GoogleAnalytics() {
-  const gaId = process.env.NEXT_PUBLIC_GA_ID
+  const gaId = process.env.NEXT_PUBLIC_GA_ID || 'G-HT0HVFE5P2'
   if (!gaId) return null
 
   return (
