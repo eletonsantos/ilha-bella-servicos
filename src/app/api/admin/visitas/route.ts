@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   const days  = Math.min(90, Math.max(1, Number(searchParams.get('days') ?? 30)))
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
 
-  const [totalEvents, byEventRaw, recentEvents] = await Promise.all([
+  const [totalEvents, byEventRaw, recentEvents, byCityRaw] = await Promise.all([
     prisma.siteEvent.count({ where: { createdAt: { gte: since } } }),
     prisma.siteEvent.groupBy({
       by: ['event'],
@@ -24,6 +24,14 @@ export async function GET(req: NextRequest) {
       select: { event: true, page: true, isDesktop: true, createdAt: true },
       orderBy: { createdAt: 'desc' },
       take: 2000,
+    }),
+    // Agrega page_views por cidade
+    prisma.siteEvent.groupBy({
+      by: ['city'],
+      where: { createdAt: { gte: since }, event: 'page_view', city: { not: null } },
+      _count: { city: true },
+      orderBy: { _count: { city: 'desc' } },
+      take: 20,
     }),
   ])
 
@@ -63,6 +71,10 @@ export async function GET(req: NextRequest) {
     byDayFilled.push({ day: key, count: byDay[key] ?? 0 })
   }
 
+  const byCity = byCityRaw
+    .filter(r => r.city)
+    .map(r => ({ city: r.city as string, count: r._count.city }))
+
   return NextResponse.json({
     total: totalEvents,
     since: since.toISOString(),
@@ -70,6 +82,7 @@ export async function GET(req: NextRequest) {
     byEvent,
     byPage: byPageSorted,
     byDay: byDayFilled,
+    byCity,
     devices: { desktop: desktopCount, mobile: mobileCount },
   })
 }

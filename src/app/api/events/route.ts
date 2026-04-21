@@ -24,6 +24,10 @@ export async function POST(req: NextRequest) {
     const ua = req.headers.get('user-agent') ?? ''
     const isDesktop = !/mobile|android|iphone|ipad/i.test(ua)
 
+    // Vercel injeta automaticamente a cidade do visitante via geolocalização de IP
+    const rawCity = req.headers.get('x-vercel-ip-city')
+    const city = rawCity ? decodeURIComponent(rawCity).slice(0, 100) : null
+
     await prisma.siteEvent.create({
       data: {
         event:     parsed.data.event,
@@ -31,6 +35,7 @@ export async function POST(req: NextRequest) {
         referrer:  parsed.data.referrer,
         userAgent: ua.slice(0, 300),
         ip:        ip === 'unknown' ? null : ip,
+        city,
         isDesktop,
       },
     })

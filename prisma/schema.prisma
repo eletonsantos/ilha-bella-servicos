@@ -307,6 +307,7 @@ model SiteEvent {
   referrer  String?
   userAgent String?
   ip        String?
+  city      String?  // Cidade via header x-vercel-ip-city (geolocalização Vercel)
   isDesktop Boolean  @default(true)
   createdAt DateTime @default(now())
 
