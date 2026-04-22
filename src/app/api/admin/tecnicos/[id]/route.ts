@@ -13,7 +13,7 @@ const patchSchema = z.object({
   adminNotes:   z.string().optional(),
   // Dados pessoais
   fullName:     z.string().min(3).optional(),
-  cpf:          z.string().regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/).optional(),
+  cpf:          z.string().optional(), // aceita raw ou formatado — normalizado abaixo
   phone:        z.string().min(10).optional(),
   email:        z.string().email().optional(),
   city:         z.string().min(2).optional(),
@@ -45,12 +45,18 @@ export async function PATCH(
   const tech = await prisma.technicianProfile.findUnique({ where: { id: params.id } })
   if (!tech) return NextResponse.json({ error: 'Técnico não encontrado' }, { status: 404 })
 
-  const { cpf, newPassword, ...rest } = parsed.data
+  const { cpf: cpfInput, newPassword, ...rest } = parsed.data
+
+  // Normaliza CPF para dígitos brutos (aceita "069.542.099-29" ou "06954209929")
+  const cpfRaw = cpfInput ? cpfInput.replace(/\D/g, '') : undefined
+  if (cpfRaw !== undefined && cpfRaw.length !== 11) {
+    return NextResponse.json({ error: 'CPF inválido' }, { status: 400 })
+  }
 
   // Se CPF foi alterado, atualiza também o e-mail interno do User
-  if (cpf && cpf !== tech.cpf) {
-    const newInternalEmail = `${cpf.replace(/\D/g, '')}@tecnico.interno`
-    await prisma.technicianProfile.update({ where: { id: params.id }, data: { cpf, ...rest } })
+  if (cpfRaw && cpfRaw !== tech.cpf.replace(/\D/g, '')) {
+    const newInternalEmail = `${cpfRaw}@tecnico.interno`
+    await prisma.technicianProfile.update({ where: { id: params.id }, data: { cpf: cpfRaw, ...rest } })
     await prisma.user.update({ where: { id: tech.userId }, data: { email: newInternalEmail } })
   } else {
     await prisma.technicianProfile.update({ where: { id: params.id }, data: rest })

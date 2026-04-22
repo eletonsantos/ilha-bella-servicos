@@ -100,11 +100,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
 
         // ── Técnico login por CPF ──────────────────────────────────────────
-        const cpf = login.replace(/\D/g, '')
-        if (cpf.length < 11) return null
+        const cpfRaw = login.replace(/\D/g, '')
+        if (cpfRaw.length < 11) return null
 
-        const profile = await prisma.technicianProfile.findUnique({
-          where:   { cpf },
+        // Aceita CPF salvo como dígitos brutos (06954209929) OU formatado
+        // (069.542.099-29) — lida com inconsistências históricas no banco
+        const cpfFormatted = `${cpfRaw.slice(0,3)}.${cpfRaw.slice(3,6)}.${cpfRaw.slice(6,9)}-${cpfRaw.slice(9)}`
+        const profile = await prisma.technicianProfile.findFirst({
+          where:   { cpf: { in: [cpfRaw, cpfFormatted] } },
           include: { user: true },
         })
         if (!profile?.user?.password) {

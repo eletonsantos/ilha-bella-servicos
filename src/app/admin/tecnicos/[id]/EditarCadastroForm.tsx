@@ -30,9 +30,12 @@ export default function EditarCadastroForm({ tech, onCancel }: Props) {
   const [success, setSuccess] = useState(false)
   const { lookup, lookingUp, lookupError } = useCnpjLookup()
 
+  // Normaliza CPF para exibição: sempre mostra somente dígitos brutos
+  const cpfNorm = tech.cpf.replace(/\D/g, '')
+
   const [form, setForm] = useState({
     fullName:     tech.fullName,
-    cpf:          tech.cpf,
+    cpf:          cpfNorm,
     phone:        tech.phone,
     email:        tech.email,
     city:         tech.city,
@@ -71,6 +74,7 @@ export default function EditarCadastroForm({ tech, onCancel }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...form,
+          cpf:           form.cpf.replace(/\D/g, ''), // garante dígitos brutos
           iaAssistLogin: form.iaAssistLogin || undefined,
           cnpj:          form.cnpj || undefined,
           razaoSocial:   form.razaoSocial || undefined,
