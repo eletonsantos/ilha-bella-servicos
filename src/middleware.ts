@@ -7,9 +7,10 @@ import { rateLimit } from '@/lib/rate-limit'
 const { auth } = NextAuth(authConfig)
 
 const RATE_LIMITED: Record<string, { limit: number; windowMs: number }> = {
-  '/api/auth/signin': { limit: 10, windowMs: 60_000 },  // 10 tentativas/min
-  '/api/candidatura': { limit: 5,  windowMs: 60_000 },  // 5 cadastros/min por IP
-  '/api/chat':        { limit: 30, windowMs: 60_000 },  // 30 msgs/min no chat
+  '/api/auth/signin':          { limit: 10, windowMs: 60_000 },  // 10 tentativas/min
+  '/api/candidatura':          { limit: 5,  windowMs: 60_000 },  // 5 cadastros/min por IP
+  '/api/chat':                 { limit: 30, windowMs: 60_000 },  // 30 msgs/min no chat
+  '/api/tecnico/alterar-senha':{ limit: 5,  windowMs: 60_000 },  // 5 tentativas/min
 }
 
 function getIP(req: NextRequest): string {
@@ -76,5 +77,6 @@ export const config = {
     '/api/auth/signin',
     '/api/candidatura',
     '/api/chat',
+    '/api/tecnico/alterar-senha',
   ],
 }

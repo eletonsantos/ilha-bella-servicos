@@ -12,6 +12,7 @@ import TecnicoStatusActions from './TecnicoStatusActions'
 import EditarCadastroWrapper from './EditarCadastroWrapper'
 import TabelaValoresUpload from './TabelaValoresUpload'
 import DeleteTecnicoButton from './DeleteTecnicoButton'
+import CredenciaisCard from './CredenciaisCard'
 
 interface Props {
   params: { id: string }
@@ -87,6 +88,9 @@ export default async function AdminTecnicoDetailPage({ params }: Props) {
           }}
         />
       </div>
+
+      {/* Credenciais de Acesso */}
+      <CredenciaisCard techId={tech.id} cpf={tech.cpf} />
 
       {/* Tabela de Valores */}
       <div className="card p-6">

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import bcrypt from 'bcryptjs'
 
 const VALID_STATUSES = ['INITIATED', 'AWAITING_APPROVAL', 'APPROVED', 'LINKED'] as const
 
@@ -22,6 +23,8 @@ const patchSchema = z.object({
   cnpj:         z.string().optional(),
   razaoSocial:  z.string().optional(),
   contractType: z.enum(['PJ_TERCEIRIZADO', 'AUTONOMO', 'CLT']).optional(),
+  // Alteração de senha pelo admin
+  newPassword:  z.string().min(6).optional(),
 })
 
 export async function PATCH(
@@ -42,7 +45,7 @@ export async function PATCH(
   const tech = await prisma.technicianProfile.findUnique({ where: { id: params.id } })
   if (!tech) return NextResponse.json({ error: 'Técnico não encontrado' }, { status: 404 })
 
-  const { cpf, ...rest } = parsed.data
+  const { cpf, newPassword, ...rest } = parsed.data
 
   // Se CPF foi alterado, atualiza também o e-mail interno do User
   if (cpf && cpf !== tech.cpf) {
@@ -51,6 +54,12 @@ export async function PATCH(
     await prisma.user.update({ where: { id: tech.userId }, data: { email: newInternalEmail } })
   } else {
     await prisma.technicianProfile.update({ where: { id: params.id }, data: rest })
+  }
+
+  // Troca de senha pelo admin (sem precisar da senha atual)
+  if (newPassword) {
+    const hashed = await bcrypt.hash(newPassword, 12)
+    await prisma.user.update({ where: { id: tech.userId }, data: { password: hashed } })
   }
 
   const updated = await prisma.technicianProfile.findUnique({ where: { id: params.id } })
