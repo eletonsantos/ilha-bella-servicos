@@ -45,6 +45,20 @@ const MONTH_MAP: Record<string, number> = {
 }
 
 /**
+ * Retorna { year, month } para agrupar um fechamento no gráfico mensal.
+ * Prioridade:
+ *   1. scheduledPaymentDate (data de pagamento agendada)
+ *   2. parseCompetence(competence) (mês da competência escrito)
+ */
+function closingMonth(scheduledPaymentDate: Date | null, competence: string): { year: number; month: number } | null {
+  if (scheduledPaymentDate) {
+    const d = new Date(scheduledPaymentDate)
+    return { year: d.getFullYear(), month: d.getMonth() }
+  }
+  return parseCompetence(competence)
+}
+
+/**
  * Converte o campo `competence` (texto livre) para { year, month }.
  * Suporta: "Abril/2026", "Abril 2026", "04/2026", "abril", "ABRIL/2026"
  * Se o ano não for informado, assume o ano corrente.
@@ -109,12 +123,12 @@ export default async function AdminDashboardPage() {
   }
   const byStatusList = STATUS_ORDER.filter(s => byStatus[s]).map(s => ({ status: s, ...byStatus[s] }))
 
-  // ── Fechamentos — últimos 6 meses (por mês de competência) ──────────────────
+  // ── Fechamentos — últimos 6 meses (data de pagamento › competência) ─────────
   const fechMonths = monthRange(6)
   const fechMonthly = fechMonths.map(m => {
     const items = closings.filter(c => {
-      const comp = parseCompetence(c.competence)
-      return comp?.year === m.year && comp?.month === m.month
+      const cm = closingMonth(c.scheduledPaymentDate, c.competence)
+      return cm?.year === m.year && cm?.month === m.month
     })
     return { label: m.label, total: items.reduce((s, c) => s + c.totalValue, 0), count: items.length }
   })
@@ -165,8 +179,8 @@ export default async function AdminDashboardPage() {
     const items = advances.filter(a => {
       const closing = closingById[a.closingId]
       if (closing) {
-        const comp = parseCompetence(closing.competence)
-        return comp?.year === m.year && comp?.month === m.month
+        const cm = closingMonth(closing.scheduledPaymentDate, closing.competence)
+        return cm?.year === m.year && cm?.month === m.month
       }
       // fallback: usa createdAt da antecipação
       const d = new Date(a.createdAt)
@@ -265,7 +279,7 @@ export default async function AdminDashboardPage() {
           <div className="card p-5">
             <h3 className="font-bold text-dark text-sm mb-4 flex items-center gap-2">
               <TrendingUp size={14} className="text-brand-blue" /> Últimos 6 meses
-              <span className="text-[10px] font-normal text-slate-400">(por competência)</span>
+              <span className="text-[10px] font-normal text-slate-400">(data de pagamento)</span>
             </h3>
             <div className="space-y-3">
               {fechMonthly.map(m => (
