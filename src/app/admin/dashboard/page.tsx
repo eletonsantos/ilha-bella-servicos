@@ -37,6 +37,40 @@ function monthRange(offsetFromNow: number) {
   })
 }
 
+/** Mapeia nome do mês em pt-BR → índice 0–11 */
+const MONTH_MAP: Record<string, number> = {
+  janeiro: 0, fevereiro: 1, março: 2, marco: 2, abril: 3,
+  maio: 4, junho: 5, julho: 6, agosto: 7, setembro: 8,
+  outubro: 9, novembro: 10, dezembro: 11,
+}
+
+/**
+ * Converte o campo `competence` (texto livre) para { year, month }.
+ * Suporta: "Abril/2026", "Abril 2026", "04/2026", "abril", "ABRIL/2026"
+ * Se o ano não for informado, assume o ano corrente.
+ */
+function parseCompetence(competence: string): { year: number; month: number } | null {
+  const lower = competence.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim()
+  // Ex: "abril/2026" ou "abril 2026"
+  const withYear = lower.match(/^([a-z]+)[\s/](\d{4})$/)
+  if (withYear) {
+    const m = MONTH_MAP[withYear[1]]
+    const y = parseInt(withYear[2])
+    if (m !== undefined && !isNaN(y)) return { year: y, month: m }
+  }
+  // Ex: "04/2026"
+  const numeric = lower.match(/^(\d{1,2})\/(\d{4})$/)
+  if (numeric) {
+    const m = parseInt(numeric[1]) - 1
+    const y = parseInt(numeric[2])
+    if (m >= 0 && m <= 11 && !isNaN(y)) return { year: y, month: m }
+  }
+  // Só o nome do mês: "abril" → usa ano corrente
+  const monthOnly = MONTH_MAP[lower]
+  if (monthOnly !== undefined) return { year: new Date().getFullYear(), month: monthOnly }
+  return null
+}
+
 export default async function AdminDashboardPage() {
   const session = await auth()
   if (session?.user?.role !== 'ADMIN') redirect('/tecnico/login')
@@ -75,12 +109,12 @@ export default async function AdminDashboardPage() {
   }
   const byStatusList = STATUS_ORDER.filter(s => byStatus[s]).map(s => ({ status: s, ...byStatus[s] }))
 
-  // ── Fechamentos — últimos 6 meses ────────────────────────────────────────────
+  // ── Fechamentos — últimos 6 meses (por mês de competência) ──────────────────
   const fechMonths = monthRange(6)
   const fechMonthly = fechMonths.map(m => {
     const items = closings.filter(c => {
-      const d = new Date(c.createdAt)
-      return d.getFullYear() === m.year && d.getMonth() === m.month
+      const comp = parseCompetence(c.competence)
+      return comp?.year === m.year && comp?.month === m.month
     })
     return { label: m.label, total: items.reduce((s, c) => s + c.totalValue, 0), count: items.length }
   })
@@ -112,7 +146,7 @@ export default async function AdminDashboardPage() {
   const reimbCatList = Object.entries(reimbByCategory).sort((a, b) => b[1] - a[1])
   const maxReimbCat = Math.max(...reimbCatList.map(([, v]) => v), 1)
 
-  // ── Reembolsos — últimos 6 meses ────────────────────────────────────────────
+  // ── Reembolsos — últimos 6 meses (por createdAt — reembolsos não têm competência) ──
   const reimbMonths = monthRange(6)
   const reimbMonthly = reimbMonths.map(m => {
     const items = reimbursements.filter(r => {
@@ -123,10 +157,18 @@ export default async function AdminDashboardPage() {
   })
   const maxReimbMensal = Math.max(...reimbMonthly.map(m => m.total), 1)
 
-  // ── Antecipações — últimos 6 meses ──────────────────────────────────────────
+  // ── Antecipações — últimos 6 meses (vinculadas ao mês de competência do fechamento) ──
+  // Cada antecipação está ligada a um closing; usa a competência desse closing
+  const closingById = Object.fromEntries(closings.map(c => [c.id, c]))
   const advMonths = monthRange(6)
   const advMonthly = advMonths.map(m => {
     const items = advances.filter(a => {
+      const closing = closingById[a.closingId]
+      if (closing) {
+        const comp = parseCompetence(closing.competence)
+        return comp?.year === m.year && comp?.month === m.month
+      }
+      // fallback: usa createdAt da antecipação
       const d = new Date(a.createdAt)
       return d.getFullYear() === m.year && d.getMonth() === m.month
     })
@@ -223,6 +265,7 @@ export default async function AdminDashboardPage() {
           <div className="card p-5">
             <h3 className="font-bold text-dark text-sm mb-4 flex items-center gap-2">
               <TrendingUp size={14} className="text-brand-blue" /> Últimos 6 meses
+              <span className="text-[10px] font-normal text-slate-400">(por competência)</span>
             </h3>
             <div className="space-y-3">
               {fechMonthly.map(m => (
