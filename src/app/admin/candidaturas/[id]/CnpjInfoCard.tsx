@@ -44,7 +44,9 @@ export default function CnpjInfoCard({ cpfCnpj }: Props) {
 
   if (!isCnpj) return null
 
-  const ativa = data?.situacao_cadastral?.toUpperCase() === 'ATIVA'
+  // situacao_cadastral pode vir como string ("ATIVA") ou número (2) dependendo do CNPJ —
+  // convertemos para string antes para evitar "toUpperCase is not a function"
+  const ativa = String(data?.situacao_cadastral ?? '').toUpperCase() === 'ATIVA'
 
   return (
     <div className="card p-6 border-l-4 border-brand-blue">
