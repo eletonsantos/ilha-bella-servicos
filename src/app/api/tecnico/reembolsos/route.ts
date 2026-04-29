@@ -72,15 +72,12 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    // Cria os itens separadamente
-    await prisma.reimbursementItem.createMany({
-      data: items.map((i: { category: string; description: string; value: number }) => ({
-        reimbursementId: reimbursement.id,
-        category: i.category,
-        description: i.description,
-        value: i.value,
-      })),
-    })
+    // Cria cada item individualmente (createMany também usa transação no PG)
+    for (const i of items as { category: string; description: string; value: number }[]) {
+      await prisma.reimbursementItem.create({
+        data: { reimbursementId: reimbursement.id, category: i.category, description: i.description, value: i.value },
+      })
+    }
 
     const reimbursementWithItems = await prisma.reimbursement.findUnique({
       where: { id: reimbursement.id },
