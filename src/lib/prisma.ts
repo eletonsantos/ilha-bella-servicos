@@ -1,10 +1,11 @@
-import ws from 'ws'
 import { Pool, neonConfig, types } from '@neondatabase/serverless'
 import { PrismaNeon } from '@prisma/adapter-neon'
 import { PrismaClient } from '@prisma/client'
 
-// Node.js não tem WebSocket nativo — usa a lib `ws` instalada
-neonConfig.webSocketConstructor = ws
+// Node.js não tem WebSocket nativo — injeta a lib `ws` instalada
+// (require evita erro de tipo por ausência de @types/ws)
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+neonConfig.webSocketConstructor = require('ws')
 
 // Retorna timestamps como strings brutas para o Prisma converter corretamente
 // (evita que o pg-types converta para Date objects antes do Prisma processar)
