@@ -101,7 +101,7 @@ export default function NovoReembolsoTecnicoPage() {
         }),
       })
 
-      if (!res.ok) throw new Error((await res.json()).error ?? 'Erro ao criar solicitação')
+      if (!res.ok) { const d = await res.json(); throw new Error(d.detail ?? d.error ?? 'Erro ao criar solicitação') }
       const { reimbursement } = await res.json()
 
       // Upload comprovantes

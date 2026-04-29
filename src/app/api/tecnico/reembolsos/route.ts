@@ -81,7 +81,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, reimbursement })
   } catch (err) {
-    console.error(err)
-    return NextResponse.json({ error: 'Erro ao criar reembolso' }, { status: 500 })
+    console.error('[POST /api/tecnico/reembolsos]', err)
+    const msg = err instanceof Error ? err.message : String(err)
+    return NextResponse.json({ error: 'Erro ao criar reembolso', detail: msg }, { status: 500 })
   }
 }

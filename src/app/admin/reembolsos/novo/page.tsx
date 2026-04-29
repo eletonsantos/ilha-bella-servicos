@@ -98,7 +98,7 @@ export default function NovoReembolsoPage() {
         }),
       })
 
-      if (!res.ok) throw new Error((await res.json()).error ?? 'Erro ao criar reembolso')
+      if (!res.ok) { const d = await res.json(); throw new Error(d.detail ?? d.error ?? 'Erro ao criar reembolso') }
       const { reimbursement } = await res.json()
       const id = reimbursement.id
 
