@@ -1,10 +1,6 @@
-import { Pool, neonConfig, types } from '@neondatabase/serverless'
-import { PrismaNeon } from '@prisma/adapter-neon'
+import { neon, types } from '@neondatabase/serverless'
+import { PrismaNeonHTTP } from '@prisma/adapter-neon'
 import { PrismaClient } from '@prisma/client'
-
-// Node.js não tem WebSocket nativo — injeta a lib `ws` instalada
-// (require evita erro de tipo por ausência de @types/ws)
-neonConfig.webSocketConstructor = require('ws') // eslint-disable-line
 
 // Retorna timestamps como strings brutas para o Prisma converter corretamente
 // (evita que o pg-types converta para Date objects antes do Prisma processar)
@@ -18,8 +14,8 @@ const globalForPrisma = globalThis as unknown as {
 }
 
 function createPrismaClient() {
-  const pool    = new Pool({ connectionString: process.env.DATABASE_URL! })
-  const adapter = new PrismaNeon(pool)
+  const sql     = neon(process.env.DATABASE_URL!)
+  const adapter = new PrismaNeonHTTP(sql)
   return new PrismaClient({
     adapter,
     log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],

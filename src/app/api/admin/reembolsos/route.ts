@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
 
     const totalValue = items.reduce((s: number, i: { value: number }) => s + i.value, 0)
 
+    // Cria reembolso sem nested items (HTTP mode não suporta transações)
     const reimbursement = await prisma.reimbursement.create({
       data: {
         technicianId,
@@ -42,18 +43,25 @@ export async function POST(req: NextRequest) {
         totalValue,
         pixKey: tech.pixKey,
         pixKeyType: tech.pixKeyType,
-        items: {
-          create: items.map((i: { category: string; description: string; value: number }) => ({
-            category: i.category,
-            description: i.description,
-            value: i.value,
-          })),
-        },
       },
+    })
+
+    // Cria os itens separadamente
+    await prisma.reimbursementItem.createMany({
+      data: items.map((i: { category: string; description: string; value: number }) => ({
+        reimbursementId: reimbursement.id,
+        category: i.category,
+        description: i.description,
+        value: i.value,
+      })),
+    })
+
+    const reimbursementWithItems = await prisma.reimbursement.findUnique({
+      where: { id: reimbursement.id },
       include: { items: true },
     })
 
-    return NextResponse.json({ success: true, reimbursement })
+    return NextResponse.json({ success: true, reimbursement: reimbursementWithItems })
   } catch (err) {
     console.error('[POST /api/admin/reembolsos]', err)
     const msg = err instanceof Error ? err.message : String(err)
