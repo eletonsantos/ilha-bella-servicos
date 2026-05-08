@@ -1,13 +1,40 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
-import { X, Send, Loader2, ExternalLink, MessageCircle, ChevronDown } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { ChevronDown, Loader2, MessageCircle, Send, X } from 'lucide-react'
 
 interface Message {
+  id: string
   role: 'user' | 'model'
   parts: [{ text: string }]
-  // display only
-  displayText?: string
+  createdAt: string
+}
+
+type ApiChatResponse = {
+  done?: boolean
+  text?: string
+  whatsappUrl?: string
+  summary?: string
+}
+
+const INITIAL_FALLBACK_MESSAGE = 'Olá! 👋 Sou a Bella da Ilha Bella Serviços. Qual serviço você precisa? (Encanador, Eletricista, Chaveiro, Desentupimento...)'
+const ERROR_MESSAGE = 'Desculpe, tive um problema. Pode repetir? 😅'
+const QUICK_REPLIES = ['Encanador', 'Eletricista', 'Chaveiro', 'Desentupimento']
+
+function createMessage(role: Message['role'], text: string): Message {
+  return {
+    id: `${role}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    role,
+    parts: [{ text }],
+    createdAt: new Date().toISOString(),
+  }
+}
+
+function formatMessageTime(value: string) {
+  return new Intl.DateTimeFormat('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(value))
 }
 
 const WhatsAppIcon = ({ className }: { className?: string }) => (
@@ -17,59 +44,57 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
 )
 
 export default function ChatWidget() {
-  const [open, setOpen]             = useState(false)
-  const [messages, setMessages]     = useState<Message[]>([])
-  const [input, setInput]           = useState('')
-  const [loading, setLoading]       = useState(false)
-  const [greeting, setGreeting]     = useState(false)
-  const [done, setDone]             = useState(false)
+  const [open, setOpen] = useState(false)
+  const [messages, setMessages] = useState<Message[]>([])
+  const [input, setInput] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [greeting, setGreeting] = useState(false)
+  const [done, setDone] = useState(false)
   const [whatsappUrl, setWhatsappUrl] = useState('')
-  const [summary, setSummary]       = useState('')
+  const [summary, setSummary] = useState('')
   const [showSummary, setShowSummary] = useState(false)
-  const [unread, setUnread]         = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Scroll para o fim a cada nova mensagem
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, loading])
 
-  // Foca o input quando abre
   useEffect(() => {
     if (open) {
-      setTimeout(() => inputRef.current?.focus(), 100)
+      window.setTimeout(() => inputRef.current?.focus(), 100)
     }
   }, [open])
 
-  // Busca a saudação inicial ao abrir pela primeira vez
-  async function handleOpen() {
-    setOpen(true)
-    setUnread(false)
-    if (messages.length === 0 && !greeting) {
-      setGreeting(true)
-      setLoading(true)
-      try {
-        const res = await fetch('/api/chat')
-        const data = await res.json()
-        setMessages([{ role: 'model', parts: [{ text: data.text }] }])
-      } catch {
-        setMessages([{
-          role: 'model',
-          parts: [{ text: 'Olá! 👋 Sou a Bella da Ilha Bella Serviços. Qual serviço você precisa? (Encanador, Eletricista, Chaveiro, Desentupimento...)' }],
-        }])
-      } finally {
-        setLoading(false)
-      }
+  async function loadGreeting() {
+    setGreeting(true)
+    setLoading(true)
+
+    try {
+      const res = await fetch('/api/chat')
+      const data: ApiChatResponse = await res.json()
+      setMessages([createMessage('model', data.text || INITIAL_FALLBACK_MESSAGE)])
+    } catch {
+      setMessages([createMessage('model', INITIAL_FALLBACK_MESSAGE)])
+    } finally {
+      setLoading(false)
     }
   }
 
-  async function handleSend() {
-    const text = input.trim()
-    if (!text || loading || done) return
+  async function handleOpen() {
+    setOpen(true)
 
-    const userMsg: Message = { role: 'user', parts: [{ text }] }
+    if (messages.length === 0 && !greeting) {
+      await loadGreeting()
+    }
+  }
+
+  async function sendMessage(text: string) {
+    const normalizedText = text.trim()
+    if (!normalizedText || loading || done) return
+
+    const userMsg = createMessage('user', normalizedText)
     const newMessages = [...messages, userMsg]
     setMessages(newMessages)
     setInput('')
@@ -81,34 +106,39 @@ export default function ChatWidget() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: newMessages }),
       })
-      const data = await res.json()
+      const data: ApiChatResponse = await res.json()
 
-      const botMsg: Message = { role: 'model', parts: [{ text: data.text }] }
+      if (!res.ok) {
+        throw new Error(data.text || 'Erro ao processar mensagem')
+      }
+
+      const botMsg = createMessage('model', data.text || ERROR_MESSAGE)
       setMessages(prev => [...prev, botMsg])
 
       if (data.done) {
         setDone(true)
-        setWhatsappUrl(data.whatsappUrl)
+        setWhatsappUrl(data.whatsappUrl || '')
         setSummary(data.summary ?? '')
       }
     } catch {
-      setMessages(prev => [...prev, {
-        role: 'model',
-        parts: [{ text: 'Desculpe, tive um problema. Pode repetir? 😅' }],
-      }])
+      setMessages(prev => [...prev, createMessage('model', ERROR_MESSAGE)])
     } finally {
       setLoading(false)
     }
   }
 
-  function handleKeyDown(e: React.KeyboardEvent) {
+  function handleSend() {
+    sendMessage(input)
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSend()
     }
   }
 
-  function handleReset() {
+  async function handleReset() {
     setMessages([])
     setInput('')
     setDone(false)
@@ -116,148 +146,122 @@ export default function ChatWidget() {
     setSummary('')
     setGreeting(false)
     setShowSummary(false)
-    handleOpen()
+    await loadGreeting()
   }
 
   return (
     <>
-      {/* ── FAB BUTTON ── */}
       <button
         onClick={open ? () => setOpen(false) : handleOpen}
-        aria-label="Pré-atendimento"
-        className="fixed bottom-6 right-6 z-50 flex items-center justify-center
-                   w-14 h-14 bg-[#25D366] hover:bg-[#20BA5A] rounded-full
-                   shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group"
+        aria-label="Abrir pré-atendimento com a Bella"
+        aria-expanded={open}
+        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] shadow-lg transition-all duration-300 hover:scale-110 hover:bg-[#20BA5A] hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-[#25D366]/35 group"
       >
-        {/* Pulse ring */}
-        {!open && <span className="absolute w-14 h-14 rounded-full bg-[#25D366] animate-ping opacity-30" />}
-
-        {/* Unread dot */}
-        {unread && !open && (
-          <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white" />
-        )}
+        {!open && <span className="absolute h-14 w-14 animate-ping rounded-full bg-[#25D366] opacity-30" />}
 
         <div className="relative z-10">
           {open
             ? <ChevronDown size={24} className="text-white" />
-            : <WhatsAppIcon className="w-7 h-7 text-white" />}
+            : <WhatsAppIcon className="h-7 w-7 text-white" />}
         </div>
 
-        {/* Tooltip */}
         {!open && (
-          <span className="absolute right-16 whitespace-nowrap bg-slate-900 text-white text-xs font-medium
-                           px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity
-                           pointer-events-none shadow-lg">
+          <span className="pointer-events-none absolute right-16 whitespace-nowrap rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
             Fale conosco
           </span>
         )}
       </button>
 
-      {/* ── CHAT WINDOW ── */}
-      <div className={`
-        fixed bottom-24 right-6 z-50 w-[calc(100vw-48px)] sm:w-96
-        bg-white rounded-2xl shadow-2xl border border-slate-200
-        flex flex-col overflow-hidden
-        transition-all duration-300 origin-bottom-right
-        ${open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-90 pointer-events-none'}
-      `}
+      <div
+        className={`fixed bottom-24 right-6 z-50 flex w-[calc(100vw-48px)] origin-bottom-right flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl transition-all duration-300 sm:w-96 ${open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-90 pointer-events-none'}`}
         style={{ maxHeight: 'min(560px, calc(100svh - 120px))' }}
       >
-
-        {/* Header */}
-        <div className="bg-[#075E54] px-4 py-3 flex items-center gap-3 flex-shrink-0">
-          <div className="w-10 h-10 rounded-full bg-[#25D366] flex items-center justify-center flex-shrink-0">
+        <div className="flex flex-shrink-0 items-center gap-3 bg-[#075E54] px-4 py-3">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#25D366]">
             <MessageCircle size={20} className="text-white" />
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-white font-semibold text-sm leading-tight">Bella — Ilha Bella Serviços</p>
-            <p className="text-green-300 text-xs">Pré-atendimento • Online agora</p>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold leading-tight text-white">Bella — Ilha Bella Serviços</p>
+            <p className="text-xs text-green-300">Pré-atendimento • Online agora</p>
           </div>
           <button
             onClick={() => setOpen(false)}
-            className="text-white/60 hover:text-white transition-colors p-1"
+            aria-label="Fechar pré-atendimento"
+            className="p-1 text-white/60 transition-colors hover:text-white focus:outline-none focus:ring-2 focus:ring-white/60 rounded"
           >
             <X size={18} />
           </button>
         </div>
 
-        {/* Background pattern (like WhatsApp) */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-2 min-h-0"
+        <div
+          className="min-h-0 flex-1 space-y-2 overflow-y-auto p-3"
+          aria-live="polite"
           style={{
-            background: `#e5ddd5 url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c4b9b0' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-          }}>
-
-          {/* Aviso inicial */}
+            background: `#e5ddd5 url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c4b9b0' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}
+        >
           {messages.length === 0 && !loading && (
             <div className="text-center">
-              <div className="inline-block bg-[#fff9c4] text-[#7a6f00] text-xs px-4 py-2 rounded-lg shadow-sm">
+              <div className="inline-block rounded-lg bg-[#fff9c4] px-4 py-2 text-xs text-[#7a6f00] shadow-sm">
                 🤖 A Bella vai te ajudar a preparar o pedido antes do WhatsApp!
               </div>
             </div>
           )}
 
-          {/* Mensagens */}
-          {messages.map((msg, i) => (
-            <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`
-                max-w-[80%] px-3 py-2 rounded-lg shadow-sm text-sm leading-relaxed whitespace-pre-line
-                ${msg.role === 'user'
-                  ? 'bg-[#dcf8c6] text-slate-800 rounded-br-none'
-                  : 'bg-white text-slate-800 rounded-bl-none'}
-              `}>
+          {messages.map(msg => (
+            <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-[80%] rounded-lg px-3 py-2 text-sm leading-relaxed shadow-sm whitespace-pre-line ${msg.role === 'user'
+                ? 'rounded-br-none bg-[#dcf8c6] text-slate-800'
+                : 'rounded-bl-none bg-white text-slate-800'}`}
+              >
                 {msg.parts[0].text}
-                <span className="block text-right text-[10px] text-slate-400 mt-0.5">
-                  {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                <span className="mt-0.5 block text-right text-[10px] text-slate-400">
+                  {formatMessageTime(msg.createdAt)}
                 </span>
               </div>
             </div>
           ))}
 
-          {/* Loading */}
           {loading && (
             <div className="flex justify-start">
-              <div className="bg-white px-4 py-3 rounded-lg rounded-bl-none shadow-sm">
-                <div className="flex gap-1 items-center">
-                  <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+              <div className="rounded-lg rounded-bl-none bg-white px-4 py-3 shadow-sm" aria-label="Bella está digitando">
+                <div className="flex items-center gap-1">
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400" style={{ animationDelay: '0ms' }} />
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400" style={{ animationDelay: '150ms' }} />
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400" style={{ animationDelay: '300ms' }} />
                 </div>
               </div>
             </div>
           )}
 
-          {/* Botão WhatsApp quando concluído */}
           {done && whatsappUrl && (
             <div className="space-y-2 pt-2">
               <a
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20BA5A]
-                           text-white font-bold py-3 px-4 rounded-xl transition-all
-                           shadow-md hover:shadow-lg active:scale-95 text-sm"
+                className="flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3 text-sm font-bold text-white shadow-md transition-all hover:bg-[#20BA5A] hover:shadow-lg active:scale-95"
               >
-                <WhatsAppIcon className="w-5 h-5" />
+                <WhatsAppIcon className="h-5 w-5" />
                 Continuar no WhatsApp →
               </a>
 
               <button
                 onClick={() => setShowSummary(v => !v)}
-                className="w-full text-center text-xs text-slate-500 hover:text-slate-700 transition-colors py-1"
+                className="w-full py-1 text-center text-xs text-slate-500 transition-colors hover:text-slate-700"
               >
                 {showSummary ? '▲ Ocultar' : '▼ Ver'} resumo que será enviado
               </button>
 
               {showSummary && (
-                <div className="bg-white/80 backdrop-blur rounded-xl p-3 text-xs text-slate-600
-                                border border-slate-200 whitespace-pre-line font-mono leading-relaxed">
+                <div className="rounded-xl border border-slate-200 bg-white/80 p-3 font-mono text-xs leading-relaxed text-slate-600 backdrop-blur whitespace-pre-line">
                   {summary}
                 </div>
               )}
 
               <button
                 onClick={handleReset}
-                className="w-full text-center text-xs text-slate-400 hover:text-slate-600 transition-colors py-1"
+                className="w-full py-1 text-center text-xs text-slate-400 transition-colors hover:text-slate-600"
               >
                 Recomeçar conversa
               </button>
@@ -267,35 +271,48 @@ export default function ChatWidget() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input */}
         {!done && (
-          <div className="bg-[#f0f0f0] px-3 py-2 flex items-center gap-2 flex-shrink-0 border-t border-slate-200">
-            <input
-              ref={inputRef}
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={loading ? 'Aguarde...' : 'Digite sua mensagem...'}
-              disabled={loading}
-              className="flex-1 bg-white rounded-full px-4 py-2 text-sm focus:outline-none
-                         border border-slate-200 disabled:opacity-60 placeholder:text-slate-400"
-            />
-            <button
-              onClick={handleSend}
-              disabled={loading || !input.trim()}
-              className="w-9 h-9 bg-[#25D366] hover:bg-[#20BA5A] disabled:opacity-40
-                         rounded-full flex items-center justify-center transition-all
-                         disabled:cursor-not-allowed active:scale-90 flex-shrink-0"
-            >
-              {loading
-                ? <Loader2 size={15} className="text-white animate-spin" />
-                : <Send size={15} className="text-white ml-0.5" />}
-            </button>
+          <div className="flex-shrink-0 border-t border-slate-200 bg-[#f0f0f0] px-3 py-2">
+            {messages.length <= 1 && !loading && (
+              <div className="mb-2 flex gap-2 overflow-x-auto pb-1">
+                {QUICK_REPLIES.map(reply => (
+                  <button
+                    key={reply}
+                    onClick={() => sendMessage(reply)}
+                    className="flex-shrink-0 rounded-full border border-[#25D366]/30 bg-white px-3 py-1 text-xs font-medium text-[#075E54] transition-colors hover:bg-[#dcf8c6]"
+                  >
+                    {reply}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <div className="flex items-center gap-2">
+              <input
+                ref={inputRef}
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={loading ? 'Aguarde...' : 'Digite sua mensagem...'}
+                disabled={loading}
+                maxLength={600}
+                className="flex-1 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#25D366]/40 disabled:opacity-60"
+              />
+              <button
+                onClick={handleSend}
+                disabled={loading || !input.trim()}
+                aria-label="Enviar mensagem"
+                className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-[#25D366] transition-all hover:bg-[#20BA5A] active:scale-90 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {loading
+                  ? <Loader2 size={15} className="animate-spin text-white" />
+                  : <Send size={15} className="ml-0.5 text-white" />}
+              </button>
+            </div>
           </div>
         )}
 
-        {/* Footer */}
-        <div className="bg-[#f0f0f0] text-center py-1.5 border-t border-slate-200 flex-shrink-0">
+        <div className="flex-shrink-0 border-t border-slate-200 bg-[#f0f0f0] py-1.5 text-center">
           <p className="text-[10px] text-slate-400">Ilha Bella Serviços • Pré-atendimento automático</p>
         </div>
       </div>
