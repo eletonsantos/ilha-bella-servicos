@@ -1,6 +1,6 @@
 'use client'
 
-import { signIn, getSession } from 'next-auth/react'
+import { signIn } from 'next-auth/react'
 import { useState } from 'react'
 import Link from 'next/link'
 import { Wrench, Hash, Lock, AlertCircle } from 'lucide-react'
@@ -23,14 +23,15 @@ export default function LoginPage() {
     setLoading(false)
     if (res?.error) {
       setError('CPF ou senha inválidos.')
+      return
+    }
+    // Redireciona com base no tipo de login:
+    // e-mail → admin | CPF → técnico
+    // Não depende de getSession() (evita race condition com cookie)
+    if (login.includes('@')) {
+      window.location.href = '/admin'
     } else {
-      // Verifica a role da sessão para redirecionar corretamente
-      const session = await getSession()
-      if (session?.user?.role === 'ADMIN') {
-        window.location.href = '/admin'
-      } else {
-        window.location.href = '/tecnico/painel'
-      }
+      window.location.href = '/tecnico/painel'
     }
   }
 
