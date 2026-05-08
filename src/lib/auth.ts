@@ -1,5 +1,4 @@
 import NextAuth from 'next-auth'
-import { PrismaAdapter } from '@auth/prisma-adapter'
 import Google from 'next-auth/providers/google'
 import Credentials from 'next-auth/providers/credentials'
 import { prisma } from '@/lib/prisma'
@@ -52,14 +51,12 @@ function extractIP(req?: Request): string | undefined {
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
-  /* eslint-disable-next-line */
-  adapter: PrismaAdapter(prisma) as unknown as import('next-auth').NextAuthConfig['adapter'],
+  // SEM PrismaAdapter — o adapter usa transações internas que o Neon HTTP mode
+  // não suporta. Toda persistência de usuário é feita manualmente abaixo.
   providers: [
     Google({
       clientId: process.env.AUTH_GOOGLE_ID!,
       clientSecret: process.env.AUTH_GOOGLE_SECRET!,
-      // allowDangerousEmailAccountLinking REMOVIDO:
-      // Previne account takeover via Google OAuth com mesmo e-mail de técnico.
     }),
     Credentials({
       name: 'credentials',
@@ -87,11 +84,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           const emailMatch = safeCompare(login, adminEmail)
           const passMatch  = safeCompare(password, adminPassword)
           if (emailMatch && passMatch && adminEmail && adminPassword) {
-            const user = await prisma.user.upsert({
-              where:  { email: adminEmail },
-              update: { role: 'ADMIN' },
-              create: { email: adminEmail, role: 'ADMIN', name: 'Admin' },
-            })
+            // Busca admin no banco (sem upsert para evitar transação implícita)
+            let user = await prisma.user.findUnique({ where: { email: adminEmail } })
+            if (!user) {
+              user = await prisma.user.create({
+                data: { email: adminEmail, role: 'ADMIN', name: 'Admin' },
+              })
+            } else if (user.role !== 'ADMIN') {
+              user = await prisma.user.update({
+                where: { id: user.id },
+                data:  { role: 'ADMIN' },
+              })
+            }
             await logAudit({ userId: user.id, email: adminEmail, event: 'login_success', ip, userAgent: ua })
             return user
           }
@@ -140,9 +144,81 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
+  callbacks: {
+    ...authConfig.callbacks,
+
+    /**
+     * signIn callback — gerencia usuários Google OAuth manualmente.
+     * Cada operação é um INSERT/SELECT independente (sem transações)
+     * para compatibilidade com o Neon HTTP mode.
+     */
+    async signIn({ user, account }) {
+      if (account?.provider === 'google') {
+        try {
+          // 1. Verifica se conta Google já está vinculada
+          const existingAccount = await prisma.account.findUnique({
+            where: {
+              provider_providerAccountId: {
+                provider:          account.provider,
+                providerAccountId: account.providerAccountId,
+              },
+            },
+            include: { user: true },
+          })
+
+          if (existingAccount) {
+            // Conta já existe — injeta id e role do banco no objeto user
+            user.id   = existingAccount.user.id
+            ;(user as { role?: string }).role = existingAccount.user.role
+            return true
+          }
+
+          // 2. Conta não existe — busca ou cria usuário pelo e-mail
+          let dbUser = user.email
+            ? await prisma.user.findUnique({ where: { email: user.email } })
+            : null
+
+          if (!dbUser) {
+            dbUser = await prisma.user.create({
+              data: {
+                email: user.email!,
+                name:  user.name  ?? null,
+                image: user.image ?? null,
+              },
+            })
+          }
+
+          // 3. Vincula a conta Google ao usuário (operação independente)
+          await prisma.account.create({
+            data: {
+              userId:            dbUser.id,
+              type:              account.type,
+              provider:          account.provider,
+              providerAccountId: account.providerAccountId,
+              access_token:      account.access_token  ?? null,
+              refresh_token:     account.refresh_token ?? null,
+              expires_at:        account.expires_at    ?? null,
+              token_type:        account.token_type    ?? null,
+              scope:             account.scope         ?? null,
+              id_token:          account.id_token      ?? null,
+            },
+          })
+
+          // Injeta id e role no objeto user para o JWT callback
+          user.id   = dbUser.id
+          ;(user as { role?: string }).role = dbUser.role
+          return true
+        } catch (err) {
+          console.error('[signIn:google]', err)
+          return false
+        }
+      }
+      // Credentials: authorize() já validou tudo
+      return true
+    },
+  },
   events: {
     async signOut(message) {
-      // token está disponível em JWT strategy
       const token = 'token' in message ? message.token : null
       if (token) {
         await logAudit({
