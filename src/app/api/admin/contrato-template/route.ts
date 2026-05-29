@@ -102,12 +102,3 @@ export async function PUT(req: Request) {
 
   return NextResponse.json({ ok: true, template })
 }
-
-/** Utilitário exportado para uso interno (geração de contratos) */
-export async function getActiveTemplate(type: TemplateType): Promise<string> {
-  const record = await prisma.contractTemplate.findFirst({
-    where:   { type, isActive: true },
-    orderBy: { createdAt: 'desc' },
-  })
-  return record?.content ?? DEFAULTS[type]
-}
