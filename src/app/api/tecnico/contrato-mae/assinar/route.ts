@@ -128,16 +128,24 @@ export async function POST(req: Request) {
     },
   }
 
+  // Técnicos com status legado (APPROVED/LINKED) já têm acesso operacional.
+  // Ao assinar o Contrato-Mãe, promovemos direto para HOMOLOGADO_ATIVO sem
+  // exigir nova análise administrativa — eles já estavam ativos.
+  const ALREADY_OPERATIONAL = ['APPROVED', 'LINKED', 'HOMOLOGADO_ATIVO']
+  const newStatus = ALREADY_OPERATIONAL.includes(profile.status)
+    ? 'HOMOLOGADO_ATIVO'
+    : 'CONTRATO_MAE_ASSINADO'
+
   // Atualiza o perfil com dados do contrato assinado (operação plana)
   await prisma.technicianProfile.update({
     where: { id: profile.id },
     data: {
-      masterContractVersion:    CURRENT_CONTRACT_VERSION,
-      masterContractSignedAt:   signedAt,
-      masterContractSignedName: parsed.data.signerName,
+      masterContractVersion:        CURRENT_CONTRACT_VERSION,
+      masterContractSignedAt:       signedAt,
+      masterContractSignedName:     parsed.data.signerName,
       masterContractSignedDocument: parsed.data.signerDocument,
-      masterContractData:       JSON.stringify(contratoData),
-      status:                   'CONTRATO_MAE_ASSINADO',
+      masterContractData:           JSON.stringify(contratoData),
+      status:                       newStatus,
     },
   })
 
@@ -147,6 +155,6 @@ export async function POST(req: Request) {
     signedAt:    signedAt.toISOString(),
     hash:        documentHash,
     version:     CURRENT_CONTRACT_VERSION,
-    newStatus:   'CONTRATO_MAE_ASSINADO',
+    newStatus,
   })
 }

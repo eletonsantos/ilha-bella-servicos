@@ -66,7 +66,7 @@ const VINCULO_OPTIONS = [
 
 const VINCULO_LABELS: Record<string, string> = Object.fromEntries(VINCULO_OPTIONS.map(o => [o.value, o.label]))
 
-function stepFromStatus(status: string, contractType: string | null): number {
+function stepFromStatus(status: string, contractType: string | null, profile?: ProfileData | null): number {
   switch (status) {
     case 'CADASTRO_INICIADO':
       return contractType === 'PJ_TERCEIRIZADO' ? 1 : 2
@@ -83,8 +83,19 @@ function stepFromStatus(status: string, contractType: string | null): number {
     case 'CONTRATO_MAE_ASSINADO':
     case 'EM_ANALISE_ADMINISTRATIVA':
       return 4
+
+    // Técnicos com status legado (APPROVED / LINKED / HOMOLOGADO_ATIVO) que ainda
+    // não assinaram o Contrato-Mãe: detectar o passo pelo que já está preenchido
+    case 'APPROVED':
+    case 'LINKED':
+    case 'HOMOLOGADO_ATIVO':
     default:
-      return 1
+      if (contractType !== 'PJ_TERCEIRIZADO') return 4 // autônomo — não precisa de fluxo
+      if (!profile) return 1
+      if (profile.masterContractSignedAt) return 4     // já assinou — aguardando
+      if (profile.providerTechnicians.length > 0) return 3 // tem resp., falta contrato
+      if (profile.cnpj && profile.cnpjSituacao === 'ATIVA') return 2 // tem CNPJ, falta resp.
+      return 1                                          // falta CNPJ
   }
 }
 
@@ -104,7 +115,7 @@ export default function RegularizacaoCadastralPage() {
       if (!res.ok) throw new Error('Erro ao carregar dados')
       const data: ProfileData = await res.json()
       setProfile(data)
-      setStep(stepFromStatus(data.status, data.contractType))
+      setStep(stepFromStatus(data.status, data.contractType, data))
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Erro desconhecido')
     } finally {
@@ -617,6 +628,7 @@ function StepTecnicoResponsavel({
 // ─── Step 3: Assinar Contrato-Mãe ────────────────────────────────────────────
 
 function StepContratoMae({ profile, onSuccess }: { profile: ProfileData; onSuccess: () => void }) {
+  const router                               = useRouter()
   const [signerName,     setSignerName]     = useState(profile.fullName)
   const [signerDocument, setSignerDocument] = useState(profile.cnpj ?? profile.cpf)
   const [declaracao,     setDeclaracao]     = useState(false)
@@ -639,6 +651,12 @@ function StepContratoMae({ profile, onSuccess }: { profile: ProfileData; onSucce
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error?.message ?? 'Erro ao assinar contrato'); return }
+      // Técnicos já operacionais (APPROVED/LINKED) são promovidos a HOMOLOGADO_ATIVO
+      // direto — redireciona para o portal sem precisar aguardar aprovação
+      if (data.newStatus === 'HOMOLOGADO_ATIVO') {
+        router.replace('/tecnico/painel')
+        return
+      }
       onSuccess()
     } catch {
       setError('Erro de conexão. Tente novamente.')
