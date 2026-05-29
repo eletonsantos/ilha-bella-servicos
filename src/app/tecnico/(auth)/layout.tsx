@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import TecnicoNav from '@/components/tecnico/TecnicoNav'
+import { OPERATIONAL_STATUSES } from '@/lib/constants-tecnico'
 
 export default async function TecnicoAuthLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()
@@ -13,6 +14,11 @@ export default async function TecnicoAuthLayout({ children }: { children: React.
 
   // Redirect to complete profile if not done yet
   if (!profile) redirect('/tecnico/cadastro')
+
+  // Bloqueia prestadores não-homologados: redireciona para regularização cadastral
+  if (!OPERATIONAL_STATUSES.includes(profile.status as (typeof OPERATIONAL_STATUSES)[number])) {
+    redirect('/tecnico/regularizacao-cadastral')
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">

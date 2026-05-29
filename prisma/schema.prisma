@@ -73,20 +73,81 @@ model TechnicianProfile {
   iaAssistLogin String?
   cnpj               String?
   razaoSocial        String?
+  nomeFantasia       String?
   tabelaValoresPath  String?
   tabelaValoresName  String?
   tabelaValoresSize  Int?
   contractType       String?  @default("AUTONOMO")
-  status             String   @default("INITIATED")
+  status             String   @default("CADASTRO_INICIADO")
   adminNotes    String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+
+  // ── Homologação / fluxo Contrato-Mãe ─────────────────────────────────────
+  // Dados CNPJ (JSON da BrasilAPI)
+  cnpjData               String?
+  cnpjCheckedAt          DateTime?
+  cnpjSituacao           String?   // ATIVA | INAPTA | BAIXADA | SUSPENSA | NULA | IRREGULAR
+
+  // Contrato-Mãe
+  masterContractVersion       String?   // contrato_mae_v1 | v2 | ...
+  masterContractSignedAt      DateTime?
+  masterContractSignedName    String?
+  masterContractSignedDocument String?
+  masterContractData          String?   // JSON snapshot completo com auditoria
 
   user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   closings Closing[]
   disputes ClosingDispute[]
   advances PaymentAdvance[]
-  reimbursements Reimbursement[]
+  reimbursements      Reimbursement[]
+  providerTechnicians ProviderTechnician[]
+  cnpjAuditLogs       CnpjAuditLog[]
+}
+
+// ── Técnico Responsável da empresa prestadora ─────────────────────────────────
+model ProviderTechnician {
+  id           String   @id @default(cuid())
+  technicianId String
+
+  nomeCompleto  String
+  cpf           String
+  telefone      String
+  email         String
+  funcao        String
+  especialidade String
+  cidade        String
+  uf            String
+  // SOCIO | REPRESENTANTE | EMPREGADO | PARCEIRO | PREPOSTO | TECNICO_INDICADO
+  vinculo       String
+
+  isPrincipal  Boolean  @default(false)
+  isRepLegal   Boolean  @default(false)  // rep legal também é o técnico
+  declaracaoAceita Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  technician TechnicianProfile @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+
+  @@index([technicianId])
+}
+
+// ── Log de consultas de CNPJ ──────────────────────────────────────────────────
+model CnpjAuditLog {
+  id           String   @id @default(cuid())
+  technicianId String
+  cnpj         String
+  situacao     String?
+  ativo        Boolean  @default(false)
+  rawResponse  String?   // JSON completo da BrasilAPI
+  ip           String?
+  consultedAt  DateTime @default(now())
+
+  technician TechnicianProfile @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+
+  @@index([technicianId])
+  @@index([consultedAt])
 }
 
 model Closing {

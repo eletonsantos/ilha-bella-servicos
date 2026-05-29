@@ -8,10 +8,33 @@ export type ClosingStatus =
   | 'PAID'
 
 export type ProfileStatus =
+  // Status legados (compatibilidade retroativa)
   | 'INITIATED'
   | 'AWAITING_APPROVAL'
   | 'APPROVED'
   | 'LINKED'
+  // Novo fluxo de homologação
+  | 'CADASTRO_INICIADO'
+  | 'CNPJ_PENDENTE'
+  | 'CNPJ_IRREGULAR'
+  | 'DADOS_INCOMPLETOS'
+  | 'TECNICO_RESPONSAVEL_PENDENTE'
+  | 'CONTRATO_MAE_PENDENTE'
+  | 'CONTRATO_MAE_ASSINADO'
+  | 'EM_ANALISE_ADMINISTRATIVA'
+  | 'HOMOLOGADO_ATIVO'
+  | 'SUSPENSO'
+  | 'BLOQUEADO'
+  | 'BLOQUEADO_PAGAMENTO'
+  | 'INATIVO'
+
+/** Status que permitem acesso operacional completo à plataforma */
+export const OPERATIONAL_STATUSES: ProfileStatus[] = [
+  'HOMOLOGADO_ATIVO',
+  // Legados — considerados operacionais para não bloquear técnicos antigos
+  'APPROVED',
+  'LINKED',
+]
 
 export type PixKeyType = 'CPF' | 'CNPJ' | 'EMAIL' | 'PHONE' | 'RANDOM'
 
@@ -38,17 +61,47 @@ export const CLOSING_STATUS_COLORS: Record<string, string> = {
 }
 
 export const PROFILE_STATUS_LABELS: Record<string, string> = {
-  INITIATED: 'Cadastro iniciado',
+  // Legados
+  INITIATED:         'Cadastro iniciado',
   AWAITING_APPROVAL: 'Aguardando aprovação',
-  APPROVED: 'Aprovado',
-  LINKED: 'Vinculado',
+  APPROVED:          'Aprovado',
+  LINKED:            'Vinculado',
+  // Novo fluxo
+  CADASTRO_INICIADO:            'Cadastro iniciado',
+  CNPJ_PENDENTE:                'CNPJ pendente',
+  CNPJ_IRREGULAR:               'CNPJ irregular',
+  DADOS_INCOMPLETOS:            'Dados incompletos',
+  TECNICO_RESPONSAVEL_PENDENTE: 'Técnico responsável pendente',
+  CONTRATO_MAE_PENDENTE:        'Contrato-Mãe pendente',
+  CONTRATO_MAE_ASSINADO:        'Contrato-Mãe assinado',
+  EM_ANALISE_ADMINISTRATIVA:    'Em análise administrativa',
+  HOMOLOGADO_ATIVO:             'Homologado / Ativo',
+  SUSPENSO:                     'Suspenso',
+  BLOQUEADO:                    'Bloqueado',
+  BLOQUEADO_PAGAMENTO:          'Bloqueado (pagamento)',
+  INATIVO:                      'Inativo',
 }
 
 export const PROFILE_STATUS_COLORS: Record<string, string> = {
-  INITIATED: 'bg-slate-100 text-slate-600',
+  // Legados
+  INITIATED:         'bg-slate-100 text-slate-600',
   AWAITING_APPROVAL: 'bg-amber-100 text-amber-700',
-  APPROVED: 'bg-green-100 text-green-700',
-  LINKED: 'bg-blue-100 text-blue-700',
+  APPROVED:          'bg-green-100 text-green-700',
+  LINKED:            'bg-blue-100 text-blue-700',
+  // Novo fluxo
+  CADASTRO_INICIADO:            'bg-slate-100 text-slate-600',
+  CNPJ_PENDENTE:                'bg-amber-100 text-amber-700',
+  CNPJ_IRREGULAR:               'bg-red-100 text-red-700',
+  DADOS_INCOMPLETOS:            'bg-orange-100 text-orange-700',
+  TECNICO_RESPONSAVEL_PENDENTE: 'bg-amber-100 text-amber-700',
+  CONTRATO_MAE_PENDENTE:        'bg-amber-100 text-amber-700',
+  CONTRATO_MAE_ASSINADO:        'bg-blue-100 text-blue-700',
+  EM_ANALISE_ADMINISTRATIVA:    'bg-purple-100 text-purple-700',
+  HOMOLOGADO_ATIVO:             'bg-green-100 text-green-700',
+  SUSPENSO:                     'bg-orange-100 text-orange-700',
+  BLOQUEADO:                    'bg-red-100 text-red-700',
+  BLOQUEADO_PAGAMENTO:          'bg-red-100 text-red-700',
+  INATIVO:                      'bg-slate-100 text-slate-500',
 }
 
 export const DISPUTE_STATUS_LABELS: Record<string, string> = {
