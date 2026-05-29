@@ -7,6 +7,7 @@ import { useRef, useState, useEffect } from 'react'
 import {
   Users, FileText, LogOut, Settings, Zap, LayoutDashboard,
   UserCheck, Receipt, Megaphone, ShieldCheck, BarChart2, ChevronDown,
+  FileSignature,
 } from 'lucide-react'
 import { clsx } from 'clsx'
 
@@ -45,6 +46,7 @@ export default function AdminNav({ user: _user, pendingAdvances = 0, pendingAppl
 
   // Links do dropdown da engrenagem
   const extraLinks = [
+    { href: '/admin/contratos',   label: 'Contratos',   icon: FileSignature },
     { href: '/admin/comunicados', label: 'Comunicados', icon: Megaphone   },
     { href: '/admin/visitas',     label: 'Visitas',     icon: BarChart2   },
     { href: '/admin/auditoria',   label: 'Auditoria',   icon: ShieldCheck },
