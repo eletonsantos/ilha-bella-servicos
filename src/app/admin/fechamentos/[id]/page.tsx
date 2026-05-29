@@ -10,6 +10,7 @@ import DisputaActions from './DisputaActions'
 import AntecipacaoActions from './AntecipacaoActions'
 import DeleteFechamentoButton from './DeleteFechamentoButton'
 import ClosingTimeline from '@/components/tecnico/ClosingTimeline'
+import ExtrairPdfButton from './ExtrairPdfButton'
 
 interface Props { params: { id: string } }
 
@@ -141,8 +142,8 @@ export default async function AdminFechamentoDetailPage({ params }: Props) {
 
       {/* Relatório PDF */}
       {closing.reportFilePath && (
-        <div className="card p-6">
-          <h2 className="font-bold text-dark mb-3">Relatório de Serviços</h2>
+        <div className="card p-6 space-y-4">
+          <h2 className="font-bold text-dark">Relatório de Serviços</h2>
           <div className="flex items-center gap-3 bg-slate-50 rounded-xl px-4 py-3">
             <FileText size={20} className="text-brand-blue flex-shrink-0" />
             <div className="flex-1 min-w-0">
@@ -160,6 +161,8 @@ export default async function AdminFechamentoDetailPage({ params }: Props) {
               <Download size={13} /> Baixar PDF
             </a>
           </div>
+          {/* Extração de dados por IA */}
+          <ExtrairPdfButton closingId={closing.id} />
         </div>
       )}
 

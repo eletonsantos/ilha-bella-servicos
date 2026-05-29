@@ -5,6 +5,12 @@ import { z } from 'zod'
 import { createClosingEvent } from '@/lib/closing-events'
 import { CLOSING_STATUS_LABELS } from '@/lib/constants-tecnico'
 
+const serviceItemSchema = z.object({
+  description: z.string().min(1),
+  value:       z.number().min(0),
+  serviceDate: z.string(),
+})
+
 const updateSchema = z.object({
   status: z.enum(['AWAITING_CLOSING','CLOSING_AVAILABLE','AWAITING_INVOICE','INVOICE_SENT','UNDER_REVIEW','PAYMENT_RELEASED','PAID']).optional(),
   adminNotes:           z.string().optional(),
@@ -15,6 +21,8 @@ const updateSchema = z.object({
   serviceCount:         z.number().int().min(0).optional(),
   observations:         z.string().optional(),
   scheduledPaymentDate: z.string().datetime().optional().nullable(),
+  // Extração PDF: adiciona serviços ao fechamento
+  appendServices:       z.array(serviceItemSchema).optional(),
 })
 
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
@@ -48,13 +56,41 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   const parsed = updateSchema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
 
+  // Extrai appendServices antes de passar para o Prisma (não é campo do modelo)
+  const { appendServices, ...closingData } = parsed.data
+
   // Captura status anterior antes de atualizar
-  const prev = await prisma.closing.findUnique({ where: { id: params.id }, select: { status: true } })
+  const prev = await prisma.closing.findUnique({ where: { id: params.id }, select: { status: true, serviceCount: true } })
 
   const closing = await prisma.closing.update({
     where: { id: params.id },
-    data: parsed.data,
+    data: closingData,
   })
+
+  // Processa serviços a adicionar (flat ops — sem transaction, compatível com Neon HTTP)
+  if (appendServices && appendServices.length > 0) {
+    for (const svc of appendServices) {
+      await prisma.closingService.create({
+        data: {
+          closingId:   params.id,
+          description: svc.description,
+          value:       svc.value,
+          serviceDate: new Date(svc.serviceDate),
+        },
+      })
+    }
+
+    // Atualiza serviceCount e totalValue somando os novos serviços
+    const newServicesTotal = appendServices.reduce((sum, s) => sum + s.value, 0)
+    const currentCount     = prev?.serviceCount ?? closing.serviceCount
+    await prisma.closing.update({
+      where: { id: params.id },
+      data:  {
+        serviceCount: currentCount + appendServices.length,
+        totalValue:   closing.totalValue + newServicesTotal,
+      },
+    })
+  }
 
   // Registra evento se o status mudou
   if (parsed.data.status && prev && parsed.data.status !== prev.status) {
