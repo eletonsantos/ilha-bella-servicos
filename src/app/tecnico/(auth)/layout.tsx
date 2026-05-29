@@ -20,9 +20,9 @@ export default async function TecnicoAuthLayout({ children }: { children: React.
     redirect('/tecnico/regularizacao-cadastral')
   }
 
-  // Mesmo com status legado (APPROVED/LINKED), PJ que não assinou o Contrato-Mãe
-  // deve ser redirecionado para regularização para assinar antes de acessar o portal
-  if (profile.contractType === 'PJ_TERCEIRIZADO' && !profile.masterContractSignedAt) {
+  // Qualquer técnico (PJ ou autônomo) que ainda não assinou o contrato/termo
+  // deve passar pelo fluxo de regularização antes de acessar o portal
+  if (!profile.masterContractSignedAt) {
     redirect('/tecnico/regularizacao-cadastral')
   }
 

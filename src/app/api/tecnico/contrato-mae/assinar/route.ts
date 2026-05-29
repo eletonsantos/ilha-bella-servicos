@@ -5,7 +5,9 @@ import { z } from 'zod'
 import { createHash, randomUUID } from 'crypto'
 import {
   generateContratoMae,
+  generateTermoAutonomo,
   CURRENT_CONTRACT_VERSION,
+  CURRENT_TERMO_AUTONOMO_VERSION,
   CONTRATANTE,
 } from '@/lib/contrato-mae'
 
@@ -59,88 +61,91 @@ export async function POST(req: Request) {
   const ua         = req.headers.get('user-agent') ?? 'unknown'
   const signedAt   = new Date()
   const documentId = randomUUID()
-
-  // Extrai dados do CNPJ armazenado
-  let cnpjDataParsed: Record<string, unknown> = {}
-  if (profile.cnpjData) {
-    try { cnpjDataParsed = JSON.parse(profile.cnpjData) } catch { /* ignore */ }
-  }
-
-  const tecnicoResp = profile.providerTechnicians[0]
+  const isPJ       = profile.contractType === 'PJ_TERCEIRIZADO'
 
   // Gera hash do evento de assinatura
   const hashInput = [
     profile.razaoSocial ?? profile.fullName,
-    profile.cnpj ?? '',
+    profile.cnpj ?? profile.cpf ?? '',
     parsed.data.signerName,
     parsed.data.signerDocument,
     signedAt.toISOString(),
     ip,
-    CURRENT_CONTRACT_VERSION,
+    isPJ ? CURRENT_CONTRACT_VERSION : CURRENT_TERMO_AUTONOMO_VERSION,
   ].join('|')
   const documentHash = createHash('sha256').update(hashInput).digest('hex')
 
-  // Monta parâmetros do contrato
-  const params = {
-    razaoSocialContratado:    profile.razaoSocial     ?? profile.fullName,
-    nomeFantasiaContratado:   profile.nomeFantasia     ?? profile.razaoSocial ?? profile.fullName,
-    cnpjContratado:           profile.cnpj             ?? '',
-    situacaoCadastral:        profile.cnpjSituacao     ?? 'ATIVA',
-    cnaePrincipal:            cnpjDataParsed.cnae_fiscal_descricao
-                                ? String(cnpjDataParsed.cnae_fiscal_descricao)
-                                : String(cnpjDataParsed.cnae_fiscal ?? 'Serviços técnicos especializados'),
-    enderecoContratado: [
-      cnpjDataParsed.logradouro,
-      cnpjDataParsed.numero,
-      cnpjDataParsed.municipio,
-      cnpjDataParsed.uf,
-    ].filter(Boolean).join(', ') || profile.city,
-    representanteLegalNome:   parsed.data.signerName,
-    representanteLegalCpf:    parsed.data.signerDocument,
-    tecnicoNome:         tecnicoResp?.nomeCompleto  ?? parsed.data.signerName,
-    tecnicoCpf:          tecnicoResp?.cpf            ?? parsed.data.signerDocument,
-    tecnicoTelefone:     tecnicoResp?.telefone       ?? profile.phone,
-    tecnicoEmail:        tecnicoResp?.email          ?? profile.email,
-    tecnicoEspecialidade: tecnicoResp?.especialidade ?? 'Serviços técnicos especializados',
-    signedAt:     signedAt.toISOString(),
-    ip,
-    documentId,
-    documentHash,
-    contractVersion: CURRENT_CONTRACT_VERSION,
+  let contratoData: Record<string, unknown>
+  let contractVersion: string
+
+  if (isPJ) {
+    // ── Contrato-Mãe PJ ────────────────────────────────────────────────────
+    let cnpjDataParsed: Record<string, unknown> = {}
+    if (profile.cnpjData) {
+      try { cnpjDataParsed = JSON.parse(profile.cnpjData) } catch { /* ignore */ }
+    }
+    const tecnicoResp = profile.providerTechnicians[0]
+
+    const params = {
+      razaoSocialContratado:   profile.razaoSocial    ?? profile.fullName,
+      nomeFantasiaContratado:  profile.nomeFantasia    ?? profile.razaoSocial ?? profile.fullName,
+      cnpjContratado:          profile.cnpj            ?? '',
+      situacaoCadastral:       profile.cnpjSituacao    ?? 'ATIVA',
+      cnaePrincipal:           cnpjDataParsed.cnae_fiscal_descricao
+                                 ? String(cnpjDataParsed.cnae_fiscal_descricao)
+                                 : String(cnpjDataParsed.cnae_fiscal ?? 'Serviços técnicos especializados'),
+      enderecoContratado: [
+        cnpjDataParsed.logradouro,
+        cnpjDataParsed.numero,
+        cnpjDataParsed.municipio,
+        cnpjDataParsed.uf,
+      ].filter(Boolean).join(', ') || profile.city,
+      representanteLegalNome:  parsed.data.signerName,
+      representanteLegalCpf:   parsed.data.signerDocument,
+      tecnicoNome:        tecnicoResp?.nomeCompleto   ?? parsed.data.signerName,
+      tecnicoCpf:         tecnicoResp?.cpf             ?? parsed.data.signerDocument,
+      tecnicoTelefone:    tecnicoResp?.telefone        ?? profile.phone,
+      tecnicoEmail:       tecnicoResp?.email           ?? profile.email,
+      tecnicoEspecialidade: tecnicoResp?.especialidade ?? 'Serviços técnicos especializados',
+      signedAt:     signedAt.toISOString(),
+      ip,
+      documentId,
+      documentHash,
+      contractVersion: CURRENT_CONTRACT_VERSION,
+    }
+    contratoData    = { ...generateContratoMae(params), auditExtra: { userAgent: ua, userId: session.user.id, profileId: profile.id, aceitante: { nome: parsed.data.signerName, documento: parsed.data.signerDocument, ip, ua }, contratante: CONTRATANTE } }
+    contractVersion = CURRENT_CONTRACT_VERSION
+
+  } else {
+    // ── Termo de Compromisso Autônomo ───────────────────────────────────────
+    const params = {
+      nomeCompleto:   profile.fullName,
+      cpf:            profile.cpf ?? parsed.data.signerDocument,
+      telefone:       profile.phone,
+      email:          profile.email,
+      cidade:         profile.city,
+      especialidade:  'Serviços técnicos especializados',
+      signedAt:       signedAt.toISOString(),
+      ip,
+      documentId,
+      documentHash,
+      contractVersion: CURRENT_TERMO_AUTONOMO_VERSION,
+    }
+    contratoData    = { ...generateTermoAutonomo(params), auditExtra: { userAgent: ua, userId: session.user.id, profileId: profile.id, aceitante: { nome: parsed.data.signerName, documento: parsed.data.signerDocument, ip, ua }, contratante: CONTRATANTE } }
+    contractVersion = CURRENT_TERMO_AUTONOMO_VERSION
   }
 
-  const contratoSnapshot = generateContratoMae(params)
-
-  // Adiciona auditoria completa ao snapshot
-  const contratoData = {
-    ...contratoSnapshot,
-    auditExtra: {
-      userAgent: ua,
-      userId:    session.user.id,
-      profileId: profile.id,
-      aceitante: {
-        nome:      parsed.data.signerName,
-        documento: parsed.data.signerDocument,
-        ip,
-        ua,
-      },
-      contratante: CONTRATANTE,
-    },
-  }
-
-  // Técnicos com status legado (APPROVED/LINKED) já têm acesso operacional.
-  // Ao assinar o Contrato-Mãe, promovemos direto para HOMOLOGADO_ATIVO sem
-  // exigir nova análise administrativa — eles já estavam ativos.
+  // Técnicos com status legado (APPROVED/LINKED) já têm acesso operacional —
+  // promove direto para HOMOLOGADO_ATIVO sem exigir nova análise.
   const ALREADY_OPERATIONAL = ['APPROVED', 'LINKED', 'HOMOLOGADO_ATIVO']
   const newStatus = ALREADY_OPERATIONAL.includes(profile.status)
     ? 'HOMOLOGADO_ATIVO'
     : 'CONTRATO_MAE_ASSINADO'
 
-  // Atualiza o perfil com dados do contrato assinado (operação plana)
   await prisma.technicianProfile.update({
     where: { id: profile.id },
     data: {
-      masterContractVersion:        CURRENT_CONTRACT_VERSION,
+      masterContractVersion:        contractVersion,
       masterContractSignedAt:       signedAt,
       masterContractSignedName:     parsed.data.signerName,
       masterContractSignedDocument: parsed.data.signerDocument,
@@ -154,7 +159,7 @@ export async function POST(req: Request) {
     documentId,
     signedAt:    signedAt.toISOString(),
     hash:        documentHash,
-    version:     CURRENT_CONTRACT_VERSION,
+    version:     contractVersion,
     newStatus,
   })
 }

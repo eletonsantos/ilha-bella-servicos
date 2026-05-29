@@ -358,3 +358,129 @@ export const TEXTO_ACEITE_TECNICO_RESPONSAVEL =
   `Declaro que o técnico responsável informado está autorizado a executar serviços em nome da ` +
   `empresa contratada, sendo a empresa integralmente responsável pela conduta, execução técnica, ` +
   `documentação, atendimento, danos, garantias e obrigações relacionadas aos serviços prestados.`
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Termo de Compromisso — Prestador Autônomo (sem CNPJ)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const CURRENT_TERMO_AUTONOMO_VERSION = 'termo_autonomo_v1'
+
+export interface TermoAutonomoParams {
+  nomeCompleto:    string
+  cpf:             string
+  telefone:        string
+  email:           string
+  cidade:          string
+  especialidade:   string
+  signedAt:        string
+  ip:              string
+  documentId:      string
+  documentHash:    string
+  contractVersion: string
+}
+
+export interface TermoAutonomoResult {
+  version:    string
+  documentId: string
+  signedAt:   string
+  contratante: typeof CONTRATANTE
+  autonomo:    TermoAutonomoParams
+  clausulas:   string[]
+  audit: {
+    ip:          string
+    hash:        string
+    timestamp:   string
+    dataLegivel: string
+  }
+}
+
+export function getClausulasTermoAutonomoV1(p: TermoAutonomoParams): string[] {
+  return [
+    `CLÁUSULA 1ª — QUALIFICAÇÃO DAS PARTES\n\n` +
+    `CONTRATANTE: ${CONTRATANTE.razaoSocial}, inscrita no CNPJ sob o nº ${CONTRATANTE.cnpj}, ` +
+    `com sede em ${CONTRATANTE.endereco}, neste ato representada por ${CONTRATANTE.representanteLegal}, ` +
+    `doravante denominada ILHA BELLA.\n\n` +
+    `PRESTADOR AUTÔNOMO: ${p.nomeCompleto}, CPF nº ${p.cpf}, ` +
+    `telefone ${p.telefone}, e-mail ${p.email}, município de ${p.cidade}, ` +
+    `especialidade: ${p.especialidade}, doravante denominado simplesmente PRESTADOR.`,
+
+    `CLÁUSULA 2ª — OBJETO\n\n` +
+    `O presente Termo tem por objeto a prestação de serviços técnicos autônomos de assistência ` +
+    `residencial e empresarial, incluindo, sem limitação: instalações e reparos elétricos, ` +
+    `hidráulicos, desentupimento, chaveiro, limpeza de calhas e serviços correlatos, conforme ` +
+    `demanda operacional da ILHA BELLA, repassada por meio de plataforma digital (PLATAFORMA).\n\n` +
+    `Parágrafo único: O PRESTADOR executará os serviços de forma autônoma, com seus próprios ` +
+    `equipamentos e ferramentas, sendo integralmente responsável pela qualidade e prazo de cada atendimento.`,
+
+    `CLÁUSULA 3ª — NATUREZA JURÍDICA DA RELAÇÃO\n\n` +
+    `A relação entre as partes é de prestação autônoma de serviços, não constituindo vínculo ` +
+    `empregatício, societário ou de qualquer outra natureza além da contratual.\n\n` +
+    `O PRESTADOR atua por conta própria, sem exclusividade, sem controle de jornada, sem subordinação ` +
+    `contínua e com plena liberdade de aceitar ou recusar ordens de serviço, assumindo os riscos ` +
+    `inerentes à atividade autônoma, incluindo recolhimento de tributos e contribuições pertinentes.`,
+
+    `CLÁUSULA 4ª — OBRIGAÇÕES DO PRESTADOR\n\n` +
+    `O PRESTADOR se compromete a:\n\n` +
+    `(a) Executar os serviços com qualidade técnica e dentro dos prazos acordados;\n` +
+    `(b) Apresentar-se ao cliente de forma profissional, identificado e com equipamentos adequados;\n` +
+    `(c) Comunicar à ILHA BELLA qualquer impedimento, intercorrência ou dificuldade técnica;\n` +
+    `(d) Não cobrar valores adicionais do cliente sem autorização prévia da ILHA BELLA;\n` +
+    `(e) Manter sigilo sobre informações dos clientes, endereços e dados da PLATAFORMA;\n` +
+    `(f) Responder por danos causados ao cliente ou ao imóvel durante os atendimentos;\n` +
+    `(g) Guardar os comprovantes e registros fotográficos de cada serviço por no mínimo 90 dias.`,
+
+    `CLÁUSULA 5ª — CONDIÇÕES DE PAGAMENTO\n\n` +
+    `Os serviços aceitos serão remunerados conforme tabela de valores acordada, pagos mensalmente ` +
+    `mediante assinatura eletrônica do Termo Mensal de Fechamento gerado pela PLATAFORMA.\n\n` +
+    `§1º O pagamento será realizado exclusivamente via PIX para a chave cadastrada no perfil do PRESTADOR.\n\n` +
+    `§2º Fica condicionado o pagamento: (a) à ausência de pendências ou reclamações não resolvidas; ` +
+    `(b) à assinatura do Termo Mensal de Fechamento; (c) à regularidade cadastral do PRESTADOR na PLATAFORMA.\n\n` +
+    `§3º Antecipações poderão ser solicitadas e estão sujeitas à aprovação da ILHA BELLA, ` +
+    `com desconto de taxa administrativa acordada.`,
+
+    `CLÁUSULA 6ª — RESPONSABILIDADE POR DANOS E GARANTIA\n\n` +
+    `O PRESTADOR responde civil e contratualmente por danos materiais, pessoais ou morais causados ` +
+    `ao cliente, a terceiros ou ao imóvel durante ou em decorrência dos serviços prestados.\n\n` +
+    `§1º A ILHA BELLA poderá reter ou bloquear o pagamento correspondente enquanto houver ` +
+    `reclamação pendente ou irregularidade comprovada.\n\n` +
+    `§2º O PRESTADOR autoriza a retenção de valores para cobrir prejuízos devidamente comprovados, ` +
+    `após notificação e prazo razoável para manifestação.`,
+
+    `CLÁUSULA 7ª — RESCISÃO\n\n` +
+    `Este Termo poderá ser rescindido a qualquer momento, por qualquer das partes, ` +
+    `mediante comunicação prévia de 15 (quinze) dias.\n\n` +
+    `A rescisão imediata poderá ocorrer em caso de: (a) descumprimento de obrigações contratuais; ` +
+    `(b) danos não reparados; (c) conduta inadequada com clientes; (d) uso indevido dos dados ` +
+    `da PLATAFORMA ou dos clientes.`,
+
+    `CLÁUSULA 8ª — DISPOSIÇÕES GERAIS E FORO\n\n` +
+    `Este Termo poderá ser atualizado pela ILHA BELLA mediante nova versão, com comunicação prévia ` +
+    `de 15 dias. A nova versão exigirá nova assinatura eletrônica do PRESTADOR antes do próximo acesso.\n\n` +
+    `Fica eleito o Foro da ${CONTRATANTE.foro} para dirimir quaisquer litígios decorrentes ` +
+    `deste instrumento, com renúncia a qualquer outro foro.\n\n` +
+    `Assinado eletronicamente em ${new Date(p.signedAt).toLocaleString('pt-BR')}, ` +
+    `IP: ${p.ip}, Hash SHA-256: ${p.documentHash}.`,
+  ]
+}
+
+export function generateTermoAutonomo(p: TermoAutonomoParams): TermoAutonomoResult {
+  return {
+    version:    p.contractVersion,
+    documentId: p.documentId,
+    signedAt:   p.signedAt,
+    contratante: CONTRATANTE,
+    autonomo:    p,
+    clausulas:   getClausulasTermoAutonomoV1(p),
+    audit: {
+      ip:          p.ip,
+      hash:        p.documentHash,
+      timestamp:   p.signedAt,
+      dataLegivel: new Date(p.signedAt).toLocaleString('pt-BR'),
+    },
+  }
+}
+
+export const TEXTO_ACEITE_TERMO_AUTONOMO =
+  `Declaro que li, compreendi e aceito integralmente este Termo de Compromisso de Prestação de ` +
+  `Serviços Autônomos, confirmando que atuo de forma autônoma, sem vínculo empregatício, ` +
+  `sem exclusividade, por conta e risco próprio, e que os dados informados são verdadeiros.`

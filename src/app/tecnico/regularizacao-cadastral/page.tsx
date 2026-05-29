@@ -10,6 +10,7 @@ import {
 import {
   TEXTO_ACEITE_CONTRATO_MAE,
   TEXTO_ACEITE_TECNICO_RESPONSAVEL,
+  TEXTO_ACEITE_TERMO_AUTONOMO,
   CURRENT_CONTRACT_VERSION,
   CONTRACT_VERSION_LABELS,
 } from '@/lib/contrato-mae'
@@ -186,10 +187,15 @@ export default function RegularizacaoCadastralPage() {
               profile={profile}
               onSuccess={() => { loadProfile() }}
               onSkip={isPJ ? undefined : () => setStep(isPJ ? 3 : 2)}
+              onBack={isPJ ? () => setStep(1) : undefined}
             />
           )}
           {step === (isPJ ? 3 : 2) && (
-            <StepContratoMae profile={profile} onSuccess={() => { loadProfile() }} />
+            <StepContratoMae
+              profile={profile}
+              onSuccess={() => { loadProfile() }}
+              onBack={() => setStep(isPJ ? 2 : 1)}
+            />
           )}
           {step === (isPJ ? 4 : 3) && (
             <StepAguardandoAprovacao profile={profile} />
@@ -377,10 +383,12 @@ function StepTecnicoResponsavel({
   profile,
   onSuccess,
   onSkip,
+  onBack,
 }: {
   profile: ProfileData
   onSuccess: () => void
   onSkip?: () => void
+  onBack?: () => void
 }) {
   const [form, setForm] = useState({
     nomeCompleto:    '',
@@ -612,14 +620,25 @@ function StepTecnicoResponsavel({
           </div>
         )}
 
-        <button
-          type="submit"
-          disabled={loading || !form.declaracaoAceita}
-          className="w-full bg-brand-blue hover:bg-brand-blue-dark text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-        >
-          {loading ? <Loader2 size={18} className="animate-spin" /> : <ArrowRight size={18} />}
-          {loading ? 'Salvando...' : 'Salvar e continuar'}
-        </button>
+        <div className="flex gap-3">
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="flex-1 bg-white/10 hover:bg-white/20 text-white font-semibold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
+            >
+              ← Voltar
+            </button>
+          )}
+          <button
+            type="submit"
+            disabled={loading || !form.declaracaoAceita}
+            className="flex-1 bg-brand-blue hover:bg-brand-blue-dark text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {loading ? <Loader2 size={18} className="animate-spin" /> : <ArrowRight size={18} />}
+            {loading ? 'Salvando...' : 'Salvar e continuar'}
+          </button>
+        </div>
       </form>
     </div>
   )
@@ -627,10 +646,11 @@ function StepTecnicoResponsavel({
 
 // ─── Step 3: Assinar Contrato-Mãe ────────────────────────────────────────────
 
-function StepContratoMae({ profile, onSuccess }: { profile: ProfileData; onSuccess: () => void }) {
+function StepContratoMae({ profile, onSuccess, onBack }: { profile: ProfileData; onSuccess: () => void; onBack?: () => void }) {
   const router                               = useRouter()
+  const isPJ                                 = profile.contractType === 'PJ_TERCEIRIZADO'
   const [signerName,     setSignerName]     = useState(profile.fullName)
-  const [signerDocument, setSignerDocument] = useState(profile.cnpj ?? profile.cpf)
+  const [signerDocument, setSignerDocument] = useState(isPJ ? (profile.cnpj ?? profile.cpf) : (profile.cpf ?? ''))
   const [declaracao,     setDeclaracao]     = useState(false)
   const [showContract,   setShowContract]   = useState(false)
   const [loading, setLoading]               = useState(false)
@@ -665,6 +685,15 @@ function StepContratoMae({ profile, onSuccess }: { profile: ProfileData; onSucce
     }
   }
 
+  const contratoTitle  = isPJ ? 'Contrato-Mãe de Prestação de Serviços' : 'Termo de Compromisso — Prestador Autônomo'
+  const contratoSubtitle = isPJ
+    ? `${CONTRACT_VERSION_LABELS[CURRENT_CONTRACT_VERSION]} · Assinatura eletrônica com validade jurídica`
+    : 'Termo individual · Assinatura eletrônica com validade jurídica'
+  const textoAceite   = isPJ ? TEXTO_ACEITE_CONTRATO_MAE : TEXTO_ACEITE_TERMO_AUTONOMO
+  const labelAceite   = isPJ ? 'Li e aceito integralmente o Contrato-Mãe de Prestação de Serviços' : 'Li e aceito integralmente o Termo de Compromisso Autônomo'
+  const clausulaCount = isPJ ? '19 cláusulas' : '8 cláusulas'
+  const labelBotao    = isPJ ? 'Assinar Contrato-Mãe eletronicamente' : 'Assinar Termo de Compromisso eletronicamente'
+
   return (
     <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
       <div className="flex items-center gap-3 mb-5">
@@ -672,10 +701,8 @@ function StepContratoMae({ profile, onSuccess }: { profile: ProfileData; onSucce
           <FileSignature size={20} className="text-amber-400" />
         </div>
         <div>
-          <h2 className="text-white font-bold">Contrato-Mãe de Prestação de Serviços</h2>
-          <p className="text-slate-400 text-xs">
-            {CONTRACT_VERSION_LABELS[CURRENT_CONTRACT_VERSION]} · Assinatura eletrônica com validade jurídica
-          </p>
+          <h2 className="text-white font-bold">{contratoTitle}</h2>
+          <p className="text-slate-400 text-xs">{contratoSubtitle}</p>
         </div>
       </div>
 
@@ -687,11 +714,18 @@ function StepContratoMae({ profile, onSuccess }: { profile: ProfileData; onSucce
           <p className="text-slate-400 text-xs">CNPJ 28.864.149/0001-38 · Biguaçu/SC</p>
         </div>
         <div className="border-t border-white/10 pt-3">
-          <p className="text-slate-500 text-xs uppercase font-semibold tracking-wide mb-1">Contratada (sua empresa)</p>
+          <p className="text-slate-500 text-xs uppercase font-semibold tracking-wide mb-1">
+            {isPJ ? 'Contratada (sua empresa)' : 'Prestador Autônomo'}
+          </p>
           <p className="text-white font-bold">{profile.razaoSocial ?? profile.fullName}</p>
-          {profile.cnpj && <p className="text-slate-400 text-xs">CNPJ {profile.cnpj} · Situação: {profile.cnpjSituacao}</p>}
+          {isPJ && profile.cnpj && (
+            <p className="text-slate-400 text-xs">CNPJ {profile.cnpj} · Situação: {profile.cnpjSituacao}</p>
+          )}
+          {!isPJ && profile.cpf && (
+            <p className="text-slate-400 text-xs">CPF {profile.cpf} · {profile.city}</p>
+          )}
         </div>
-        {tecnico && (
+        {isPJ && tecnico && (
           <div className="border-t border-white/10 pt-3">
             <p className="text-slate-500 text-xs uppercase font-semibold tracking-wide mb-1">Técnico responsável indicado</p>
             <p className="text-white">{tecnico.nomeCompleto}</p>
@@ -707,17 +741,20 @@ function StepContratoMae({ profile, onSuccess }: { profile: ProfileData; onSucce
         className="w-full text-brand-blue hover:text-blue-300 text-sm font-medium py-2 flex items-center justify-center gap-2 transition mb-4"
       >
         <FileSignature size={16} />
-        {showContract ? 'Ocultar contrato' : 'Ler contrato completo (19 cláusulas)'}
+        {showContract ? 'Ocultar termo' : `Ler termo completo (${clausulaCount})`}
       </button>
 
       {showContract && (
         <div className="bg-slate-900/60 border border-white/10 rounded-xl p-5 mb-5 max-h-72 overflow-y-auto text-xs text-slate-300 leading-relaxed space-y-3 font-mono">
           <p className="text-white font-bold text-sm text-center mb-4">
-            CONTRATO-MÃE DE PRESTAÇÃO DE SERVIÇOS TÉCNICOS
+            {isPJ ? 'CONTRATO-MÃE DE PRESTAÇÃO DE SERVIÇOS TÉCNICOS' : 'TERMO DE COMPROMISSO — PRESTADOR AUTÔNOMO'}
           </p>
           <p>CONTRATANTE: ILHA BELLA SERVICOS &amp; ASSISTENCIA 24 HORAS LTDA, CNPJ 28.864.149/0001-38</p>
-          <p>CONTRATADA: {profile.razaoSocial ?? profile.fullName}, CNPJ {profile.cnpj ?? '—'}</p>
-          <p className="opacity-50">— O contrato completo com 19 cláusulas será gerado com seus dados no momento da assinatura e ficará disponível para download. —</p>
+          {isPJ
+            ? <p>CONTRATADA: {profile.razaoSocial ?? profile.fullName}, CNPJ {profile.cnpj ?? '—'}</p>
+            : <p>PRESTADOR: {profile.fullName}, CPF {profile.cpf ?? '—'}, {profile.city}</p>
+          }
+          <p className="opacity-50">— O termo completo com {clausulaCount} será gerado com seus dados no momento da assinatura e ficará disponível para auditoria. —</p>
         </div>
       )}
 
@@ -725,7 +762,7 @@ function StepContratoMae({ profile, onSuccess }: { profile: ProfileData; onSucce
         <div className="grid grid-cols-2 gap-3">
           <div className="col-span-2 sm:col-span-1">
             <label className="text-slate-300 text-xs font-medium block mb-1">
-              Nome do assinante (representante legal)
+              {isPJ ? 'Nome do representante legal' : 'Seu nome completo'}
             </label>
             <input
               required
@@ -736,20 +773,21 @@ function StepContratoMae({ profile, onSuccess }: { profile: ProfileData; onSucce
           </div>
           <div className="col-span-2 sm:col-span-1">
             <label className="text-slate-300 text-xs font-medium block mb-1">
-              CNPJ ou CPF do assinante
+              {isPJ ? 'CNPJ ou CPF do assinante' : 'Seu CPF'}
             </label>
             <input
               required
               value={signerDocument}
               onChange={e => setSignerDocument(e.target.value)}
               className="input-dark w-full"
+              placeholder={isPJ ? '00.000.000/0000-00 ou 000.000.000-00' : '000.000.000-00'}
             />
           </div>
         </div>
 
         {/* Aceite */}
         <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-3">
-          <p className="text-slate-300 text-xs leading-relaxed">{TEXTO_ACEITE_CONTRATO_MAE}</p>
+          <p className="text-slate-300 text-xs leading-relaxed">{textoAceite}</p>
           <label className="flex items-start gap-3 cursor-pointer">
             <input
               type="checkbox"
@@ -757,9 +795,7 @@ function StepContratoMae({ profile, onSuccess }: { profile: ProfileData; onSucce
               onChange={e => setDeclaracao(e.target.checked)}
               className="mt-0.5 flex-shrink-0"
             />
-            <span className="text-slate-200 text-sm font-medium">
-              Li e aceito integralmente o Contrato-Mãe de Prestação de Serviços
-            </span>
+            <span className="text-slate-200 text-sm font-medium">{labelAceite}</span>
           </label>
         </div>
 
@@ -770,14 +806,25 @@ function StepContratoMae({ profile, onSuccess }: { profile: ProfileData; onSucce
           </div>
         )}
 
-        <button
-          type="submit"
-          disabled={loading || !declaracao}
-          className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-        >
-          {loading ? <Loader2 size={18} className="animate-spin" /> : <FileSignature size={18} />}
-          {loading ? 'Assinando contrato...' : 'Assinar Contrato-Mãe eletronicamente'}
-        </button>
+        <div className="flex gap-3">
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="flex-1 bg-white/10 hover:bg-white/20 text-white font-semibold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
+            >
+              ← Voltar
+            </button>
+          )}
+          <button
+            type="submit"
+            disabled={loading || !declaracao}
+            className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {loading ? <Loader2 size={18} className="animate-spin" /> : <FileSignature size={18} />}
+            {loading ? 'Assinando...' : labelBotao}
+          </button>
+        </div>
 
         <p className="text-slate-500 text-xs text-center">
           A assinatura eletrônica possui validade jurídica conforme MP 2.200-2/2001 e Lei 14.063/2020.
