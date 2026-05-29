@@ -12,7 +12,11 @@ import {
   TEXTO_ACEITE_TECNICO_RESPONSAVEL,
   TEXTO_ACEITE_TERMO_AUTONOMO,
   CURRENT_CONTRACT_VERSION,
+  CURRENT_TERMO_AUTONOMO_VERSION,
   CONTRACT_VERSION_LABELS,
+  CONTRATANTE,
+  getClausulasContratoMaeV1,
+  getClausulasTermoAutonomoV1,
 } from '@/lib/contrato-mae'
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
@@ -644,6 +648,96 @@ function StepTecnicoResponsavel({
   )
 }
 
+// ─── ContractPreview — renderiza cláusulas reais com dados do perfil ─────────
+
+function ContractPreview({
+  profile,
+  isPJ,
+  signerName,
+  signerDocument,
+}: {
+  profile: ProfileData
+  isPJ: boolean
+  signerName: string
+  signerDocument: string
+}) {
+  const now = new Date().toISOString()
+
+  // Gera cláusulas com dados reais; campos de auditoria são placeholders
+  // (IP e hash só existem no momento da assinatura real no servidor)
+  let clausulas: string[]
+  if (isPJ) {
+    const tecnico = profile.providerTechnicians[0]
+    clausulas = getClausulasContratoMaeV1({
+      razaoSocialContratado:    profile.razaoSocial    ?? profile.fullName,
+      nomeFantasiaContratado:   profile.razaoSocial    ?? profile.fullName,
+      cnpjContratado:           profile.cnpj           ?? '',
+      situacaoCadastral:        profile.cnpjSituacao   ?? 'ATIVA',
+      cnaePrincipal:            'Serviços técnicos especializados',
+      enderecoContratado:       profile.city,
+      representanteLegalNome:   signerName  || profile.fullName,
+      representanteLegalCpf:    signerDocument || '—',
+      tecnicoNome:         tecnico?.nomeCompleto  ?? profile.fullName,
+      tecnicoCpf:          tecnico?.cpf           ?? '—',
+      tecnicoTelefone:     tecnico?.telefone       ?? profile.phone,
+      tecnicoEmail:        tecnico?.email          ?? profile.email,
+      tecnicoEspecialidade: tecnico?.especialidade ?? 'Serviços técnicos especializados',
+      signedAt:     now,
+      ip:           '[registrado no momento da assinatura]',
+      documentId:   '[gerado no momento da assinatura]',
+      documentHash: '[gerado no momento da assinatura]',
+      contractVersion: CURRENT_CONTRACT_VERSION,
+    })
+  } else {
+    clausulas = getClausulasTermoAutonomoV1({
+      nomeCompleto:    profile.fullName,
+      cpf:             profile.cpf ?? signerDocument ?? '—',
+      telefone:        profile.phone,
+      email:           profile.email,
+      cidade:          profile.city,
+      especialidade:   'Serviços técnicos especializados',
+      signedAt:        now,
+      ip:              '[registrado no momento da assinatura]',
+      documentId:      '[gerado no momento da assinatura]',
+      documentHash:    '[gerado no momento da assinatura]',
+      contractVersion: CURRENT_TERMO_AUTONOMO_VERSION,
+    })
+  }
+
+  return (
+    <div className="bg-slate-900/70 border border-white/10 rounded-xl mb-5 overflow-hidden">
+      {/* Cabeçalho */}
+      <div className="px-5 py-4 border-b border-white/10 text-center">
+        <p className="text-white font-bold text-sm">
+          {isPJ ? 'CONTRATO-MÃE DE PRESTAÇÃO DE SERVIÇOS TÉCNICOS' : 'TERMO DE COMPROMISSO — PRESTADOR AUTÔNOMO'}
+        </p>
+        <p className="text-slate-400 text-xs mt-1">
+          CONTRATANTE: {CONTRATANTE.razaoSocial} · CNPJ {CONTRATANTE.cnpj}
+        </p>
+        {isPJ
+          ? <p className="text-slate-400 text-xs">CONTRATADA: {profile.razaoSocial ?? profile.fullName} · CNPJ {profile.cnpj ?? '—'}</p>
+          : <p className="text-slate-400 text-xs">PRESTADOR: {profile.fullName} · CPF {profile.cpf ?? '—'}</p>
+        }
+      </div>
+
+      {/* Cláusulas */}
+      <div className="max-h-80 overflow-y-auto px-5 py-4 space-y-5">
+        {clausulas.map((c, i) => (
+          <pre key={i} className="whitespace-pre-wrap font-sans text-xs text-slate-300 leading-relaxed">
+            {c}
+          </pre>
+        ))}
+      </div>
+
+      <div className="px-5 py-3 bg-white/5 border-t border-white/10">
+        <p className="text-slate-500 text-xs text-center">
+          ⓘ Campos de IP e hash serão preenchidos automaticamente no momento da assinatura
+        </p>
+      </div>
+    </div>
+  )
+}
+
 // ─── Step 3: Assinar Contrato-Mãe ────────────────────────────────────────────
 
 function StepContratoMae({ profile, onSuccess, onBack }: { profile: ProfileData; onSuccess: () => void; onBack?: () => void }) {
@@ -741,21 +835,11 @@ function StepContratoMae({ profile, onSuccess, onBack }: { profile: ProfileData;
         className="w-full text-brand-blue hover:text-blue-300 text-sm font-medium py-2 flex items-center justify-center gap-2 transition mb-4"
       >
         <FileSignature size={16} />
-        {showContract ? 'Ocultar termo' : `Ler termo completo (${clausulaCount})`}
+        {showContract ? 'Ocultar texto do contrato' : `Ler contrato completo (${clausulaCount})`}
       </button>
 
       {showContract && (
-        <div className="bg-slate-900/60 border border-white/10 rounded-xl p-5 mb-5 max-h-72 overflow-y-auto text-xs text-slate-300 leading-relaxed space-y-3 font-mono">
-          <p className="text-white font-bold text-sm text-center mb-4">
-            {isPJ ? 'CONTRATO-MÃE DE PRESTAÇÃO DE SERVIÇOS TÉCNICOS' : 'TERMO DE COMPROMISSO — PRESTADOR AUTÔNOMO'}
-          </p>
-          <p>CONTRATANTE: ILHA BELLA SERVICOS &amp; ASSISTENCIA 24 HORAS LTDA, CNPJ 28.864.149/0001-38</p>
-          {isPJ
-            ? <p>CONTRATADA: {profile.razaoSocial ?? profile.fullName}, CNPJ {profile.cnpj ?? '—'}</p>
-            : <p>PRESTADOR: {profile.fullName}, CPF {profile.cpf ?? '—'}, {profile.city}</p>
-          }
-          <p className="opacity-50">— O termo completo com {clausulaCount} será gerado com seus dados no momento da assinatura e ficará disponível para auditoria. —</p>
-        </div>
+        <ContractPreview profile={profile} isPJ={isPJ} signerName={signerName} signerDocument={signerDocument} />
       )}
 
       <form onSubmit={handleSign} className="space-y-4">
