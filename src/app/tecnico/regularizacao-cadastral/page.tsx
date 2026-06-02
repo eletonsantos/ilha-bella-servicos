@@ -765,13 +765,9 @@ function StepContratoMae({ profile, onSuccess, onBack }: { profile: ProfileData;
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error?.message ?? 'Erro ao assinar contrato'); return }
-      // Técnicos já operacionais (APPROVED/LINKED) são promovidos a HOMOLOGADO_ATIVO
-      // direto — redireciona para o portal sem precisar aguardar aprovação
-      if (data.newStatus === 'HOMOLOGADO_ATIVO') {
-        router.replace('/tecnico/painel')
-        return
-      }
-      onSuccess()
+      // Assinatura concluída → acesso liberado imediatamente (layout só bloqueia
+      // quem não assinou ou está suspenso/bloqueado)
+      router.replace('/tecnico/painel')
     } catch {
       setError('Erro de conexão. Tente novamente.')
     } finally {

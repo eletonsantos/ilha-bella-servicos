@@ -15,13 +15,14 @@ export default async function TecnicoAuthLayout({ children }: { children: React.
   // Redirect to complete profile if not done yet
   if (!profile) redirect('/tecnico/cadastro')
 
-  // Bloqueia prestadores não-homologados: redireciona para regularização cadastral
-  if (!OPERATIONAL_STATUSES.includes(profile.status as (typeof OPERATIONAL_STATUSES)[number])) {
+  // Suspenso / bloqueado / inativo → mostra mensagem de bloqueio
+  const BLOCKED = ['SUSPENSO', 'BLOQUEADO', 'BLOQUEADO_PAGAMENTO', 'INATIVO']
+  if (BLOCKED.includes(profile.status)) {
     redirect('/tecnico/regularizacao-cadastral')
   }
 
-  // Qualquer técnico (PJ ou autônomo) que ainda não assinou o contrato/termo
-  // deve passar pelo fluxo de regularização antes de acessar o portal
+  // Não assinou o contrato/termo → obriga passar pelo fluxo de assinatura
+  // Após assinar, acesso é liberado imediatamente sem precisar de homologação
   if (!profile.masterContractSignedAt) {
     redirect('/tecnico/regularizacao-cadastral')
   }
