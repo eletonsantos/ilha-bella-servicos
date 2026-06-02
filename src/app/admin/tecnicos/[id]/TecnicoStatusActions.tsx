@@ -50,7 +50,16 @@ const HOMOLOGACAO_ACTIONS = [
     status: 'HOMOLOGADO_ATIVO',
     color: 'bg-green-600 hover:bg-green-700 text-white',
     icon: ShieldCheck,
-    show: ['CONTRATO_MAE_ASSINADO', 'EM_ANALISE_ADMINISTRATIVA', 'SUSPENSO', 'BLOQUEADO', 'BLOQUEADO_PAGAMENTO'],
+    show: [
+      'CONTRATO_MAE_ASSINADO', 'EM_ANALISE_ADMINISTRATIVA',
+      'SUSPENSO', 'BLOQUEADO', 'BLOQUEADO_PAGAMENTO',
+      // Intermediários do fluxo — admin pode ativar manualmente em qualquer etapa
+      'TECNICO_RESPONSAVEL_PENDENTE', 'CONTRATO_MAE_PENDENTE',
+      'CNPJ_PENDENTE', 'CNPJ_IRREGULAR', 'DADOS_INCOMPLETOS',
+      'CADASTRO_INICIADO',
+      // Legado
+      'APPROVED', 'LINKED', 'INITIATED', 'AWAITING_APPROVAL',
+    ],
     endpoint: 'homologar',
   },
   {
@@ -58,7 +67,10 @@ const HOMOLOGACAO_ACTIONS = [
     status: 'SUSPENSO',
     color: 'bg-orange-500 hover:bg-orange-600 text-white',
     icon: AlertTriangle,
-    show: ['HOMOLOGADO_ATIVO', 'EM_ANALISE_ADMINISTRATIVA', 'CONTRATO_MAE_ASSINADO'],
+    show: [
+      'HOMOLOGADO_ATIVO', 'EM_ANALISE_ADMINISTRATIVA', 'CONTRATO_MAE_ASSINADO',
+      'TECNICO_RESPONSAVEL_PENDENTE', 'CONTRATO_MAE_PENDENTE', 'CNPJ_PENDENTE', 'CNPJ_IRREGULAR',
+    ],
     endpoint: 'homologar',
   },
   {
@@ -66,7 +78,10 @@ const HOMOLOGACAO_ACTIONS = [
     status: 'BLOQUEADO',
     color: 'bg-red-600 hover:bg-red-700 text-white',
     icon: ShieldOff,
-    show: ['HOMOLOGADO_ATIVO', 'SUSPENSO', 'EM_ANALISE_ADMINISTRATIVA', 'CONTRATO_MAE_ASSINADO'],
+    show: [
+      'HOMOLOGADO_ATIVO', 'SUSPENSO', 'EM_ANALISE_ADMINISTRATIVA', 'CONTRATO_MAE_ASSINADO',
+      'TECNICO_RESPONSAVEL_PENDENTE', 'CONTRATO_MAE_PENDENTE', 'CNPJ_PENDENTE', 'CNPJ_IRREGULAR',
+    ],
     endpoint: 'homologar',
   },
   {
