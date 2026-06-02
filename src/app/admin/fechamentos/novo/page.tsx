@@ -33,7 +33,9 @@ export default function NovoFechamentoPage() {
   useEffect(() => {
     fetch('/api/admin/tecnicos')
       .then(r => r.json())
-      .then(data => setTechnicians(data.filter((t: Technician) => t.status === 'APPROVED' || t.status === 'LINKED')))
+      .then(data => setTechnicians(data.filter((t: Technician) =>
+        t.status === 'APPROVED' || t.status === 'LINKED' || t.status === 'HOMOLOGADO_ATIVO'
+      )))
       .catch(() => setError('Erro ao carregar técnicos'))
   }, [])
 
