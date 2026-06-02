@@ -47,7 +47,7 @@ export default function NovoReembolsoPage() {
     fetch('/api/admin/tecnicos')
       .then(r => r.json())
       .then(data => setTechnicians(data.filter((t: Technician) =>
-        t.status === 'APPROVED' || t.status === 'LINKED' || t.status === 'HOMOLOGADO_ATIVO'
+        !['BLOQUEADO', 'BLOQUEADO_PAGAMENTO', 'INATIVO'].includes(t.status)
       )))
       .catch(() => setError('Erro ao carregar técnicos'))
   }, [])
