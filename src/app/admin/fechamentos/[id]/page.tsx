@@ -11,6 +11,7 @@ import AntecipacaoActions from './AntecipacaoActions'
 import DeleteFechamentoButton from './DeleteFechamentoButton'
 import ClosingTimeline from '@/components/tecnico/ClosingTimeline'
 import ExtrairPdfButton from './ExtrairPdfButton'
+import RejeitarNfButton from './RejeitarNfButton'
 
 interface Props { params: { id: string } }
 
@@ -199,6 +200,13 @@ export default async function AdminFechamentoDetailPage({ params }: Props) {
           <p className="text-sm text-slate-400">O técnico ainda não enviou a nota fiscal.</p>
         )}
       </div>
+
+      {/* Rejeitar NF (aparece apenas em INVOICE_SENT ou UNDER_REVIEW) */}
+      <RejeitarNfButton
+        closingId={closing.id}
+        currentStatus={closing.status}
+        invoiceNumber={closing.invoice?.invoiceNumber}
+      />
 
       {/* Ações de status */}
       <ClosingStatusActions closingId={closing.id} currentStatus={closing.status} />

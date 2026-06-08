@@ -8,6 +8,7 @@ export type ClosingEventType =
   | 'CLOSING_CREATED'
   | 'STATUS_CHANGED'
   | 'INVOICE_SUBMITTED'
+  | 'INVOICE_REJECTED'
   | 'NOTE_ADDED'
 
 // Eventos que disparam e-mail para o prestador
@@ -17,16 +18,18 @@ const EMAIL_EVENTS: Partial<Record<string, ClosingEmailTemplate>> = {
   PAYMENT_RELEASED: 'payment_released',
   PAID:             'paid',
   AWAITING_INVOICE: 'awaiting_invoice',
+  INVOICE_REJECTED: 'invoice_rejected',
 }
 
 interface CreateEventInput {
-  closingId:   string
-  eventType:   ClosingEventType
-  statusFrom?: string
-  statusTo?:   string
-  description?: string
-  adminNote?:  string
-  createdBy?:  string
+  closingId:        string
+  eventType:        ClosingEventType
+  statusFrom?:      string
+  statusTo?:        string
+  description?:     string
+  adminNote?:       string
+  createdBy?:       string
+  rejectionReason?: string
 }
 
 /**
@@ -55,9 +58,10 @@ export async function createClosingEvent(input: CreateEventInput) {
 
   if (template) {
     await dispatchClosingEmail({
-      closingId: input.closingId,
-      eventId:   event.id,
+      closingId:        input.closingId,
+      eventId:          event.id,
       template,
+      rejectionReason:  input.rejectionReason,
     })
   }
 
@@ -67,12 +71,13 @@ export async function createClosingEvent(input: CreateEventInput) {
 // ─── Disparo de e-mail ──────────────────────────────────────────────────────
 
 interface DispatchEmailInput {
-  closingId: string
-  eventId:   string
-  template:  ClosingEmailTemplate
+  closingId:       string
+  eventId:         string
+  template:        ClosingEmailTemplate
+  rejectionReason?: string
 }
 
-async function dispatchClosingEmail({ closingId, eventId, template }: DispatchEmailInput) {
+async function dispatchClosingEmail({ closingId, eventId, template, rejectionReason }: DispatchEmailInput) {
   const closing = await prisma.closing.findUnique({
     where: { id: closingId },
     include: {
@@ -86,10 +91,13 @@ async function dispatchClosingEmail({ closingId, eventId, template }: DispatchEm
   if (!recipient) return
 
   // Verifica duplicidade: não envia o mesmo template para o mesmo fechamento se já foi enviado com sucesso
-  const alreadySent = await prisma.emailLog.findFirst({
-    where: { closingId, template, status: 'SENT' },
-  })
-  if (alreadySent) return
+  // (exceto invoice_rejected — pode ser enviado múltiplas vezes caso admin rejeite mais de uma NF)
+  if (template !== 'invoice_rejected') {
+    const alreadySent = await prisma.emailLog.findFirst({
+      where: { closingId, template, status: 'SENT' },
+    })
+    if (alreadySent) return
+  }
 
   const fmtCurrency = (v: number) => `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
   const fmtDate = (d: Date | null | undefined) =>
@@ -107,11 +115,13 @@ async function dispatchClosingEmail({ closingId, eventId, template }: DispatchEm
     invoiceNumber:       closing.invoice?.invoiceNumber ?? null,
     invoiceValue:        closing.invoice ? fmtCurrency(closing.invoice.value) : null,
     closingId,
+    rejectionReason:     rejectionReason ?? null,
   }
 
   const subjects: Record<ClosingEmailTemplate, string> = {
     closing_created:  `📋 Fechamento disponível — ${data.competence}`,
     awaiting_invoice: `📄 Aguardando sua Nota Fiscal — ${data.competence}`,
+    invoice_rejected: `❌ Nota Fiscal rejeitada — ${data.competence}`,
     under_review:     `🔍 Sua NF está em análise — ${data.competence}`,
     payment_released: `💰 Pagamento liberado — ${data.competence}`,
     paid:             `✅ Pagamento realizado — ${data.competence}`,

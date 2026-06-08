@@ -5,6 +5,7 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 export type ClosingEmailTemplate =
   | 'closing_created'
   | 'awaiting_invoice'
+  | 'invoice_rejected'
   | 'under_review'
   | 'payment_released'
   | 'paid'
@@ -79,6 +80,7 @@ export interface ClosingEmailData {
   invoiceNumber:        string | null
   invoiceValue:         string | null
   closingId:            string
+  rejectionReason?:     string | null
 }
 
 export async function sendClosingEmail({
@@ -109,6 +111,7 @@ function subjectByTemplate(template: ClosingEmailTemplate, competence: string): 
   const map: Record<ClosingEmailTemplate, string> = {
     closing_created:  `📋 Fechamento disponível — ${competence}`,
     awaiting_invoice: `📄 Aguardando sua Nota Fiscal — ${competence}`,
+    invoice_rejected: `❌ Nota Fiscal rejeitada — ${competence}`,
     under_review:     `🔍 Sua NF está em análise — ${competence}`,
     payment_released: `💰 Pagamento liberado — ${competence}`,
     paid:             `✅ Pagamento realizado — ${competence}`,
@@ -139,6 +142,13 @@ function buildClosingEmailHtml({
       title: 'Aguardando sua Nota Fiscal',
       intro: 'Estamos aguardando o envio da sua Nota Fiscal. Acesse o portal e faça o envio para avançarmos no processo.',
       cta:   'Enviar Nota Fiscal',
+    },
+    invoice_rejected: {
+      color: '#dc2626',
+      icon:  '❌',
+      title: 'Nota Fiscal rejeitada',
+      intro: 'Sua Nota Fiscal foi rejeitada pela equipe administrativa. O contrato de prestação de serviços vinculado também foi cancelado. Por favor, corrija os dados e envie uma nova NF com um novo contrato.',
+      cta:   'Enviar nova Nota Fiscal',
     },
     under_review: {
       color: '#ea580c',
@@ -173,6 +183,7 @@ function buildClosingEmailHtml({
     data.invoiceValue         && row('Valor da NF',             data.invoiceValue),
     data.observations         && row('Observações',             data.observations),
     data.scheduledPaymentDate && row('Pagamento previsto para', `<strong>${data.scheduledPaymentDate}</strong>`),
+    data.rejectionReason      && row('Motivo da rejeição',      `<strong style="color:#dc2626">${data.rejectionReason}</strong>`),
   ].filter(Boolean).join('')
 
   return `
