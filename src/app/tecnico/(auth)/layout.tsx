@@ -2,7 +2,6 @@ import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import TecnicoNav from '@/components/tecnico/TecnicoNav'
-import { OPERATIONAL_STATUSES } from '@/lib/constants-tecnico'
 
 export default async function TecnicoAuthLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()
@@ -18,6 +17,21 @@ export default async function TecnicoAuthLayout({ children }: { children: React.
   // Suspenso / bloqueado / inativo → mostra mensagem de bloqueio
   const BLOCKED = ['SUSPENSO', 'BLOQUEADO', 'BLOQUEADO_PAGAMENTO', 'INATIVO']
   if (BLOCKED.includes(profile.status)) {
+    redirect('/tecnico/regularizacao-cadastral')
+  }
+
+  // Status intermediários do fluxo de cadastro/homologação — técnico ainda precisa
+  // completar etapas antes de acessar o portal (mesmo que masterContractSignedAt esteja
+  // preenchido de uma assinatura anterior que foi revertida pelo admin)
+  const PENDING_ONBOARDING = [
+    'CADASTRO_INICIADO',
+    'CNPJ_PENDENTE',
+    'CNPJ_IRREGULAR',
+    'DADOS_INCOMPLETOS',
+    'TECNICO_RESPONSAVEL_PENDENTE',
+    'CONTRATO_MAE_PENDENTE',
+  ]
+  if (PENDING_ONBOARDING.includes(profile.status)) {
     redirect('/tecnico/regularizacao-cadastral')
   }
 
