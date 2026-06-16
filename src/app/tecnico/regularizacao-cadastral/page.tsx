@@ -72,35 +72,44 @@ const VINCULO_OPTIONS = [
 const VINCULO_LABELS: Record<string, string> = Object.fromEntries(VINCULO_OPTIONS.map(o => [o.value, o.label]))
 
 function stepFromStatus(status: string, contractType: string | null, profile?: ProfileData | null): number {
+  const isPJ = contractType === 'PJ_TERCEIRIZADO'
+
+  // Mapeia cada fase lógica para o número de etapa renderizado.
+  // Fluxo PJ tem 4 etapas (CNPJ, Técnico, Contrato, Aguardando);
+  // fluxo autônomo tem 3 (Técnico, Contrato, Aguardando) — sem CNPJ.
+  const CNPJ       = 1
+  const TECNICO    = isPJ ? 2 : 1
+  const CONTRATO   = isPJ ? 3 : 2
+  const AGUARDANDO = isPJ ? 4 : 3
+
   switch (status) {
     case 'CADASTRO_INICIADO':
-      return contractType === 'PJ_TERCEIRIZADO' ? 1 : 2
     case 'CNPJ_PENDENTE':
-      return 1
     case 'CNPJ_IRREGULAR':
-      return 1
     case 'DADOS_INCOMPLETOS':
-      return 1
+      return isPJ ? CNPJ : TECNICO
     case 'TECNICO_RESPONSAVEL_PENDENTE':
-      return 2
+      return TECNICO
     case 'CONTRATO_MAE_PENDENTE':
-      return 3
+      return CONTRATO
     case 'CONTRATO_MAE_ASSINADO':
     case 'EM_ANALISE_ADMINISTRATIVA':
-      return 4
+      return AGUARDANDO
 
-    // Técnicos com status legado (APPROVED / LINKED / HOMOLOGADO_ATIVO) que ainda
-    // não assinaram o Contrato-Mãe: detectar o passo pelo que já está preenchido
+    // Técnicos com status legado (APPROVED / LINKED) ou já homologados
+    // (HOMOLOGADO_ATIVO) que ainda não assinaram o contrato: detectar a etapa
+    // pelo que já está preenchido. Importante: autônomo homologado sem assinatura
+    // precisa cair na etapa de CONTRATO (não em Aguardando).
     case 'APPROVED':
     case 'LINKED':
     case 'HOMOLOGADO_ATIVO':
     default:
-      if (contractType !== 'PJ_TERCEIRIZADO') return 4 // autônomo — não precisa de fluxo
-      if (!profile) return 1
-      if (profile.masterContractSignedAt) return 4     // já assinou — aguardando
-      if (profile.providerTechnicians.length > 0) return 3 // tem resp., falta contrato
-      if (profile.cnpj && profile.cnpjSituacao === 'ATIVA') return 2 // tem CNPJ, falta resp.
-      return 1                                          // falta CNPJ
+      if (!profile) return isPJ ? CNPJ : TECNICO
+      if (profile.masterContractSignedAt) return AGUARDANDO  // já assinou — aguardando
+      if (!isPJ) return CONTRATO                              // autônomo sem assinatura → contrato
+      if (profile.providerTechnicians.length > 0) return CONTRATO     // tem resp., falta contrato
+      if (profile.cnpj && profile.cnpjSituacao === 'ATIVA') return TECNICO // tem CNPJ, falta resp.
+      return CNPJ                                             // falta CNPJ
   }
 }
 
