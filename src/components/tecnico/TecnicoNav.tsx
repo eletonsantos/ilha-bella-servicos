@@ -20,70 +20,97 @@ const mainLinks = [
   { href: '/tecnico/ajuda',       label: 'Ajuda',       icon: HelpCircle },
 ]
 
-// Todos os links para a barra mobile (inclui configurações)
 const allLinks = [
   ...mainLinks,
   { href: '/tecnico/configuracoes', label: 'Config.', icon: Settings },
 ]
 
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/)
+  const first = parts[0]?.[0] ?? ''
+  const last  = parts.length > 1 ? parts[parts.length - 1][0] : ''
+  return (first + last).toUpperCase()
+}
+
 export default function TecnicoNav({ user: _user, profile }: Props) {
   const pathname = usePathname()
   const firstName = profile.fullName.split(' ')[0]
 
+  const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
+
   return (
     <>
       {/* ── TOP BAR ── */}
-      <nav className="bg-white border-b border-slate-100 sticky top-0 z-40">
+      <nav className="sticky top-0 z-40 bg-white/80 backdrop-blur-lg border-b border-slate-200/70">
         <div className="container-site h-16 flex items-center justify-between">
           {/* Brand */}
-          <Link href="/tecnico/painel" className="flex items-center gap-2 font-bold text-dark">
-            <Wrench size={18} className="text-brand-blue" />
-            <span className="text-sm">Área do Técnico</span>
+          <Link href="/tecnico/painel" className="flex items-center gap-2.5 group">
+            <span className="icon-pill w-9 h-9 gradient-brand text-white shadow-md shadow-brand-blue/30 group-hover:scale-105 transition-transform">
+              <Wrench size={17} />
+            </span>
+            <span className="flex flex-col leading-none">
+              <span className="text-sm font-extrabold text-dark tracking-tight">Área do Técnico</span>
+              <span className="text-[10px] font-semibold text-brand-blue/70 uppercase tracking-wider">Ilha Bella</span>
+            </span>
           </Link>
 
           {/* Desktop links principais */}
           <div className="hidden sm:flex items-center gap-1">
-            {mainLinks.map(({ href, label, icon: Icon }) => (
-              <Link
-                key={href}
-                href={href}
-                className={clsx(
-                  'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                  pathname === href || pathname.startsWith(href + '/')
-                    ? 'bg-brand-blue/10 text-brand-blue'
-                    : 'text-slate-600 hover:text-dark hover:bg-slate-50'
-                )}
-              >
-                <Icon size={15} />
-                {label}
-              </Link>
-            ))}
+            {mainLinks.map(({ href, label, icon: Icon }) => {
+              const active = isActive(href)
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={clsx(
+                    'flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold transition-all',
+                    active
+                      ? 'gradient-brand text-white shadow-md shadow-brand-blue/25'
+                      : 'text-slate-600 hover:text-dark hover:bg-slate-100/70'
+                  )}
+                >
+                  <Icon size={15} />
+                  {label}
+                </Link>
+              )
+            })}
           </div>
 
-          {/* Right actions — nome + engrenagem + sair */}
-          <div className="flex items-center gap-1">
-            <span className="text-sm text-slate-600 hidden sm:block mr-1">{firstName}</span>
+          {/* Right actions */}
+          <div className="flex items-center gap-2">
+            {/* Avatar + nome (desktop) */}
+            <div className="hidden sm:flex items-center gap-2 pl-1 pr-1">
+              <span className="w-9 h-9 rounded-full gradient-brand text-white text-xs font-bold flex items-center justify-center shadow-sm">
+                {initials(profile.fullName)}
+              </span>
+              <span className="text-sm font-semibold text-dark">{firstName}</span>
+            </div>
 
-            {/* Engrenagem — configurações (desktop) */}
             <Link
               href="/tecnico/configuracoes"
               title="Configurações"
               className={clsx(
-                'hidden sm:flex items-center justify-center w-8 h-8 rounded-lg transition-colors',
-                pathname.startsWith('/tecnico/configuracoes')
+                'hidden sm:flex items-center justify-center w-9 h-9 rounded-xl transition-colors',
+                isActive('/tecnico/configuracoes')
                   ? 'bg-brand-blue/10 text-brand-blue'
-                  : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50'
+                  : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
               )}
             >
-              <Settings size={16} />
+              <Settings size={17} />
             </Link>
+
+            {/* Avatar (mobile) */}
+            <span className="sm:hidden w-9 h-9 rounded-full gradient-brand text-white text-xs font-bold flex items-center justify-center shadow-sm">
+              {initials(profile.fullName)}
+            </span>
 
             <button
               onClick={() => signOut({ callbackUrl: '/tecnico/login' })}
-              className="flex items-center gap-1.5 text-slate-400 hover:text-red-500 text-sm transition-colors px-2 py-1.5 rounded-lg hover:bg-slate-50"
+              title="Sair"
+              className="flex items-center gap-1.5 text-slate-400 hover:text-red-500 text-sm transition-colors px-2.5 py-2 rounded-xl hover:bg-red-50"
             >
-              <LogOut size={15} />
-              <span className="hidden sm:block text-xs">Sair</span>
+              <LogOut size={16} />
+              <span className="hidden sm:block text-xs font-medium">Sair</span>
             </button>
           </div>
         </div>
@@ -91,26 +118,31 @@ export default function TecnicoNav({ user: _user, profile }: Props) {
 
       {/* ── MOBILE BOTTOM TAB BAR ── */}
       <div
-        className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200"
+        className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-lg border-t border-slate-200"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <div className="flex overflow-x-auto scrollbar-none">
           {allLinks.map(({ href, label, icon: Icon }) => {
-            const active = pathname === href || pathname.startsWith(href + '/')
+            const active = isActive(href)
             return (
               <Link
                 key={href}
                 href={href}
                 className={clsx(
-                  'relative flex-shrink-0 flex-1 flex flex-col items-center justify-center py-2 gap-0.5 transition-colors min-w-[56px]',
+                  'relative flex-shrink-0 flex-1 flex flex-col items-center justify-center py-2.5 gap-1 transition-colors min-w-[56px]',
                   active ? 'text-brand-blue' : 'text-slate-400'
                 )}
               >
                 {active && (
-                  <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-brand-blue rounded-full" />
+                  <span className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-1 gradient-brand rounded-full" />
                 )}
-                <Icon size={20} />
-                <span className="text-[9px] font-medium leading-none">{label}</span>
+                <span className={clsx(
+                  'flex items-center justify-center w-9 h-7 rounded-lg transition-colors',
+                  active && 'bg-brand-blue/10'
+                )}>
+                  <Icon size={19} />
+                </span>
+                <span className="text-[9px] font-semibold leading-none">{label}</span>
               </Link>
             )
           })}

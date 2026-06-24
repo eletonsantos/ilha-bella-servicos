@@ -54,12 +54,12 @@ export default async function FechamentoDetailPage({ params }: { params: { id: s
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <div className="flex items-center gap-3">
-        <Link href="/tecnico/fechamentos" className="text-slate-400 hover:text-dark transition-colors">
+      <div className="flex items-center gap-3 animate-rise">
+        <Link href="/tecnico/fechamentos" className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-500 hover:text-dark hover:bg-slate-100 transition-colors flex-shrink-0">
           <ArrowLeft size={20} />
         </Link>
         <div>
-          <h1 className="text-xl font-extrabold text-dark">Fechamento {closing.competence}</h1>
+          <h1 className="text-xl font-extrabold text-dark tracking-tight">Fechamento {closing.competence}</h1>
           <p className="text-slate-500 text-sm">
             {format(closing.periodStart, "dd 'de' MMM", { locale: ptBR })} a {format(closing.periodEnd, "dd 'de' MMM 'de' yyyy", { locale: ptBR })}
           </p>
@@ -67,7 +67,7 @@ export default async function FechamentoDetailPage({ params }: { params: { id: s
       </div>
 
       {/* Summary */}
-      <div className="card p-6">
+      <div className="card-elevated p-6 animate-rise delay-75">
         <div className="grid sm:grid-cols-3 gap-5 mb-5">
           <div>
             <p className="text-xs text-slate-500 mb-1">Valor total</p>
@@ -147,7 +147,7 @@ export default async function FechamentoDetailPage({ params }: { params: { id: s
 
       {/* Relatório PDF */}
       {closing.reportFilePath && (
-        <div className="card p-6">
+        <div className="card-elevated p-6">
           <h2 className="font-bold text-dark mb-3">Relatório de Serviços</h2>
           <div className="flex items-center gap-3 bg-slate-50 rounded-xl px-4 py-3">
             <FileText size={20} className="text-brand-blue flex-shrink-0" />
@@ -169,7 +169,7 @@ export default async function FechamentoDetailPage({ params }: { params: { id: s
 
       {/* Services list */}
       {closing.services.length > 0 && (
-        <div className="card p-6">
+        <div className="card-elevated p-6">
           <h2 className="font-bold text-dark mb-4">Serviços do período</h2>
           <div className="space-y-2">
             {closing.services.map((service) => (
@@ -187,7 +187,7 @@ export default async function FechamentoDetailPage({ params }: { params: { id: s
 
       {/* Histórico de andamento */}
       {closing.events.length > 0 && (
-        <div className="card p-6">
+        <div className="card-elevated p-6">
           <h2 className="font-bold text-dark mb-4">Andamento do fechamento</h2>
           <ClosingTimeline events={closing.events} showEmailDetails={false} />
         </div>
@@ -195,7 +195,7 @@ export default async function FechamentoDetailPage({ params }: { params: { id: s
 
       {/* Invoice section */}
       {closing.invoice ? (
-        <div className="card p-6 border-l-4 border-green-400">
+        <div className="card-elevated p-6 border-l-4 border-green-400">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
               <CheckCircle size={20} className="text-green-500" />

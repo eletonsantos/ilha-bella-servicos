@@ -2,8 +2,10 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { FileText, ChevronRight } from 'lucide-react'
+import { FileText, ChevronRight, Wrench } from 'lucide-react'
 import { CLOSING_STATUS_LABELS, CLOSING_STATUS_COLORS } from '@/lib/constants-tecnico'
+import PageHeader from '@/components/tecnico/PageHeader'
+import EmptyState from '@/components/tecnico/EmptyState'
 
 export default async function FechamentosPage() {
   const session = await auth()
@@ -22,35 +24,37 @@ export default async function FechamentosPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-extrabold text-dark">Meus fechamentos</h1>
-        <p className="text-slate-500 text-sm mt-1">Histórico completo de competências e pagamentos</p>
-      </div>
+      <PageHeader
+        icon={FileText}
+        title="Meus fechamentos"
+        subtitle="Histórico completo de competências e pagamentos"
+      />
 
       {closings.length === 0 ? (
-        <div className="card p-12 text-center">
-          <FileText size={40} className="text-slate-200 mx-auto mb-4" />
-          <p className="text-slate-500">Nenhum fechamento disponível ainda.</p>
-        </div>
+        <EmptyState
+          icon={Wrench}
+          title="Nenhum fechamento disponível ainda."
+          description="Seus fechamentos mensais aparecerão aqui assim que forem disponibilizados pela equipe."
+        />
       ) : (
         <div className="space-y-3">
-          {closings.map((closing) => (
+          {closings.map((closing, i) => (
             <Link
               key={closing.id}
               href={`/tecnico/fechamentos/${closing.id}`}
-              className="card p-5 flex items-center gap-4 hover:shadow-md transition-all group"
+              className={`card-elevated p-5 flex items-center gap-4 hover:-translate-y-0.5 transition-transform group animate-rise delay-${i === 0 ? 75 : i === 1 ? 150 : 200}`}
             >
               <div className="flex-1 grid sm:grid-cols-4 gap-3 items-center">
                 <div>
-                  <p className="text-xs text-slate-500 mb-0.5">Competência</p>
+                  <p className="text-[11px] text-slate-500 font-medium mb-0.5">Competência</p>
                   <p className="font-bold text-dark text-sm">{closing.competence}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500 mb-0.5">Valor total</p>
+                  <p className="text-[11px] text-slate-500 font-medium mb-0.5">Valor total</p>
                   <p className="font-bold text-dark">R$ {closing.totalValue.toFixed(2).replace('.', ',')}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500 mb-0.5">Atendimentos</p>
+                  <p className="text-[11px] text-slate-500 font-medium mb-0.5">Atendimentos</p>
                   <p className="font-semibold text-dark text-sm">{closing.serviceCount}</p>
                 </div>
                 <div>

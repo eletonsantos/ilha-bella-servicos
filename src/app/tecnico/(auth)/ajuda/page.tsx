@@ -1,5 +1,6 @@
 import { HelpCircle, ChevronDown, MessageCircle } from 'lucide-react'
 import { getWhatsAppUrl } from '@/lib/whatsapp'
+import PageHeader from '@/components/tecnico/PageHeader'
 
 const sections = [
   {
@@ -116,20 +117,15 @@ export default function AjudaPage() {
   return (
     <div className="max-w-2xl mx-auto space-y-8">
 
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-brand-blue/10 flex items-center justify-center flex-shrink-0">
-          <HelpCircle size={20} className="text-brand-blue" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-extrabold text-dark">Central de ajuda</h1>
-          <p className="text-slate-500 text-sm mt-0.5">Dúvidas sobre fechamentos, notas fiscais e pagamentos.</p>
-        </div>
-      </div>
+      <PageHeader
+        icon={HelpCircle}
+        title="Central de ajuda"
+        subtitle="Dúvidas sobre fechamentos, notas fiscais e pagamentos."
+      />
 
       {/* Sections */}
       {sections.map(({ title, faqs }) => (
-        <div key={title} className="card p-6">
+        <div key={title} className="card-elevated p-6">
           <h2 className="font-bold text-dark mb-4 pb-3 border-b border-slate-100">{title}</h2>
           <div className="space-y-2">
             {faqs.map(({ q, a }) => (
@@ -170,7 +166,7 @@ export default function AjudaPage() {
       ))}
 
       {/* Contato */}
-      <div className="card p-6 border-l-4 border-brand-blue flex items-center justify-between gap-4 flex-wrap">
+      <div className="card-elevated p-6 border-l-4 border-brand-blue flex items-center justify-between gap-4 flex-wrap">
         <div>
           <p className="font-bold text-dark text-sm mb-1">Não encontrou o que precisava?</p>
           <p className="text-slate-500 text-sm">Fale com a equipe Ilha Bella pelo WhatsApp.</p>

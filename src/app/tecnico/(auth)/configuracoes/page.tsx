@@ -2,7 +2,8 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import AlterarSenhaForm from './AlterarSenhaForm'
-import { KeyRound, User } from 'lucide-react'
+import { KeyRound, User, Settings } from 'lucide-react'
+import PageHeader from '@/components/tecnico/PageHeader'
 
 export const metadata = { title: 'Configurações' }
 
@@ -21,10 +22,10 @@ export default async function ConfiguracoesPage() {
 
   return (
     <div className="max-w-lg mx-auto space-y-6">
-      <h1 className="text-xl font-extrabold text-dark">Configurações</h1>
+      <PageHeader icon={Settings} title="Configurações" subtitle="Seus dados de acesso e senha" />
 
       {/* Dados de acesso (somente leitura) */}
-      <div className="card p-6 space-y-4">
+      <div className="card-elevated p-6 space-y-4 animate-rise delay-75">
         <div className="flex items-center gap-2 mb-1">
           <User size={16} className="text-brand-blue" />
           <h2 className="text-base font-bold text-dark">Seus dados de acesso</h2>
@@ -48,7 +49,7 @@ export default async function ConfiguracoesPage() {
       </div>
 
       {/* Alterar senha */}
-      <div className="card p-6">
+      <div className="card-elevated p-6 animate-rise delay-150">
         <div className="flex items-center gap-2 mb-4">
           <KeyRound size={16} className="text-brand-blue" />
           <h2 className="text-base font-bold text-dark">Alterar Senha</h2>

@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { Zap } from 'lucide-react'
 import AntecipacaoCard from './AntecipacaoCard'
+import PageHeader from '@/components/tecnico/PageHeader'
+import EmptyState from '@/components/tecnico/EmptyState'
 
 export default async function AntecipacaoPage() {
   const session = await auth()
@@ -41,16 +43,14 @@ export default async function AntecipacaoPage() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-extrabold text-dark">Antecipação de pagamento</h1>
-        <p className="text-slate-500 text-sm mt-1">
-          Receba agora com desconto de 10% — pagamento em até 48h após aprovação.
-        </p>
-      </div>
+      <PageHeader
+        icon={Zap}
+        title="Antecipação de pagamento"
+        subtitle="Receba agora com desconto de 10% — pagamento em até 48h após aprovação."
+      />
 
       {/* Como funciona */}
-      <div className="card p-5 bg-emerald-50 border border-emerald-100">
+      <div className="card-elevated p-5 bg-emerald-50 border border-emerald-100 animate-rise delay-75">
         <div className="flex items-start gap-3">
           <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
             <Zap size={16} className="text-emerald-600" />
@@ -90,13 +90,11 @@ export default async function AntecipacaoPage() {
           ))}
         </div>
       ) : (
-        <div className="card p-12 text-center">
-          <Zap size={40} className="text-slate-200 mx-auto mb-4" />
-          <p className="text-slate-500 font-medium">Nenhum fechamento disponível para antecipação.</p>
-          <p className="text-slate-400 text-sm mt-1">
-            A antecipação fica disponível quando o admin liberar o pagamento do seu fechamento.
-          </p>
-        </div>
+        <EmptyState
+          icon={Zap}
+          title="Nenhum fechamento disponível para antecipação."
+          description="A antecipação fica disponível quando o admin liberar o pagamento do seu fechamento."
+        />
       )}
 
       {/* Histórico de antecipações anteriores */}

@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Receipt, ChevronRight, Plus } from 'lucide-react'
 import { REIMBURSEMENT_STATUS_LABELS, REIMBURSEMENT_STATUS_COLORS } from '@/lib/constants-tecnico'
+import PageHeader from '@/components/tecnico/PageHeader'
+import EmptyState from '@/components/tecnico/EmptyState'
 
 export default async function TecnicoReembolsosPage() {
   const session = await auth()
@@ -22,30 +24,38 @@ export default async function TecnicoReembolsosPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-extrabold text-dark">Meus reembolsos</h1>
-          <p className="text-slate-500 text-sm mt-1">Solicitações de ressarcimento de despesas</p>
-        </div>
-        <Link
-          href="/tecnico/reembolsos/novo"
-          className="inline-flex items-center gap-2 bg-brand-blue hover:bg-brand-blue-dark text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition-all"
-        >
-          <Plus size={16} /> Nova solicitação
-        </Link>
-      </div>
+      <PageHeader
+        icon={Receipt}
+        title="Meus reembolsos"
+        subtitle="Solicitações de ressarcimento de despesas"
+        action={
+          <Link
+            href="/tecnico/reembolsos/novo"
+            className="inline-flex items-center gap-2 gradient-brand text-white font-semibold px-4 py-2.5 rounded-xl text-sm shadow-md shadow-brand-blue/25 hover:shadow-lg transition-all"
+          >
+            <Plus size={16} /> Nova solicitação
+          </Link>
+        }
+      />
 
       {reimbursements.length === 0 ? (
-        <div className="card p-12 text-center">
-          <Receipt size={40} className="text-slate-200 mx-auto mb-4" />
-          <p className="text-slate-500 mb-2">Nenhuma solicitação de reembolso ainda.</p>
-          <p className="text-slate-400 text-sm">Teve despesas com materiais, combustível ou outros? Solicite o reembolso aqui.</p>
-        </div>
+        <EmptyState
+          icon={Receipt}
+          title="Nenhuma solicitação de reembolso ainda."
+          description="Teve despesas com materiais, combustível ou outros? Solicite o reembolso aqui."
+        >
+          <Link
+            href="/tecnico/reembolsos/novo"
+            className="inline-flex items-center gap-2 gradient-brand text-white font-semibold px-5 py-2.5 rounded-xl text-sm shadow-md shadow-brand-blue/25 transition-all"
+          >
+            <Plus size={16} /> Nova solicitação
+          </Link>
+        </EmptyState>
       ) : (
         <div className="space-y-3">
-          {reimbursements.map((r) => (
+          {reimbursements.map((r, i) => (
             <Link key={r.id} href={`/tecnico/reembolsos/${r.id}`}
-              className="card p-5 flex items-center gap-4 hover:shadow-md transition-all group">
+              className={`card-elevated p-5 flex items-center gap-4 hover:-translate-y-0.5 transition-transform group animate-rise delay-${i === 0 ? 75 : i === 1 ? 150 : 200}`}>
               <div className="flex-1 grid sm:grid-cols-4 gap-3 items-center">
                 <div>
                   <p className="text-xs text-slate-500 mb-0.5">Motivo</p>
