@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Upload, FileText, AlertCircle, CheckCircle } from 'lucide-react'
+import { upload } from '@vercel/blob/client'
 import ContratoModal from '@/components/tecnico/ContratoModal'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -73,28 +74,45 @@ export default function InvoiceUploadForm({
     setLoading(true)
     setError('')
     try {
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('invoiceNumber', pendingData.invoiceNumber)
-      formData.append('competence', pendingData.competence)
-      formData.append('value', pendingData.value)
-      if (pendingData.observations) formData.append('observations', pendingData.observations)
-      formData.append('contractSignedName', signedName)
-      formData.append('contractSignedDocument', signedDocument)
-      formData.append('contractData', JSON.stringify(contractData))
+      // 1. Envia o arquivo direto ao Vercel Blob (sem passar pela serverless
+      //    function — contorna o limite de ~4,5 MB que causava "Failed to fetch")
+      const blob = await upload(file.name, file, {
+        access: 'public',
+        handleUploadUrl: `/api/tecnico/fechamentos/${closingId}/invoice/blob-token`,
+        contentType: file.type,
+      })
 
+      // 2. Registra a NF enviando apenas os metadados (JSON pequeno)
       const res = await fetch(`/api/tecnico/fechamentos/${closingId}/invoice`, {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          blobUrl:                blob.url,
+          fileName:               file.name,
+          fileSize:               file.size,
+          mimeType:               file.type,
+          invoiceNumber:          pendingData.invoiceNumber,
+          competence:             pendingData.competence,
+          value:                  pendingData.value,
+          observations:           pendingData.observations,
+          contractSignedName:     signedName,
+          contractSignedDocument: signedDocument,
+          contractData:           JSON.stringify(contractData),
+        }),
       })
       if (!res.ok) {
-        const err = await res.json()
+        const err = await res.json().catch(() => ({}))
         throw new Error(err.error || 'Erro ao enviar NF')
       }
       setSuccess(true)
       setTimeout(() => router.refresh(), 1500)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Erro ao enviar. Tente novamente.')
+      const msg = err instanceof Error ? err.message : 'Erro ao enviar. Tente novamente.'
+      // "Failed to fetch" e afins → mensagem clara para o técnico
+      const friendly = /failed to fetch|networkerror|load failed/i.test(msg)
+        ? 'Falha de conexão ao enviar o arquivo. Verifique sua internet e tente novamente. Se a NF for uma foto muito pesada, tente um arquivo menor.'
+        : msg
+      setError(friendly)
     } finally {
       setLoading(false)
     }

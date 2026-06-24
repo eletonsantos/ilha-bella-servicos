@@ -28,20 +28,62 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const ip = req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? 'unknown'
   const ua = req.headers.get('user-agent') ?? 'unknown'
 
-  const formData = await req.formData()
-  const file = formData.get('file') as File
-  const invoiceNumber = formData.get('invoiceNumber') as string
-  const competence = formData.get('competence') as string
-  const rawValue = parseFloat(formData.get('value') as string)
-  // Fallback: se value ausente/inválido, usa totalValue do fechamento
-  const value = isNaN(rawValue) ? closing.totalValue : rawValue
-  const observations = formData.get('observations') as string | null
-  const contractSignedName     = formData.get('contractSignedName') as string | null
-  const contractSignedDocument = formData.get('contractSignedDocument') as string | null
-  const contractDataRaw        = formData.get('contractData') as string | null
+  // Aceita dois formatos:
+  // 1. JSON com o arquivo já enviado direto ao Vercel Blob (contorna limite de 4,5 MB)
+  // 2. multipart/form-data com o arquivo (fluxo legado / dev local sem Blob)
+  const isJson = (req.headers.get('content-type') ?? '').includes('application/json')
 
-  if (!file || !invoiceNumber || !competence) {
-    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+  let invoiceNumber: string
+  let competence: string
+  let value: number
+  let observations: string | null
+  let contractSignedName: string | null
+  let contractSignedDocument: string | null
+  let contractDataRaw: string | null
+  let uploadResult: { filePath: string; fileName: string; fileSize: number; mimeType: string }
+
+  if (isJson) {
+    const b = await req.json()
+    invoiceNumber          = b.invoiceNumber
+    competence             = b.competence
+    const rawValue         = parseFloat(b.value)
+    value                  = isNaN(rawValue) ? closing.totalValue : rawValue
+    observations           = b.observations ?? null
+    contractSignedName     = b.contractSignedName ?? null
+    contractSignedDocument = b.contractSignedDocument ?? null
+    contractDataRaw        = b.contractData ?? null
+
+    if (!b.blobUrl || !invoiceNumber || !competence) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+    uploadResult = {
+      filePath: b.blobUrl,
+      fileName: b.fileName ?? 'nota-fiscal',
+      fileSize: typeof b.fileSize === 'number' ? b.fileSize : 0,
+      mimeType: b.mimeType ?? 'application/octet-stream',
+    }
+  } else {
+    const formData = await req.formData()
+    const file = formData.get('file') as File
+    invoiceNumber          = formData.get('invoiceNumber') as string
+    competence             = formData.get('competence') as string
+    const rawValue         = parseFloat(formData.get('value') as string)
+    value                  = isNaN(rawValue) ? closing.totalValue : rawValue
+    observations           = formData.get('observations') as string | null
+    contractSignedName     = formData.get('contractSignedName') as string | null
+    contractSignedDocument = formData.get('contractSignedDocument') as string | null
+    contractDataRaw        = formData.get('contractData') as string | null
+
+    if (!file || !invoiceNumber || !competence) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+
+    try {
+      uploadResult = await saveInvoiceFile(file, profile.id, closing.id)
+    } catch (uploadErr: unknown) {
+      const msg = uploadErr instanceof Error ? uploadErr.message : 'Erro ao salvar arquivo'
+      return NextResponse.json({ error: msg }, { status: 500 })
+    }
   }
 
   // Injeta auditoria com hash SHA-256 server-side
@@ -58,14 +100,6 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     } catch {
       contractDataFinal = contractDataRaw
     }
-  }
-
-  let uploadResult
-  try {
-    uploadResult = await saveInvoiceFile(file, profile.id, closing.id)
-  } catch (uploadErr: unknown) {
-    const msg = uploadErr instanceof Error ? uploadErr.message : 'Erro ao salvar arquivo'
-    return NextResponse.json({ error: msg }, { status: 500 })
   }
 
   const invoice = await prisma.invoice.create({
