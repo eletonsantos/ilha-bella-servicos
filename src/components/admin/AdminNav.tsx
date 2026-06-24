@@ -57,25 +57,31 @@ export default function AdminNav({ user: _user, pendingAdvances = 0, pendingAppl
   return (
     <>
       {/* ── TOP BAR ── */}
-      <nav className="bg-slate-900 border-b border-slate-800 sticky top-0 z-40">
-        <div className="container-site h-14 flex items-center justify-between">
+      <nav className="bg-slate-900/90 backdrop-blur-lg border-b border-white/10 sticky top-0 z-40 shadow-lg shadow-slate-900/20">
+        <div className="absolute inset-x-0 top-0 h-0.5 gradient-admin" />
+        <div className="container-site h-16 flex items-center justify-between">
 
           {/* Logo / dropdown da engrenagem */}
           <div className="relative" ref={menuRef}>
             <button
               onClick={() => setMenuOpen(v => !v)}
               className={clsx(
-                'flex items-center gap-1.5 text-sm font-bold px-2 py-1 rounded-lg transition-colors',
+                'flex items-center gap-2 text-sm font-bold pl-1.5 pr-2 py-1 rounded-xl transition-colors',
                 isExtraActive || menuOpen
                   ? 'bg-white/10 text-white'
                   : 'text-white hover:bg-white/5'
               )}
             >
-              <Settings size={15} className="text-brand-gold" />
-              <span>Admin</span>
+              <span className="icon-pill w-8 h-8 gradient-admin text-slate-900 shadow-md">
+                <Settings size={16} />
+              </span>
+              <span className="flex flex-col items-start leading-none">
+                <span className="text-sm font-extrabold">Admin</span>
+                <span className="text-[9px] font-semibold text-brand-gold/80 uppercase tracking-wider">Ilha Bella</span>
+              </span>
               <ChevronDown
                 size={13}
-                className={clsx('text-slate-400 transition-transform', menuOpen && 'rotate-180')}
+                className={clsx('text-slate-400 transition-transform ml-0.5', menuOpen && 'rotate-180')}
               />
             </button>
 
@@ -112,36 +118,41 @@ export default function AdminNav({ user: _user, pendingAdvances = 0, pendingAppl
 
           {/* Desktop links principais */}
           <div className="hidden sm:flex items-center gap-1">
-            {mainLinks.map(({ href, label, icon: Icon, badge }) => (
-              <Link key={href} href={href}
-                className={clsx(
-                  'relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
-                  pathname.startsWith(href) ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white hover:bg-white/5'
-                )}>
-                <Icon size={14} />
-                {label}
-                {badge > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                    {badge}
-                  </span>
-                )}
-              </Link>
-            ))}
+            {mainLinks.map(({ href, label, icon: Icon, badge }) => {
+              const active = pathname.startsWith(href)
+              return (
+                <Link key={href} href={href}
+                  className={clsx(
+                    'relative flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-all',
+                    active
+                      ? 'bg-brand-gold/15 text-brand-gold ring-1 ring-brand-gold/30'
+                      : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  )}>
+                  <Icon size={14} />
+                  {label}
+                  {badge > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-slate-900">
+                      {badge}
+                    </span>
+                  )}
+                </Link>
+              )
+            })}
           </div>
 
           {/* Right — logout */}
           <button
             onClick={() => signOut({ callbackUrl: '/tecnico/login' })}
-            className="flex items-center gap-1.5 text-slate-400 hover:text-red-400 text-sm transition-colors"
+            className="flex items-center gap-1.5 text-slate-400 hover:text-red-400 text-sm transition-colors px-2.5 py-2 rounded-xl hover:bg-red-500/10"
           >
-            <LogOut size={14} />
-            <span className="hidden sm:block text-xs">Sair</span>
+            <LogOut size={15} />
+            <span className="hidden sm:block text-xs font-medium">Sair</span>
           </button>
         </div>
       </nav>
 
       {/* ── MOBILE BOTTOM TAB BAR ── */}
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-900 border-t border-slate-700"
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-lg border-t border-white/10"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <div className="flex overflow-x-auto scrollbar-none">
           {mainLinks.map(({ href, label, icon: Icon, badge }) => {
@@ -151,17 +162,19 @@ export default function AdminNav({ user: _user, pendingAdvances = 0, pendingAppl
                 key={href}
                 href={href}
                 className={clsx(
-                  'relative flex-shrink-0 flex flex-col items-center justify-center py-2 px-3 gap-0.5 min-w-[64px] transition-colors',
-                  active ? 'text-white' : 'text-slate-500'
+                  'relative flex-shrink-0 flex flex-col items-center justify-center py-2.5 px-3 gap-1 min-w-[64px] transition-colors',
+                  active ? 'text-brand-gold' : 'text-slate-500'
                 )}
               >
                 {active && (
-                  <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-brand-gold rounded-full" />
+                  <span className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-1 gradient-admin rounded-full" />
                 )}
-                <Icon size={20} />
-                <span className="text-[9px] font-medium leading-none text-center">{label}</span>
+                <span className={clsx('flex items-center justify-center w-9 h-7 rounded-lg transition-colors', active && 'bg-brand-gold/15')}>
+                  <Icon size={19} />
+                </span>
+                <span className="text-[9px] font-semibold leading-none text-center">{label}</span>
                 {badge > 0 && (
-                  <span className="absolute top-1 right-1.5 min-w-[16px] h-4 px-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                  <span className="absolute top-1.5 right-2 min-w-[16px] h-4 px-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
                     {badge > 9 ? '9+' : badge}
                   </span>
                 )}

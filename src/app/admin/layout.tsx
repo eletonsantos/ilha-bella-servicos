@@ -15,9 +15,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   ])
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-portal">
       <AdminNav user={session.user} pendingAdvances={pendingAdvances} pendingApplications={pendingApplications} pendingReimbursements={pendingReimbursements} />
-      <main className="container-site py-8 pb-24 sm:pb-8">{children}</main>
+      <main className="container-site py-8 pb-28 sm:pb-10">{children}</main>
     </div>
   )
 }

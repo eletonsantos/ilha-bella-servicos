@@ -127,6 +127,25 @@
   .icon-pill {
     @apply inline-flex items-center justify-center rounded-xl flex-shrink-0;
   }
+
+  /* Admin — identidade escura com toque dourado */
+  .gradient-admin {
+    background: linear-gradient(135deg, #C4992A 0%, #DDB93A 100%);
+  }
+  .hero-admin {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #0b1c30 0%, #14304f 55%, #1a3a5c 100%);
+  }
+  .hero-admin::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 88% 12%, rgba(196, 153, 42, 0.32), transparent 42%),
+      radial-gradient(circle at 8% 95%, rgba(26, 125, 193, 0.30), transparent 42%);
+    pointer-events: none;
+  }
 }
 
 @layer utilities {

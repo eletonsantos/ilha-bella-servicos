@@ -2,7 +2,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { CLOSING_STATUS_LABELS, CLOSING_STATUS_COLORS, REIMBURSEMENT_STATUS_LABELS, REIMBURSEMENT_STATUS_COLORS, REIMBURSEMENT_CATEGORY_LABELS } from '@/lib/constants-tecnico'
-import { TrendingUp, Percent, FileText, Zap, Receipt } from 'lucide-react'
+import { TrendingUp, Percent, FileText, Zap, Receipt, Wallet, BarChart3 } from 'lucide-react'
 import Link from 'next/link'
 
 const STATUS_ORDER = [
@@ -198,10 +198,26 @@ export default async function AdminDashboardPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-8">
 
-      {/* ── Header ── */}
-      <div>
-        <h1 className="text-2xl font-extrabold text-dark">Dashboard financeiro</h1>
-        <p className="text-slate-500 text-sm mt-1">Visão consolidada de fechamentos e antecipações.</p>
+      {/* ── Hero ── */}
+      <div className="hero-admin rounded-3xl p-6 sm:p-8 animate-rise">
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+          <div className="flex items-center gap-4">
+            <span className="icon-pill w-14 h-14 bg-white/10 border border-white/20 backdrop-blur text-brand-gold flex-shrink-0">
+              <BarChart3 size={26} />
+            </span>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Dashboard financeiro</h1>
+              <p className="text-white/60 text-sm mt-0.5">Visão consolidada de fechamentos e antecipações.</p>
+            </div>
+          </div>
+          <div className="sm:text-right">
+            <p className="text-white/60 text-[11px] font-semibold uppercase tracking-wider flex items-center gap-1.5 sm:justify-end">
+              <Wallet size={13} className="text-brand-gold" /> Total geral
+            </p>
+            <p className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mt-1">{fmt(totalGeral)}</p>
+            <p className="text-white/50 text-xs mt-0.5">{closings.length} fechamentos</p>
+          </div>
+        </div>
       </div>
 
       {/* ══════════════════════════════════════════════════
@@ -209,8 +225,9 @@ export default async function AdminDashboardPage() {
       ══════════════════════════════════════════════════ */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-extrabold text-dark flex items-center gap-2">
-            <FileText size={16} className="text-brand-blue" /> Fechamentos
+          <h2 className="font-extrabold text-dark flex items-center gap-2.5 text-lg">
+            <span className="icon-pill w-8 h-8 bg-brand-blue/10 text-brand-blue"><FileText size={16} /></span>
+            Fechamentos
           </h2>
           <Link href="/admin/fechamentos" className="text-xs text-brand-blue hover:underline font-medium">
             Ver todos →
@@ -219,27 +236,27 @@ export default async function AdminDashboardPage() {
 
         {/* Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-          <div className="card p-5">
+          <div className="card-elevated p-5">
             <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">Total geral</p>
             <p className="text-xl font-extrabold text-dark">{fmt(totalGeral)}</p>
             <p className="text-xs text-slate-400 mt-1">{closings.length} fechamentos</p>
           </div>
-          <div className="card p-5 border-l-4 border-green-400">
+          <div className="card-elevated p-5 border-l-4 border-green-400">
             <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">Pagos</p>
             <p className="text-xl font-extrabold text-green-600">{fmt(totalPago)}</p>
             <p className="text-xs text-slate-400 mt-1">{qtdPago} fechamentos</p>
           </div>
-          <div className="card p-5 border-l-4 border-emerald-400">
+          <div className="card-elevated p-5 border-l-4 border-emerald-400">
             <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">Pgto. liberado</p>
             <p className="text-xl font-extrabold text-emerald-600">{fmt(totalLiberado)}</p>
             <p className="text-xs text-slate-400 mt-1">{qtdLiberado} fechamentos</p>
           </div>
-          <div className="card p-5 border-l-4 border-amber-400">
+          <div className="card-elevated p-5 border-l-4 border-amber-400">
             <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">Em andamento</p>
             <p className="text-xl font-extrabold text-amber-600">{fmt(totalAndamento)}</p>
             <p className="text-xs text-slate-400 mt-1">{qtdAndamento} fechamentos</p>
           </div>
-          <div className="card p-5 border-l-4 border-red-300">
+          <div className="card-elevated p-5 border-l-4 border-red-300">
             <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">Sem NF</p>
             <p className="text-xl font-extrabold text-red-500">{fmt(totalSemNF)}</p>
             <p className="text-xs text-slate-400 mt-1">{semNF.length} fechamentos</p>
@@ -248,7 +265,7 @@ export default async function AdminDashboardPage() {
 
         {/* Gráficos de fechamentos */}
         <div className="grid sm:grid-cols-2 gap-4">
-          <div className="card p-5">
+          <div className="card-elevated p-5">
             <h3 className="font-bold text-dark text-sm mb-4">Valores por status</h3>
             <div className="space-y-3">
               {byStatusList.map(({ status, count, total }) => (
@@ -276,7 +293,7 @@ export default async function AdminDashboardPage() {
             </div>
           </div>
 
-          <div className="card p-5">
+          <div className="card-elevated p-5">
             <h3 className="font-bold text-dark text-sm mb-4 flex items-center gap-2">
               <TrendingUp size={14} className="text-brand-blue" /> Últimos 6 meses
               <span className="text-[10px] font-normal text-slate-400">(data de pagamento)</span>
@@ -308,8 +325,9 @@ export default async function AdminDashboardPage() {
       ══════════════════════════════════════════════════ */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-extrabold text-dark flex items-center gap-2">
-            <Receipt size={16} className="text-brand-blue" /> Reembolsos
+          <h2 className="font-extrabold text-dark flex items-center gap-2.5 text-lg">
+            <span className="icon-pill w-8 h-8 bg-purple-50 text-purple-600"><Receipt size={16} /></span>
+            Reembolsos
           </h2>
           <Link href="/admin/reembolsos" className="text-xs text-brand-blue hover:underline font-medium">
             Ver todos →
@@ -317,7 +335,7 @@ export default async function AdminDashboardPage() {
         </div>
 
         {reimbursements.length === 0 ? (
-          <div className="card p-8 text-center">
+          <div className="card-elevated p-8 text-center">
             <Receipt size={32} className="text-slate-200 mx-auto mb-3" />
             <p className="text-slate-400 text-sm">Nenhum reembolso registrado ainda.</p>
           </div>
@@ -325,27 +343,27 @@ export default async function AdminDashboardPage() {
           <>
             {/* Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-              <div className="card p-5">
+              <div className="card-elevated p-5">
                 <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">Total geral</p>
                 <p className="text-xl font-extrabold text-dark">{fmt(reimbTotal)}</p>
                 <p className="text-xs text-slate-400 mt-1">{reimbursements.length} reembolso(s)</p>
               </div>
-              <div className="card p-5 border-l-4 border-amber-400">
+              <div className="card-elevated p-5 border-l-4 border-amber-400">
                 <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">Aguardando</p>
                 <p className="text-xl font-extrabold text-amber-600">{fmt(reimbPending.reduce((s, r) => s + r.totalValue, 0))}</p>
                 <p className="text-xs text-slate-400 mt-1">{reimbPending.length} pendente(s)</p>
               </div>
-              <div className="card p-5 border-l-4 border-emerald-400">
+              <div className="card-elevated p-5 border-l-4 border-emerald-400">
                 <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">Pgto. liberado</p>
                 <p className="text-xl font-extrabold text-emerald-600">{fmt(reimbReleased.reduce((s, r) => s + r.totalValue, 0))}</p>
                 <p className="text-xs text-slate-400 mt-1">{reimbReleased.length} liberado(s)</p>
               </div>
-              <div className="card p-5 border-l-4 border-green-400">
+              <div className="card-elevated p-5 border-l-4 border-green-400">
                 <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">Pagos</p>
                 <p className="text-xl font-extrabold text-green-600">{fmt(reimbPaid.reduce((s, r) => s + r.totalValue, 0))}</p>
                 <p className="text-xs text-slate-400 mt-1">{reimbPaid.length} pago(s)</p>
               </div>
-              <div className="card p-5 border-l-4 border-red-300">
+              <div className="card-elevated p-5 border-l-4 border-red-300">
                 <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">Recusados</p>
                 <p className="text-xl font-extrabold text-red-500">{fmt(reimbRejected.reduce((s, r) => s + r.totalValue, 0))}</p>
                 <p className="text-xs text-slate-400 mt-1">{reimbRejected.length} recusado(s)</p>
@@ -354,7 +372,7 @@ export default async function AdminDashboardPage() {
 
             {/* Gráficos de reembolsos */}
             <div className="grid sm:grid-cols-2 gap-4">
-              <div className="card p-5">
+              <div className="card-elevated p-5">
                 <h3 className="font-bold text-dark text-sm mb-4 flex items-center gap-2">
                   <Percent size={14} className="text-brand-blue" /> Distribuição por categoria
                 </h3>
@@ -376,7 +394,7 @@ export default async function AdminDashboardPage() {
                 </div>
               </div>
 
-              <div className="card p-5">
+              <div className="card-elevated p-5">
                 <h3 className="font-bold text-dark text-sm mb-4 flex items-center gap-2">
                   <TrendingUp size={14} className="text-brand-blue" /> Últimos 6 meses
                 </h3>
@@ -409,8 +427,9 @@ export default async function AdminDashboardPage() {
       ══════════════════════════════════════════════════ */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-extrabold text-dark flex items-center gap-2">
-            <Zap size={16} className="text-amber-500" /> Antecipações
+          <h2 className="font-extrabold text-dark flex items-center gap-2.5 text-lg">
+            <span className="icon-pill w-8 h-8 bg-amber-50 text-amber-600"><Zap size={16} /></span>
+            Antecipações
           </h2>
           <Link href="/admin/antecipacao" className="text-xs text-brand-blue hover:underline font-medium">
             Ver todas →
@@ -418,7 +437,7 @@ export default async function AdminDashboardPage() {
         </div>
 
         {advances.length === 0 ? (
-          <div className="card p-8 text-center">
+          <div className="card-elevated p-8 text-center">
             <Zap size={32} className="text-slate-200 mx-auto mb-3" />
             <p className="text-slate-400 text-sm">Nenhuma antecipação solicitada ainda.</p>
           </div>
@@ -426,22 +445,22 @@ export default async function AdminDashboardPage() {
           <>
             {/* Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div className="card p-5 border-l-4 border-amber-400">
+              <div className="card-elevated p-5 border-l-4 border-amber-400">
                 <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">Pendente</p>
                 <p className="text-xl font-extrabold text-amber-600">{fmt(totalAdvPendente)}</p>
                 <p className="text-xs text-slate-400 mt-1">{advPending.length} solicitaç{advPending.length === 1 ? 'ão' : 'ões'}</p>
               </div>
-              <div className="card p-5 border-l-4 border-emerald-400">
+              <div className="card-elevated p-5 border-l-4 border-emerald-400">
                 <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">Aprovadas (bruto)</p>
                 <p className="text-xl font-extrabold text-emerald-600">{fmt(totalAdvBruto)}</p>
                 <p className="text-xs text-slate-400 mt-1">{advApproved.length} aprovad{advApproved.length === 1 ? 'a' : 'as'}</p>
               </div>
-              <div className="card p-5 border-l-4 border-blue-400">
+              <div className="card-elevated p-5 border-l-4 border-blue-400">
                 <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">Líquido pago</p>
                 <p className="text-xl font-extrabold text-blue-600">{fmt(totalAdvLiq)}</p>
                 <p className="text-xs text-slate-400 mt-1">após taxa de 10%</p>
               </div>
-              <div className="card p-5 border-l-4 border-green-400">
+              <div className="card-elevated p-5 border-l-4 border-green-400">
                 <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">Taxas arrecadadas</p>
                 <p className="text-xl font-extrabold text-green-600">{fmt(totalTaxas)}</p>
                 <p className="text-xs text-slate-400 mt-1">{advApproved.length > 0 ? '10% por antecip.' : '—'}</p>
@@ -450,7 +469,7 @@ export default async function AdminDashboardPage() {
 
             {/* Gráficos de antecipações */}
             <div className="grid sm:grid-cols-2 gap-4">
-              <div className="card p-5">
+              <div className="card-elevated p-5">
                 <h3 className="font-bold text-dark text-sm mb-4 flex items-center gap-2">
                   <Percent size={14} className="text-brand-blue" /> Distribuição por status
                 </h3>
@@ -480,7 +499,7 @@ export default async function AdminDashboardPage() {
                 </div>
               </div>
 
-              <div className="card p-5">
+              <div className="card-elevated p-5">
                 <h3 className="font-bold text-dark text-sm mb-4 flex items-center gap-2">
                   <TrendingUp size={14} className="text-brand-blue" /> Últimos 6 meses
                 </h3>
