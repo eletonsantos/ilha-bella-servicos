@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import AlterarSenhaForm from './AlterarSenhaForm'
+import SairButton from './SairButton'
 import { KeyRound, User, Settings } from 'lucide-react'
 import PageHeader from '@/components/tecnico/PageHeader'
 
@@ -55,6 +56,13 @@ export default async function ConfiguracoesPage() {
           <h2 className="text-base font-bold text-dark">Alterar Senha</h2>
         </div>
         <AlterarSenhaForm />
+      </div>
+
+      {/* Sair da conta */}
+      <div className="card-elevated p-6 animate-rise delay-200">
+        <h2 className="text-base font-bold text-dark mb-1">Sair da conta</h2>
+        <p className="text-sm text-slate-400 mb-4">Encerra sua sessão neste aparelho.</p>
+        <SairButton />
       </div>
     </div>
   )

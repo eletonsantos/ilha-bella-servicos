@@ -107,10 +107,10 @@ export default function TecnicoNav({ user: _user, profile }: Props) {
             <button
               onClick={() => signOut({ callbackUrl: '/tecnico/login' })}
               title="Sair"
-              className="flex items-center gap-1.5 text-slate-400 hover:text-red-500 text-sm transition-colors px-2.5 py-2 rounded-xl hover:bg-red-50"
+              className="flex items-center gap-1.5 text-slate-500 hover:text-red-500 text-sm transition-colors px-2.5 py-2 rounded-xl bg-slate-100 hover:bg-red-50"
             >
               <LogOut size={16} />
-              <span className="hidden sm:block text-xs font-medium">Sair</span>
+              <span className="text-xs font-semibold">Sair</span>
             </button>
           </div>
         </div>
