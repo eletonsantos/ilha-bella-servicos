@@ -73,8 +73,8 @@ export default function InvoiceUploadForm({
     setShowContrato(true)
   }
 
-  // Envio via função serverless (multipart) — caminho confiável para arquivos
-  // até ~4 MB. Usado como fallback quando o upload direto ao Blob falha.
+  // Envio via função serverless (multipart) — caminho PRINCIPAL e confiável.
+  // Funciona bem no celular; suporta arquivos até ~4 MB (limite do corpo na Vercel).
   async function sendViaServer(signedName: string, signedDocument: string, contractData: object) {
     const fd = new FormData()
     fd.append('file', file!)
@@ -89,70 +89,66 @@ export default function InvoiceUploadForm({
     const res = await fetch(`/api/tecnico/fechamentos/${closingId}/invoice`, { method: 'POST', body: fd })
     if (!res.ok) {
       const err = await res.json().catch(() => ({}))
+      throw new Error(err.error || `Erro ao enviar NF (${res.status})`)
+    }
+  }
+
+  // Envio via Vercel Blob (browser → blob direto) — usado SÓ para arquivos
+  // grandes (> 4 MB), que estouram o limite da função serverless.
+  async function sendViaBlob(signedName: string, signedDocument: string, contractData: object) {
+    const blob = await upload(file!.name, file!, {
+      access: 'public',
+      handleUploadUrl: `/api/tecnico/fechamentos/${closingId}/invoice/blob-token`,
+      contentType: file!.type || 'application/octet-stream',
+    })
+    const res = await fetch(`/api/tecnico/fechamentos/${closingId}/invoice`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        blobUrl:                blob.url,
+        fileName:               file!.name,
+        fileSize:               file!.size,
+        mimeType:               file!.type || 'application/pdf',
+        invoiceNumber:          pendingData!.invoiceNumber,
+        competence:             pendingData!.competence,
+        value:                  pendingData!.value,
+        observations:           pendingData!.observations,
+        contractSignedName:     signedName,
+        contractSignedDocument: signedDocument,
+        contractData:           JSON.stringify(contractData),
+      }),
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
       throw new Error(err.error || 'Erro ao enviar NF')
     }
   }
 
-  // Segundo passo: após assinar o contrato, envia
+  // Segundo passo: após assinar o contrato, envia.
+  // Estratégia: arquivos pequenos (≤4 MB, caso comum dos PDFs) vão SEMPRE pela
+  // função serverless — confiável no celular. Só arquivos grandes usam o Blob.
   async function onContractConfirm(signedName: string, signedDocument: string, contractData: object) {
     if (!pendingData || !file) return
     setShowContrato(false)
     setLoading(true)
     setError('')
 
-    const SERVER_LIMIT = 4 * 1024 * 1024 // ~limite de corpo da serverless function
+    const SERVER_LIMIT = 4 * 1024 * 1024 // limite seguro do corpo da serverless
 
     try {
-      // 1. Tenta enviar o arquivo direto ao Vercel Blob (suporta arquivos grandes)
-      const blob = await upload(file.name, file, {
-        access: 'public',
-        handleUploadUrl: `/api/tecnico/fechamentos/${closingId}/invoice/blob-token`,
-        contentType: file.type || 'application/octet-stream',
-      })
-
-      // 2. Registra a NF enviando apenas os metadados (JSON pequeno)
-      const res = await fetch(`/api/tecnico/fechamentos/${closingId}/invoice`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          blobUrl:                blob.url,
-          fileName:               file.name,
-          fileSize:               file.size,
-          mimeType:               file.type || 'application/pdf',
-          invoiceNumber:          pendingData.invoiceNumber,
-          competence:             pendingData.competence,
-          value:                  pendingData.value,
-          observations:           pendingData.observations,
-          contractSignedName:     signedName,
-          contractSignedDocument: signedDocument,
-          contractData:           JSON.stringify(contractData),
-        }),
-      })
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        throw new Error(err.error || 'Erro ao enviar NF')
+      if (file.size <= SERVER_LIMIT) {
+        // Caminho principal — confiável no celular
+        await sendViaServer(signedName, signedDocument, contractData)
+      } else {
+        // Arquivo grande — única opção é o Blob direto
+        await sendViaBlob(signedName, signedDocument, contractData)
       }
       setSuccess(true)
       setTimeout(() => router.refresh(), 1500)
-    } catch (blobErr: unknown) {
-      // Fallback: se o Blob falhar e o arquivo for pequeno, envia pela serverless
-      if (file.size <= SERVER_LIMIT) {
-        try {
-          await sendViaServer(signedName, signedDocument, contractData)
-          setSuccess(true)
-          setTimeout(() => router.refresh(), 1500)
-          return
-        } catch (serverErr: unknown) {
-          const m = serverErr instanceof Error ? serverErr.message : 'Erro ao enviar.'
-          setError(m)
-          return
-        } finally {
-          setLoading(false)
-        }
-      }
-      const msg = blobErr instanceof Error ? blobErr.message : 'Erro ao enviar. Tente novamente.'
-      const friendly = /failed to fetch|networkerror|load failed|timeout/i.test(msg)
-        ? 'Falha ao enviar o arquivo. Verifique sua internet e tente novamente. Se a NF for muito pesada (acima de ~4 MB), tente reduzir o tamanho do arquivo.'
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Erro ao enviar. Tente novamente.'
+      const friendly = /failed to fetch|networkerror|load failed|timeout|413/i.test(msg)
+        ? 'Falha ao enviar o arquivo. Verifique sua internet e tente novamente. Se a NF for muito pesada, tente reduzir o tamanho do arquivo (ideal abaixo de 4 MB).'
         : msg
       setError(friendly)
     } finally {

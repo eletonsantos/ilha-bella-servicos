@@ -8,6 +8,10 @@ import { ptBR } from 'date-fns/locale'
 import { createHash } from 'crypto'
 import { createClosingEvent } from '@/lib/closing-events'
 
+// Upload de NF no celular pode demorar; dá mais tempo à função (Pro plan)
+export const runtime = 'nodejs'
+export const maxDuration = 60
+
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
