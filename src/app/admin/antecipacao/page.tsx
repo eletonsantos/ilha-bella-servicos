@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { Zap, CheckCircle } from 'lucide-react'
 import AntecipacaoAdminCard from './AntecipacaoAdminCard'
+import PageHeader from '@/components/tecnico/PageHeader'
 
 export default async function AdminAntecipacaoPage() {
   const session = await auth()
@@ -25,18 +26,18 @@ export default async function AdminAntecipacaoPage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-extrabold text-dark">Antecipações</h1>
-          <p className="text-slate-500 text-sm mt-1">Solicitações de antecipação de pagamento dos técnicos.</p>
-        </div>
-        {pending.length > 0 && (
+      <PageHeader
+        icon={Zap}
+        title="Antecipações"
+        subtitle="Solicitações de antecipação de pagamento dos técnicos."
+        variant="gold"
+        action={pending.length > 0 ? (
           <span className="inline-flex items-center gap-1.5 bg-amber-100 text-amber-700 text-sm font-bold px-4 py-2 rounded-full">
             <Zap size={14} />
             {pending.length} pendente{pending.length > 1 ? 's' : ''}
           </span>
-        )}
-      </div>
+        ) : undefined}
+      />
 
       {/* Pendentes */}
       {pending.length > 0 ? (
@@ -66,7 +67,7 @@ export default async function AdminAntecipacaoPage() {
           ))}
         </div>
       ) : (
-        <div className="card p-10 text-center">
+        <div className="card-elevated p-10 text-center">
           <CheckCircle size={40} className="text-emerald-200 mx-auto mb-4" />
           <p className="text-slate-500 font-medium">Nenhuma antecipação pendente.</p>
           <p className="text-slate-400 text-sm mt-1">Tudo em dia! Quando um técnico solicitar, aparecerá aqui.</p>

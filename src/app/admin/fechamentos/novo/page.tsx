@@ -118,7 +118,7 @@ export default function NovoFechamentoPage() {
         )}
 
         {/* Técnico */}
-        <div className="card p-6 space-y-4">
+        <div className="card-elevated p-6 space-y-4">
           <h2 className="font-bold text-dark">Técnico</h2>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">Selecione o técnico *</label>
@@ -142,7 +142,7 @@ export default function NovoFechamentoPage() {
         </div>
 
         {/* Período */}
-        <div className="card p-6 space-y-4">
+        <div className="card-elevated p-6 space-y-4">
           <h2 className="font-bold text-dark">Período</h2>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">Competência * <span className="text-slate-400 font-normal">(ex: Abril/2026)</span></label>
@@ -180,7 +180,7 @@ export default function NovoFechamentoPage() {
         </div>
 
         {/* Valores */}
-        <div className="card p-6 space-y-4">
+        <div className="card-elevated p-6 space-y-4">
           <h2 className="font-bold text-dark">Valores</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -221,7 +221,7 @@ export default function NovoFechamentoPage() {
         </div>
 
         {/* Upload PDF */}
-        <div className="card p-6 space-y-4">
+        <div className="card-elevated p-6 space-y-4">
           <h2 className="font-bold text-dark">Relatório PDF</h2>
           <p className="text-sm text-slate-500">Faça upload do relatório gerado pelo IA Assist. O técnico poderá baixar o PDF no painel.</p>
 

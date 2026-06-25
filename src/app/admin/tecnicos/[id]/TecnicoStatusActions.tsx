@@ -158,7 +158,7 @@ export default function TecnicoStatusActions({ techId, currentStatus }: Props) {
   if (available.length === 0) return null
 
   return (
-    <div className="card p-6 space-y-4">
+    <div className="card-elevated p-6 space-y-4">
       <h2 className="text-base font-bold text-dark">Ações</h2>
 
       <div>

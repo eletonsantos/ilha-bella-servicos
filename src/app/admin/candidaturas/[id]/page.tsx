@@ -33,7 +33,7 @@ export default async function AdminCandidaturaDetailPage({ params }: Props) {
       </Link>
 
       {/* Header */}
-      <div className="card p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="card-elevated p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-extrabold text-dark">{app.fullName}</h1>
           <p className="text-slate-400 text-sm mt-0.5">{app.especialidadePrincipal}</p>
@@ -45,7 +45,7 @@ export default async function AdminCandidaturaDetailPage({ params }: Props) {
       </div>
 
       {/* Contato */}
-      <div className="card p-6">
+      <div className="card-elevated p-6">
         <h2 className="font-bold text-dark mb-4 flex items-center gap-2"><Phone size={15} className="text-brand-blue" /> Contato</h2>
         <div className="grid sm:grid-cols-2 gap-4 text-sm">
           <div>
@@ -65,7 +65,7 @@ export default async function AdminCandidaturaDetailPage({ params }: Props) {
       </div>
 
       {/* Região */}
-      <div className="card p-6">
+      <div className="card-elevated p-6">
         <h2 className="font-bold text-dark mb-4 flex items-center gap-2"><MapPin size={15} className="text-brand-blue" /> Região</h2>
         <div className="grid sm:grid-cols-2 gap-4 text-sm">
           <div>
@@ -82,7 +82,7 @@ export default async function AdminCandidaturaDetailPage({ params }: Props) {
       </div>
 
       {/* Especialidades */}
-      <div className="card p-6">
+      <div className="card-elevated p-6">
         <h2 className="font-bold text-dark mb-4 flex items-center gap-2"><Wrench size={15} className="text-brand-blue" /> Especialidades</h2>
         <div className="space-y-3 text-sm">
           <div>
@@ -99,7 +99,7 @@ export default async function AdminCandidaturaDetailPage({ params }: Props) {
       </div>
 
       {/* Operacional */}
-      <div className="card p-6">
+      <div className="card-elevated p-6">
         <h2 className="font-bold text-dark mb-4">Informações operacionais</h2>
         <div className="flex flex-wrap gap-2 mb-4">
           {boolBadge(app.atende24h, 'Atende 24h', 'Não atende 24h')}
@@ -129,7 +129,7 @@ export default async function AdminCandidaturaDetailPage({ params }: Props) {
 
       {/* Observações do candidato */}
       {app.observacoes && (
-        <div className="card p-6">
+        <div className="card-elevated p-6">
           <h2 className="font-bold text-dark mb-2">Observações do candidato</h2>
           <p className="text-sm text-slate-600 leading-relaxed">{app.observacoes}</p>
         </div>
@@ -137,7 +137,7 @@ export default async function AdminCandidaturaDetailPage({ params }: Props) {
 
       {/* Notas admin */}
       {app.adminNotes && (
-        <div className="card p-6 border-l-4 border-brand-blue">
+        <div className="card-elevated p-6 border-l-4 border-brand-blue">
           <h2 className="font-bold text-dark mb-2">Notas internas</h2>
           <p className="text-sm text-slate-600 leading-relaxed">{app.adminNotes}</p>
         </div>

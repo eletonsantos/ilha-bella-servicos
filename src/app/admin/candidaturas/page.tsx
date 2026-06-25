@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronRight, UserCheck, MapPin, Wrench } from 'lucide-react'
 import { APPLICATION_STATUS_LABELS, APPLICATION_STATUS_COLORS } from '@/lib/constants-tecnico'
+import PageHeader from '@/components/tecnico/PageHeader'
+import EmptyState from '@/components/tecnico/EmptyState'
 
 export default async function AdminCandidaturasPage() {
   const session = await auth()
@@ -19,30 +21,30 @@ export default async function AdminCandidaturasPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-extrabold text-dark">Candidaturas</h1>
-          <p className="text-slate-500 text-sm mt-1">{applications.length} candidatura(s) recebida(s)</p>
-        </div>
-        {pending.length > 0 && (
+      <PageHeader
+        icon={UserCheck}
+        title="Candidaturas"
+        subtitle={`${applications.length} candidatura(s) recebida(s)`}
+        variant="gold"
+        action={pending.length > 0 ? (
           <span className="inline-flex items-center gap-2 bg-amber-100 text-amber-700 font-bold text-sm px-4 py-2 rounded-full">
             <UserCheck size={14} />
             {pending.length} aguardando análise
           </span>
-        )}
-      </div>
+        ) : undefined}
+      />
 
       {applications.length === 0 ? (
-        <div className="card p-12 text-center">
-          <UserCheck size={40} className="text-slate-200 mx-auto mb-4" />
-          <p className="text-slate-500 font-medium">Nenhuma candidatura recebida ainda.</p>
-          <p className="text-slate-400 text-sm mt-1">Quando um técnico se cadastrar em /tecnico-parceiro, aparecerá aqui.</p>
-        </div>
+        <EmptyState
+          icon={UserCheck}
+          title="Nenhuma candidatura recebida ainda."
+          description="Quando um técnico se cadastrar em /tecnico-parceiro, aparecerá aqui."
+        />
       ) : (
         <div className="space-y-3">
           {applications.map((app) => (
             <Link key={app.id} href={`/admin/candidaturas/${app.id}`}
-              className="card p-5 flex items-center gap-4 hover:shadow-md transition-all group">
+              className="card-elevated p-5 flex items-center gap-4 hover:-translate-y-0.5 transition-transform group">
               <div className="flex-1 grid sm:grid-cols-5 gap-3 items-center">
                 <div>
                   <p className="font-bold text-dark text-sm">{app.fullName}</p>

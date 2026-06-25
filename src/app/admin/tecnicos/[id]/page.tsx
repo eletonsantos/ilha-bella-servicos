@@ -79,7 +79,7 @@ export default async function AdminTecnicoDetailPage({ params }: Props) {
       </Link>
 
       {/* Header com status */}
-      <div className="card p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="card-elevated p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-extrabold text-dark">{tech.fullName}</h1>
           <p className="text-slate-400 text-sm mt-0.5">{tech.user.email}</p>
@@ -95,14 +95,14 @@ export default async function AdminTecnicoDetailPage({ params }: Props) {
 
       {/* Observações do admin */}
       {tech.adminNotes && (
-        <div className="card p-5 border-l-4 border-amber-400">
+        <div className="card-elevated p-5 border-l-4 border-amber-400">
           <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Observações do admin</p>
           <p className="text-sm text-slate-700 whitespace-pre-line">{tech.adminNotes}</p>
         </div>
       )}
 
       {/* Dados do cadastro */}
-      <div className="card p-6">
+      <div className="card-elevated p-6">
         <EditarCadastroWrapper
           fields={fields}
           tech={{
@@ -124,7 +124,7 @@ export default async function AdminTecnicoDetailPage({ params }: Props) {
 
       {/* ── Seção de Homologação ─────────────────────────────────────────── */}
       {(tech.cnpj || tech.providerTechnicians.length > 0 || tech.masterContractSignedAt) && (
-        <div className="card p-6 space-y-5">
+        <div className="card-elevated p-6 space-y-5">
           <h2 className="text-base font-bold text-dark flex items-center gap-2">
             <ShieldCheck size={18} className="text-brand-blue" />
             Homologação PJ
@@ -224,7 +224,7 @@ export default async function AdminTecnicoDetailPage({ params }: Props) {
       <CredenciaisCard techId={tech.id} cpf={tech.cpf} />
 
       {/* Tabela de Valores */}
-      <div className="card p-6">
+      <div className="card-elevated p-6">
         <h2 className="text-base font-bold text-dark mb-1">Tabela de Valores</h2>
         <p className="text-sm text-slate-400 mb-4">
           Suba o PDF com a tabela de preços deste técnico. Ele poderá visualizar diretamente no painel.

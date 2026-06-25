@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { REIMBURSEMENT_STATUS_LABELS, REIMBURSEMENT_STATUS_COLORS } from '@/lib/constants-tecnico'
 import { ChevronRight, Receipt, Plus } from 'lucide-react'
+import PageHeader from '@/components/tecnico/PageHeader'
+import EmptyState from '@/components/tecnico/EmptyState'
 
 function fmt(v: number) {
   return `R$ ${v.toFixed(2).replace('.', ',')}`
@@ -24,23 +26,25 @@ export default async function AdminReembolsosPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-extrabold text-dark">Reembolsos</h1>
-          <p className="text-slate-500 text-sm mt-1">{reimbursements.length} reembolso(s) no sistema</p>
-        </div>
-        <Link
-          href="/admin/reembolsos/novo"
-          className="inline-flex items-center gap-2 bg-brand-blue hover:bg-brand-blue-dark text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition-all"
-        >
-          <Plus size={16} /> Novo Reembolso
-        </Link>
-      </div>
+      <PageHeader
+        icon={Receipt}
+        title="Reembolsos"
+        subtitle={`${reimbursements.length} reembolso(s) no sistema`}
+        variant="gold"
+        action={
+          <Link
+            href="/admin/reembolsos/novo"
+            className="inline-flex items-center gap-2 gradient-brand text-white font-semibold px-4 py-2.5 rounded-xl text-sm shadow-md shadow-brand-blue/25 hover:shadow-lg transition-all"
+          >
+            <Plus size={16} /> Novo Reembolso
+          </Link>
+        }
+      />
 
       <div className="space-y-3">
         {reimbursements.map((r) => (
           <Link key={r.id} href={`/admin/reembolsos/${r.id}`}
-            className="card p-5 flex items-center gap-4 hover:shadow-md transition-all group">
+            className="card-elevated p-5 flex items-center gap-4 hover:shadow-md transition-all group">
             <div className="flex-1 grid sm:grid-cols-5 gap-3 items-center">
               <div>
                 <p className="font-bold text-dark text-sm">{r.technician.fullName}</p>
@@ -72,7 +76,7 @@ export default async function AdminReembolsosPage() {
         ))}
 
         {reimbursements.length === 0 && (
-          <div className="card p-10 text-center">
+          <div className="card-elevated p-10 text-center">
             <Receipt size={36} className="text-slate-200 mx-auto mb-3" />
             <p className="text-slate-400 font-medium">Nenhum reembolso criado ainda.</p>
           </div>

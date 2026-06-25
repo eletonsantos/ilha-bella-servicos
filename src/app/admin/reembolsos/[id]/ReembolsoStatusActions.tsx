@@ -38,7 +38,7 @@ export default function ReembolsoStatusActions({ reimbursementId, currentStatus,
   }
 
   return (
-    <div className="card p-6 space-y-4">
+    <div className="card-elevated p-6 space-y-4">
       <h2 className="font-bold text-dark">Ações</h2>
       {error && <p className="text-red-600 text-sm">{error}</p>}
       <div className="flex flex-wrap gap-3">

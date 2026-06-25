@@ -49,7 +49,7 @@ export default function DeleteFechamentoButton({ closingId, competence, techName
   }
 
   return (
-    <div className="card p-6 border-l-4 border-red-400">
+    <div className="card-elevated p-6 border-l-4 border-red-400">
       <h2 className="font-bold text-dark mb-1">Zona de perigo</h2>
       <p className="text-sm text-slate-500 mb-4">
         A exclusão remove permanentemente este fechamento, incluindo nota fiscal, contestação

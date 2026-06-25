@@ -49,7 +49,7 @@ export default function CnpjInfoCard({ cpfCnpj }: Props) {
   const ativa = String(data?.situacao_cadastral ?? '').toUpperCase() === 'ATIVA'
 
   return (
-    <div className="card p-6 border-l-4 border-brand-blue">
+    <div className="card-elevated p-6 border-l-4 border-brand-blue">
       <div className="flex items-center gap-2 mb-4">
         <Building2 size={16} className="text-brand-blue" />
         <h2 className="font-bold text-dark text-sm">Dados da Empresa (Receita Federal)</h2>

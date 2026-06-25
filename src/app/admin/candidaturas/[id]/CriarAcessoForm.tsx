@@ -116,7 +116,7 @@ export default function CriarAcessoForm({ applicationId, cpfCnpj, fullName, phon
 
   if (success) {
     return (
-      <div className="card p-6 border-l-4 border-green-400">
+      <div className="card-elevated p-6 border-l-4 border-green-400">
         <div className="flex items-center gap-3">
           <CheckCircle size={20} className="text-green-500" />
           <div>
@@ -134,7 +134,7 @@ export default function CriarAcessoForm({ applicationId, cpfCnpj, fullName, phon
   const labelClass = 'block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5'
 
   return (
-    <div className="card p-6 border-l-4 border-indigo-400">
+    <div className="card-elevated p-6 border-l-4 border-indigo-400">
       <div className="flex items-center gap-2 mb-4">
         <UserCheck size={18} className="text-indigo-600" />
         <h2 className="font-bold text-dark">Cadastrar técnico com dados da candidatura</h2>

@@ -44,7 +44,7 @@ export default async function AdminReembolsoDetailPage({ params }: Props) {
       </Link>
 
       {/* Header */}
-      <div className="card p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="card-elevated p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-extrabold text-dark flex items-center gap-2">
             <Receipt size={18} className="text-brand-blue" /> {r.technician.fullName}
@@ -66,7 +66,7 @@ export default async function AdminReembolsoDetailPage({ params }: Props) {
       </div>
 
       {/* Itens */}
-      <div className="card p-6">
+      <div className="card-elevated p-6">
         <h2 className="font-bold text-dark mb-4">Itens de reembolso</h2>
         <div className="space-y-2">
           {r.items.map(item => (
@@ -89,7 +89,7 @@ export default async function AdminReembolsoDetailPage({ params }: Props) {
       </div>
 
       {/* PIX */}
-      <div className="card p-6">
+      <div className="card-elevated p-6">
         <h2 className="font-bold text-dark mb-3">PIX do técnico (cadastrado)</h2>
         <div className="flex items-center gap-3 bg-slate-50 rounded-xl px-4 py-3">
           <div className="flex-1">
@@ -104,7 +104,7 @@ export default async function AdminReembolsoDetailPage({ params }: Props) {
       </div>
 
       {/* Comprovantes */}
-      <div className="card p-6 space-y-4">
+      <div className="card-elevated p-6 space-y-4">
         <h2 className="font-bold text-dark">Comprovantes</h2>
         {r.attachments.length === 0 ? (
           <p className="text-sm text-slate-400">Nenhum comprovante anexado ainda.</p>
@@ -134,7 +134,7 @@ export default async function AdminReembolsoDetailPage({ params }: Props) {
 
       {/* Contrato assinado */}
       {r.contractSignedAt && (
-        <div className="card p-6">
+        <div className="card-elevated p-6">
           <h2 className="font-bold text-dark mb-3 flex items-center gap-2">
             <Shield size={16} className="text-indigo-600" /> Contrato assinado
           </h2>
@@ -153,7 +153,7 @@ export default async function AdminReembolsoDetailPage({ params }: Props) {
 
       {/* Notas admin */}
       {r.adminNotes && (
-        <div className="card p-6 border-l-4 border-brand-blue">
+        <div className="card-elevated p-6 border-l-4 border-brand-blue">
           <h2 className="font-bold text-dark mb-2">Notas internas</h2>
           <p className="text-sm text-slate-600 leading-relaxed">{r.adminNotes}</p>
         </div>

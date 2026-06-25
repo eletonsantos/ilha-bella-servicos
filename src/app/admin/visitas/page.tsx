@@ -163,22 +163,22 @@ export default async function VisitasPage({ searchParams }: PageProps) {
 
       {/* Cards — métricas principais */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="card p-5 border-l-4 border-brand-blue">
+        <div className="card-elevated p-5 border-l-4 border-brand-blue">
           <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">Visualizações</p>
           <p className="text-2xl font-extrabold text-brand-blue">{totalViews.toLocaleString('pt-BR')}</p>
           <p className="text-xs text-slate-400 mt-1">últimos {days} dias</p>
         </div>
-        <div className="card p-5 border-l-4 border-green-400">
+        <div className="card-elevated p-5 border-l-4 border-green-400">
           <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">WhatsApp</p>
           <p className="text-2xl font-extrabold text-green-600">{totalWA.toLocaleString('pt-BR')}</p>
           <p className="text-xs text-slate-400 mt-1">cliques</p>
         </div>
-        <div className="card p-5 border-l-4 border-purple-400">
+        <div className="card-elevated p-5 border-l-4 border-purple-400">
           <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">Formulários</p>
           <p className="text-2xl font-extrabold text-purple-600">{totalForms.toLocaleString('pt-BR')}</p>
           <p className="text-xs text-slate-400 mt-1">enviados</p>
         </div>
-        <div className="card p-5 border-l-4 border-amber-400">
+        <div className="card-elevated p-5 border-l-4 border-amber-400">
           <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-2">Total eventos</p>
           <p className="text-2xl font-extrabold text-amber-600">{totalEvents.toLocaleString('pt-BR')}</p>
           <p className="text-xs text-slate-400 mt-1">todos os tipos</p>
@@ -186,7 +186,7 @@ export default async function VisitasPage({ searchParams }: PageProps) {
       </div>
 
       {/* Gráfico por dia */}
-      <div className="card p-5">
+      <div className="card-elevated p-5">
         <h2 className="font-bold text-dark text-sm mb-4 flex items-center gap-2">
           <TrendingUp size={14} className="text-brand-blue" /> Eventos por dia
         </h2>
@@ -220,7 +220,7 @@ export default async function VisitasPage({ searchParams }: PageProps) {
       </div>
 
       {/* Gráfico de cidades */}
-      <div className="card p-5">
+      <div className="card-elevated p-5">
         <h2 className="font-bold text-dark text-sm mb-4 flex items-center gap-2">
           <MapPin size={14} className="text-brand-blue" /> Cidades que mais acessaram
         </h2>
@@ -260,7 +260,7 @@ export default async function VisitasPage({ searchParams }: PageProps) {
 
       <div className="grid sm:grid-cols-2 gap-4">
         {/* Dispositivos */}
-        <div className="card p-5">
+        <div className="card-elevated p-5">
           <h2 className="font-bold text-dark text-sm mb-4">Dispositivos</h2>
           {totalDevices === 0 ? (
             <p className="text-slate-400 text-sm text-center py-4">Sem dados ainda.</p>
@@ -290,7 +290,7 @@ export default async function VisitasPage({ searchParams }: PageProps) {
         </div>
 
         {/* Eventos por tipo */}
-        <div className="card p-5">
+        <div className="card-elevated p-5">
           <h2 className="font-bold text-dark text-sm mb-4">Eventos por tipo</h2>
           {byEvent.length === 0 ? (
             <p className="text-slate-400 text-sm text-center py-4">Sem dados ainda.</p>
@@ -316,7 +316,7 @@ export default async function VisitasPage({ searchParams }: PageProps) {
       </div>
 
       {/* Páginas mais visitadas */}
-      <div className="card p-5">
+      <div className="card-elevated p-5">
         <h2 className="font-bold text-dark text-sm mb-4 flex items-center gap-2">
           <Eye size={14} className="text-brand-blue" /> Páginas mais visitadas
         </h2>

@@ -105,7 +105,7 @@ export default function EditarCandidaturaForm({ app }: { app: Candidatura }) {
 
   if (!editing) {
     return (
-      <div className="card p-6">
+      <div className="card-elevated p-6">
         <div className="flex items-center justify-between mb-2">
           <h2 className="font-bold text-dark">Editar dados da candidatura</h2>
           {success && (
@@ -125,7 +125,7 @@ export default function EditarCandidaturaForm({ app }: { app: Candidatura }) {
   }
 
   return (
-    <div className="card p-6">
+    <div className="card-elevated p-6">
       <h2 className="font-bold text-dark mb-5">Editar dados da candidatura</h2>
 
       <form onSubmit={handleSubmit} className="space-y-5">

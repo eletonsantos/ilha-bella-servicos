@@ -147,7 +147,7 @@ export default function ComunicadoClient({ technicians }: Props) {
   if (step === 'done' && sendResult) {
     return (
       <div className="space-y-4">
-        <div className="card p-6 border-l-4 border-green-400">
+        <div className="card-elevated p-6 border-l-4 border-green-400">
           <div className="flex items-center gap-3 mb-3">
             <CheckCircle size={22} className="text-green-500" />
             <p className="font-bold text-dark">Comunicado enviado com sucesso!</p>
@@ -169,7 +169,7 @@ export default function ComunicadoClient({ technicians }: Props) {
   if (step === 'error') {
     return (
       <div className="space-y-4">
-        <div className="card p-6 border-l-4 border-red-400">
+        <div className="card-elevated p-6 border-l-4 border-red-400">
           <div className="flex items-center gap-3 mb-2">
             <AlertCircle size={20} className="text-red-500" />
             <p className="font-bold text-dark">Erro ao enviar</p>
@@ -187,7 +187,7 @@ export default function ComunicadoClient({ technicians }: Props) {
   // ── SENDING ────────────────────────────────────────────────────────────────
   if (step === 'sending') {
     return (
-      <div className="card p-8 flex flex-col items-center gap-4 text-center">
+      <div className="card-elevated p-8 flex flex-col items-center gap-4 text-center">
         <Loader2 size={32} className="animate-spin text-brand-blue" />
         <div>
           <p className="font-bold text-dark">Enviando comunicado...</p>
@@ -203,7 +203,7 @@ export default function ComunicadoClient({ technicians }: Props) {
     <div className="space-y-6">
 
       {/* ── STEP 1: DESTINATÁRIOS + PROMPT ── */}
-      <div className="card p-6 space-y-5">
+      <div className="card-elevated p-6 space-y-5">
 
         {/* Destinatários */}
         <div>
@@ -404,7 +404,7 @@ export default function ComunicadoClient({ technicians }: Props) {
 
       {/* ── STEP 2: PREVIEW ── */}
       {(step === 'preview' || step === 'confirm') && (
-        <div className="card p-6 space-y-4">
+        <div className="card-elevated p-6 space-y-4">
           <div className="flex items-center gap-2">
             <Eye size={18} className="text-slate-500" />
             <h2 className="font-bold text-dark">Preview do e-mail</h2>
@@ -445,7 +445,7 @@ export default function ComunicadoClient({ technicians }: Props) {
 
       {/* ── STEP 3: CONFIRM ── */}
       {step === 'confirm' && (
-        <div className="card p-6 space-y-4 border-l-4 border-amber-400">
+        <div className="card-elevated p-6 space-y-4 border-l-4 border-amber-400">
           <div className="flex items-center gap-3">
             <Users size={18} className="text-amber-500" />
             <div>

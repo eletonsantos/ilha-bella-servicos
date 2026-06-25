@@ -37,7 +37,7 @@ export default function CandidaturaStatusActions({ applicationId, currentStatus 
   ].filter(a => a.show.includes(currentStatus))
 
   return (
-    <div className="card p-6 space-y-4">
+    <div className="card-elevated p-6 space-y-4">
       <h2 className="font-bold text-dark">Ações</h2>
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1.5">

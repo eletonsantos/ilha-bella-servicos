@@ -93,7 +93,7 @@ export default async function AdminContratoDetalhe({ params }: Props) {
       </div>
 
       {/* Header */}
-      <div className="card p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="card-elevated p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-green-50 border border-green-200 flex items-center justify-center flex-shrink-0">
             {tech.masterContractSignedAt
@@ -124,7 +124,7 @@ export default async function AdminContratoDetalhe({ params }: Props) {
         </h2>
 
         {tech.masterContractSignedAt ? (
-          <div className="card p-6 space-y-5 border-l-4 border-green-400">
+          <div className="card-elevated p-6 space-y-5 border-l-4 border-green-400">
             {/* Dados de assinatura */}
             <div className="flex flex-wrap gap-4">
               <div className="flex items-center gap-2 text-xs bg-green-50 text-green-700 px-3 py-1.5 rounded-full font-semibold">
@@ -216,7 +216,7 @@ export default async function AdminContratoDetalhe({ params }: Props) {
             )}
           </div>
         ) : (
-          <div className="card p-5 flex items-center gap-3 text-sm text-amber-700 bg-amber-50 border border-amber-200">
+          <div className="card-elevated p-5 flex items-center gap-3 text-sm text-amber-700 bg-amber-50 border border-amber-200">
             <AlertCircle size={16} />
             Contrato-Mãe ainda não assinado por este prestador.
           </div>
@@ -237,7 +237,7 @@ export default async function AdminContratoDetalhe({ params }: Props) {
               const assinatura = (t.contractData as Record<string, unknown> | null)?.assinatura as Record<string, unknown> | undefined
               const auditoria  = (t.contractData as Record<string, unknown> | null)?.auditoria as Record<string, unknown> | undefined
               return (
-                <div key={t.closingId} className="card p-5 border-l-4 border-brand-blue/40 space-y-3">
+                <div key={t.closingId} className="card-elevated p-5 border-l-4 border-brand-blue/40 space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <CheckCircle2 size={14} className="text-green-500" />
@@ -287,7 +287,7 @@ export default async function AdminContratoDetalhe({ params }: Props) {
             })}
           </div>
         ) : (
-          <div className="card p-5 text-sm text-slate-400 text-center">
+          <div className="card-elevated p-5 text-sm text-slate-400 text-center">
             Nenhum Termo de Fechamento assinado ainda.
           </div>
         )}

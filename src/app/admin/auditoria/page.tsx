@@ -118,7 +118,7 @@ export default async function AuditoriaPage({ searchParams }: PageProps) {
       </div>
 
       {/* Filtros */}
-      <form className="card p-4 flex flex-wrap gap-3 items-end" method="GET">
+      <form className="card-elevated p-4 flex flex-wrap gap-3 items-end" method="GET">
         <div className="flex flex-col gap-1">
           <label className="text-xs font-medium text-slate-500">Evento</label>
           <select name="event" defaultValue={event ?? ''} className="input-field py-1.5 text-sm min-w-[140px]">

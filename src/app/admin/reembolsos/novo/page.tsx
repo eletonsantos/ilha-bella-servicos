@@ -138,7 +138,7 @@ export default function NovoReembolsoPage() {
         )}
 
         {/* Técnico */}
-        <div className="card p-6 space-y-4">
+        <div className="card-elevated p-6 space-y-4">
           <h2 className="font-bold text-dark">Técnico</h2>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">Selecione o técnico *</label>
@@ -168,7 +168,7 @@ export default function NovoReembolsoPage() {
         </div>
 
         {/* Itens */}
-        <div className="card p-6 space-y-4">
+        <div className="card-elevated p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-bold text-dark">Itens de reembolso</h2>
             <button type="button" onClick={addItem}
@@ -232,7 +232,7 @@ export default function NovoReembolsoPage() {
         </div>
 
         {/* Comprovantes */}
-        <div className="card p-6 space-y-4">
+        <div className="card-elevated p-6 space-y-4">
           <h2 className="font-bold text-dark">Comprovantes</h2>
           <p className="text-sm text-slate-500">Faça upload das notas fiscais, recibos ou fotos dos comprovantes (PDF, JPG ou PNG, máx. 10MB cada).</p>
 

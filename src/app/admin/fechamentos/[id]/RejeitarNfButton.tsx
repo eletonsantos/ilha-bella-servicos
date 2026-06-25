@@ -49,7 +49,7 @@ export default function RejeitarNfButton({ closingId, currentStatus, invoiceNumb
   }
 
   return (
-    <div className="card p-6 space-y-4 border-red-100">
+    <div className="card-elevated p-6 space-y-4 border-red-100">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <AlertTriangle size={18} className="text-red-500" />

@@ -24,7 +24,7 @@ export default function TecnicoDetailError({
         <ArrowLeft size={16} /> Voltar para técnicos
       </Link>
 
-      <div className="card p-8 text-center space-y-4">
+      <div className="card-elevated p-8 text-center space-y-4">
         <div className="flex justify-center">
           <AlertTriangle size={40} className="text-amber-400" />
         </div>

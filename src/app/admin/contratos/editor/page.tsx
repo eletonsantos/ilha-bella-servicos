@@ -181,7 +181,7 @@ export default function ContratosEditorPage() {
           )}
 
           {/* Editor */}
-          <div className="card p-6 space-y-4">
+          <div className="card-elevated p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex-1 mr-4">
                 <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide block mb-1">
@@ -265,7 +265,7 @@ export default function ContratosEditorPage() {
 
           {/* Lista de variáveis disponíveis */}
           {current?.variables && current.variables.length > 0 && (
-            <div className="card p-6">
+            <div className="card-elevated p-6">
               <h3 className="text-sm font-bold text-dark mb-4 flex items-center gap-2">
                 <FileSignature size={15} className="text-brand-blue" />
                 Variáveis disponíveis para {tabs.find(t => t.type === selected)?.label}

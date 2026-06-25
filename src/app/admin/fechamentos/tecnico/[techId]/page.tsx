@@ -45,7 +45,7 @@ export default async function AdminFechamentosTecnicoPage({ params }: Props) {
       </Link>
 
       {/* Header */}
-      <div className="card p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="card-elevated p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-full bg-brand-blue/10 flex items-center justify-center flex-shrink-0 font-bold text-brand-blue text-xl">
             {tech.fullName.charAt(0).toUpperCase()}
@@ -70,24 +70,24 @@ export default async function AdminFechamentosTecnicoPage({ params }: Props) {
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="card p-4 text-center">
+        <div className="card-elevated p-4 text-center">
           <p className="text-2xl font-extrabold text-dark">{closings.length}</p>
           <p className="text-slate-400 text-xs mt-0.5">Total fechamentos</p>
         </div>
-        <div className="card p-4 text-center">
+        <div className="card-elevated p-4 text-center">
           <p className="text-xl font-extrabold text-dark">
             R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
           </p>
           <p className="text-slate-400 text-xs mt-0.5">Valor acumulado</p>
         </div>
-        <div className="card p-4 text-center">
+        <div className="card-elevated p-4 text-center">
           <div className="flex items-center justify-center gap-1 text-green-600">
             <CheckCircle2 size={16} />
             <p className="text-2xl font-extrabold">{paidCount}</p>
           </div>
           <p className="text-slate-400 text-xs mt-0.5">Pagos</p>
         </div>
-        <div className="card p-4 text-center">
+        <div className="card-elevated p-4 text-center">
           <div className="flex items-center justify-center gap-1 text-amber-500">
             <Clock size={16} />
             <p className="text-2xl font-extrabold">{pendingNf}</p>
@@ -113,7 +113,7 @@ export default async function AdminFechamentosTecnicoPage({ params }: Props) {
             <Link
               key={closing.id}
               href={`/admin/fechamentos/${closing.id}`}
-              className="card p-5 flex items-center gap-4 hover:shadow-md transition-all group"
+              className="card-elevated p-5 flex items-center gap-4 hover:shadow-md transition-all group"
             >
               <div className="flex-1 grid sm:grid-cols-5 gap-3 items-center">
                 <div>
@@ -164,7 +164,7 @@ export default async function AdminFechamentosTecnicoPage({ params }: Props) {
           ))}
         </div>
       ) : (
-        <div className="card p-10 text-center">
+        <div className="card-elevated p-10 text-center">
           <FileText size={36} className="text-slate-200 mx-auto mb-3" />
           <p className="text-slate-400 font-medium">Nenhum fechamento para este técnico.</p>
         </div>

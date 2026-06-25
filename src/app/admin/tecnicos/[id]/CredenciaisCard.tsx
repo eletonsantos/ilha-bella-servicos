@@ -58,7 +58,7 @@ export default function CredenciaisCard({ techId, cpf }: Props) {
   }
 
   return (
-    <div className="card p-6 space-y-5">
+    <div className="card-elevated p-6 space-y-5">
       <div className="flex items-center gap-2">
         <KeyRound size={16} className="text-brand-blue" />
         <h2 className="text-base font-bold text-dark">Credenciais de Acesso</h2>

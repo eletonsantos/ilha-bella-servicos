@@ -89,7 +89,7 @@ export default function NovoTecnicoForm() {
 
   if (success) {
     return (
-      <div className="card p-6 border-l-4 border-green-400">
+      <div className="card-elevated p-6 border-l-4 border-green-400">
         <div className="flex items-center gap-3">
           <CheckCircle size={20} className="text-green-500" />
           <div>
@@ -102,7 +102,7 @@ export default function NovoTecnicoForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="card p-6 space-y-5">
+    <form onSubmit={handleSubmit} className="card-elevated p-6 space-y-5">
       {error && (
         <p className="text-red-600 text-sm bg-red-50 px-4 py-3 rounded-xl">{error}</p>
       )}

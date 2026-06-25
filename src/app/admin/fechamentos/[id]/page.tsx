@@ -58,7 +58,7 @@ export default async function AdminFechamentoDetailPage({ params }: Props) {
       </Link>
 
       {/* Header */}
-      <div className="card p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="card-elevated p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-extrabold text-dark">{closing.technician.fullName}</h1>
           <p className="text-slate-400 text-sm mt-0.5">{closing.technician.user.email}</p>
@@ -89,7 +89,7 @@ export default async function AdminFechamentoDetailPage({ params }: Props) {
       </div>
 
       {/* Dados do fechamento — editável */}
-      <div className="card p-6">
+      <div className="card-elevated p-6">
         <EditarFechamentoWrapper
           closing={{
             id:                   closing.id,
@@ -143,7 +143,7 @@ export default async function AdminFechamentoDetailPage({ params }: Props) {
 
       {/* Relatório PDF */}
       {closing.reportFilePath && (
-        <div className="card p-6 space-y-4">
+        <div className="card-elevated p-6 space-y-4">
           <h2 className="font-bold text-dark">Relatório de Serviços</h2>
           <div className="flex items-center gap-3 bg-slate-50 rounded-xl px-4 py-3">
             <FileText size={20} className="text-brand-blue flex-shrink-0" />
@@ -168,7 +168,7 @@ export default async function AdminFechamentoDetailPage({ params }: Props) {
       )}
 
       {/* Nota Fiscal do Técnico */}
-      <div className="card p-6">
+      <div className="card-elevated p-6">
         <h2 className="font-bold text-dark mb-3">Nota Fiscal do Técnico</h2>
         {closing.invoice ? (
           <div className="flex items-center gap-3 bg-green-50 rounded-xl px-4 py-3">
@@ -212,7 +212,7 @@ export default async function AdminFechamentoDetailPage({ params }: Props) {
       <ClosingStatusActions closingId={closing.id} currentStatus={closing.status} />
 
       {/* Histórico de eventos */}
-      <div className="card p-6">
+      <div className="card-elevated p-6">
         <h2 className="font-bold text-dark mb-4">Histórico de eventos</h2>
         <ClosingTimeline events={closing.events} showEmailDetails={true} />
       </div>
