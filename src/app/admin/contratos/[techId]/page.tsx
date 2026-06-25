@@ -5,7 +5,7 @@ import Link from 'next/link'
 import {
   ArrowLeft, FileSignature, ShieldCheck, Building2,
   Calendar, Hash, Globe, CheckCircle2, AlertCircle,
-  FileText, Pencil, type LucideIcon,
+  FileText, Pencil, Download, type LucideIcon,
 } from 'lucide-react'
 import { CONTRACT_VERSION_LABELS, CONTRATANTE } from '@/lib/contrato-mae'
 import { PROFILE_STATUS_LABELS, PROFILE_STATUS_COLORS } from '@/lib/constants-tecnico'
@@ -118,10 +118,20 @@ export default async function AdminContratoDetalhe({ params }: Props) {
 
       {/* ── CONTRATO-MÃE ────────────────────────────────────────────────────── */}
       <section className="space-y-4">
-        <h2 className="text-base font-bold text-dark flex items-center gap-2">
-          <ShieldCheck size={16} className="text-green-600" />
-          Contrato-Mãe
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-bold text-dark flex items-center gap-2">
+            <ShieldCheck size={16} className="text-green-600" />
+            Contrato-Mãe
+          </h2>
+          {tech.masterContractSignedAt && (
+            <Link
+              href={`/admin/contratos/${tech.id}/imprimir`}
+              className="inline-flex items-center gap-2 gradient-brand text-white text-sm font-semibold px-4 py-2 rounded-xl shadow-md shadow-brand-blue/25 hover:shadow-lg transition-all"
+            >
+              <Download size={15} /> Baixar PDF
+            </Link>
+          )}
+        </div>
 
         {tech.masterContractSignedAt ? (
           <div className="card-elevated p-6 space-y-5 border-l-4 border-green-400">

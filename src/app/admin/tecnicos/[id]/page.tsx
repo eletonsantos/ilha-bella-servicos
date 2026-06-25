@@ -2,7 +2,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, ShieldCheck, ShieldOff, AlertCircle, FileText, User } from 'lucide-react'
+import { ArrowLeft, ShieldCheck, ShieldOff, AlertCircle, FileText, User, Download } from 'lucide-react'
 import {
   PROFILE_STATUS_LABELS,
   PROFILE_STATUS_COLORS,
@@ -201,9 +201,17 @@ export default async function AdminTecnicoDetailPage({ params }: Props) {
           {/* Contrato-Mãe */}
           {tech.masterContractSignedAt ? (
             <div className="bg-green-50 border border-green-200 rounded-xl p-4 space-y-1">
-              <p className="text-xs font-semibold text-green-600 uppercase tracking-wide flex items-center gap-1">
-                <FileText size={12} /> Contrato-Mãe assinado
-              </p>
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs font-semibold text-green-600 uppercase tracking-wide flex items-center gap-1">
+                  <FileText size={12} /> Contrato-Mãe assinado
+                </p>
+                <Link
+                  href={`/admin/contratos/${tech.id}/imprimir`}
+                  className="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+                >
+                  <Download size={12} /> Baixar PDF
+                </Link>
+              </div>
               <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs text-slate-600 mt-1">
                 <span><b>Versão:</b> {CONTRACT_VERSION_LABELS[tech.masterContractVersion ?? ''] ?? tech.masterContractVersion}</span>
                 <span><b>Data:</b> {new Date(tech.masterContractSignedAt).toLocaleString('pt-BR')}</span>

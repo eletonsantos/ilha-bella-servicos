@@ -186,6 +186,15 @@
     .animate-rise { animation: none; }
   }
 
+  /* Impressão / Salvar PDF — esconde navegação e fundo */
+  @media print {
+    nav, .print\:hidden { display: none !important; }
+    /* barra inferior fixa do mobile */
+    .fixed.bottom-0 { display: none !important; }
+    body, .bg-portal { background: #fff !important; }
+    main { padding: 0 !important; }
+  }
+
   /* Breakpoint extra pequeno */
   @media (min-width: 480px) {
     .xs\:block { display: block; }
