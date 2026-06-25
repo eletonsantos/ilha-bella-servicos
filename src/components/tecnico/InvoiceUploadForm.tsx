@@ -93,13 +93,15 @@ export default function InvoiceUploadForm({
     }
   }
 
-  // Envio via Vercel Blob (browser → blob direto) — usado SÓ para arquivos
-  // grandes (> 4 MB), que estouram o limite da função serverless.
+  // Envio via Vercel Blob (browser → blob direto). multipart: true envia o
+  // arquivo em pedaços — muito mais resiliente em conexões de celular e para
+  // arquivos grandes (retoma pedaços em vez de falhar o upload inteiro).
   async function sendViaBlob(signedName: string, signedDocument: string, contractData: object) {
     const blob = await upload(file!.name, file!, {
       access: 'public',
       handleUploadUrl: `/api/tecnico/fechamentos/${closingId}/invoice/blob-token`,
       contentType: file!.type || 'application/octet-stream',
+      multipart: true,
     })
     const res = await fetch(`/api/tecnico/fechamentos/${closingId}/invoice`, {
       method: 'POST',
@@ -125,8 +127,9 @@ export default function InvoiceUploadForm({
   }
 
   // Segundo passo: após assinar o contrato, envia.
-  // Estratégia: arquivos pequenos (≤4 MB, caso comum dos PDFs) vão SEMPRE pela
-  // função serverless — confiável no celular. Só arquivos grandes usam o Blob.
+  // Estratégia à prova de falhas: tenta o caminho mais adequado ao tamanho e,
+  // se falhar, tenta automaticamente o OUTRO caminho. Assim, qualquer um que
+  // funcione na rede do técnico resolve.
   async function onContractConfirm(signedName: string, signedDocument: string, contractData: object) {
     if (!pendingData || !file) return
     setShowContrato(false)
@@ -134,26 +137,39 @@ export default function InvoiceUploadForm({
     setError('')
 
     const SERVER_LIMIT = 4 * 1024 * 1024 // limite seguro do corpo da serverless
+    const small = file.size <= SERVER_LIMIT
 
-    try {
-      if (file.size <= SERVER_LIMIT) {
-        // Caminho principal — confiável no celular
-        await sendViaServer(signedName, signedDocument, contractData)
-      } else {
-        // Arquivo grande — única opção é o Blob direto
-        await sendViaBlob(signedName, signedDocument, contractData)
+    // Ordem de tentativa: arquivo pequeno → serverless primeiro; grande → blob primeiro
+    const attempts: Array<() => Promise<void>> = small
+      ? [
+          () => sendViaServer(signedName, signedDocument, contractData),
+          () => sendViaBlob(signedName, signedDocument, contractData),
+        ]
+      : [
+          () => sendViaBlob(signedName, signedDocument, contractData),
+          () => sendViaServer(signedName, signedDocument, contractData),
+        ]
+
+    const errors: string[] = []
+    for (const attempt of attempts) {
+      try {
+        await attempt()
+        setSuccess(true)
+        setTimeout(() => router.refresh(), 1500)
+        setLoading(false)
+        return
+      } catch (err: unknown) {
+        errors.push(err instanceof Error ? err.message : String(err))
       }
-      setSuccess(true)
-      setTimeout(() => router.refresh(), 1500)
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Erro ao enviar. Tente novamente.'
-      const friendly = /failed to fetch|networkerror|load failed|timeout|413/i.test(msg)
-        ? 'Falha ao enviar o arquivo. Verifique sua internet e tente novamente. Se a NF for muito pesada, tente reduzir o tamanho do arquivo (ideal abaixo de 4 MB).'
-        : msg
-      setError(friendly)
-    } finally {
-      setLoading(false)
     }
+
+    // Os dois caminhos falharam — mostra o tamanho e o erro real (diagnóstico)
+    const sizeMb = (file.size / (1024 * 1024)).toFixed(1)
+    setError(
+      `Não foi possível enviar (arquivo de ${sizeMb} MB). Verifique a internet e tente de novo. ` +
+      `Se persistir, tente um arquivo menor. [detalhe: ${errors.join(' | ').slice(0, 200)}]`
+    )
+    setLoading(false)
   }
 
   const inputClass = "w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent"
@@ -232,7 +248,9 @@ export default function InvoiceUploadForm({
               <p className="text-sm font-medium text-slate-600 mt-2">
                 {file ? file.name : 'Clique para selecionar'}
               </p>
-              <p className="text-xs text-slate-400 mt-1">PDF, JPG ou PNG — máx. 10MB</p>
+              {file
+                ? <p className="text-xs text-brand-blue font-semibold mt-1">{(file.size / (1024 * 1024)).toFixed(1)} MB selecionado</p>
+                : <p className="text-xs text-slate-400 mt-1">PDF, JPG ou PNG — máx. 15 MB</p>}
               <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileChange} className="hidden" />
             </label>
           </div>
