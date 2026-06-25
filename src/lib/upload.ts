@@ -34,6 +34,19 @@ async function validateMagicBytes(file: File): Promise<void> {
   throw new Error('Formato de arquivo não permitido.')
 }
 
+/** Detecta o MIME real pelos magic bytes, ignorando o tipo declarado (que no
+ *  celular pode vir vazio/genérico). Retorna null se não reconhecer. */
+async function detectMimeFromMagic(file: File): Promise<string | null> {
+  const header = await file.slice(0, 12).arrayBuffer()
+  const buf = Buffer.from(header)
+  for (const sig of Object.values(FILE_SIGNATURES)) {
+    if (sig.magic.some(bytes => bytes.every((b, i) => buf[i] === b))) {
+      return sig.mimes[0]
+    }
+  }
+  return null
+}
+
 function validateFile(file: File, pdfOnly = false) {
   if (file.size > MAX_FILE_SIZE) throw new Error('Arquivo muito grande. Máximo 10MB.')
   const allowed = pdfOnly ? ['application/pdf'] : ALLOWED_MIMES
@@ -66,15 +79,23 @@ async function toLocal(dir: string, fileName: string, file: File): Promise<strin
 
 // ── Nota Fiscal ───────────────────────────────────────────────────────────────
 export async function saveInvoiceFile(file: File, technicianId: string, closingId: string): Promise<UploadResult> {
-  validateFile(file)
-  await validateMagicBytes(file)
-  const ext  = getExt(file.type)
+  if (file.size > MAX_FILE_SIZE) throw new Error('Arquivo muito grande. Máximo 10MB.')
+
+  // Determina o MIME efetivo: confia no declarado se for válido, senão detecta
+  // pelos magic bytes (cobre PDFs do Drive no celular que vêm sem MIME).
+  const detected = await detectMimeFromMagic(file)
+  const effectiveMime =
+    ALLOWED_MIMES.includes(file.type) ? file.type
+    : detected ?? null
+  if (!effectiveMime) throw new Error('Formato inválido. Use PDF, JPG ou PNG.')
+
+  const ext  = getExt(effectiveMime)
   const name = safeName(`inv_${closingId}`, ext)
   const dir  = `invoices/${technicianId}`
   const filePath = process.env.BLOB_READ_WRITE_TOKEN
     ? await toBlob(`${dir}/${name}`, file)
     : await toLocal(dir, name, file)
-  return { filePath, fileName: name, fileSize: file.size, mimeType: file.type }
+  return { filePath, fileName: name, fileSize: file.size, mimeType: effectiveMime }
 }
 
 // ── Tabela de valores ─────────────────────────────────────────────────────────

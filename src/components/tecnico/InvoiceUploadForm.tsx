@@ -53,9 +53,15 @@ export default function InvoiceUploadForm({
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]
     if (!f) return
-    if (f.size > 10 * 1024 * 1024) { setError('Arquivo muito grande. Máximo 10MB.'); return }
-    const allowed = ['application/pdf', 'image/jpeg', 'image/png']
-    if (!allowed.includes(f.type)) { setError('Formato inválido. Use PDF, JPG ou PNG.'); return }
+    if (f.size > 15 * 1024 * 1024) { setError('Arquivo muito grande. Máximo 15 MB.'); return }
+    // No celular (ex: PDF do Google Drive) o MIME às vezes vem vazio ou genérico.
+    // Validamos por MIME conhecido OU pela extensão do arquivo.
+    const allowedMimes = ['application/pdf', 'image/jpeg', 'image/png', 'application/octet-stream', '']
+    const okExt = /\.(pdf|jpe?g|png)$/i.test(f.name)
+    if (!allowedMimes.includes(f.type) && !okExt) {
+      setError('Formato inválido. Use PDF, JPG ou PNG.')
+      return
+    }
     setError('')
     setFile(f)
   }
@@ -67,19 +73,41 @@ export default function InvoiceUploadForm({
     setShowContrato(true)
   }
 
+  // Envio via função serverless (multipart) — caminho confiável para arquivos
+  // até ~4 MB. Usado como fallback quando o upload direto ao Blob falha.
+  async function sendViaServer(signedName: string, signedDocument: string, contractData: object) {
+    const fd = new FormData()
+    fd.append('file', file!)
+    fd.append('invoiceNumber', pendingData!.invoiceNumber)
+    fd.append('competence', pendingData!.competence)
+    fd.append('value', pendingData!.value)
+    if (pendingData!.observations) fd.append('observations', pendingData!.observations)
+    fd.append('contractSignedName', signedName)
+    fd.append('contractSignedDocument', signedDocument)
+    fd.append('contractData', JSON.stringify(contractData))
+
+    const res = await fetch(`/api/tecnico/fechamentos/${closingId}/invoice`, { method: 'POST', body: fd })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.error || 'Erro ao enviar NF')
+    }
+  }
+
   // Segundo passo: após assinar o contrato, envia
   async function onContractConfirm(signedName: string, signedDocument: string, contractData: object) {
     if (!pendingData || !file) return
     setShowContrato(false)
     setLoading(true)
     setError('')
+
+    const SERVER_LIMIT = 4 * 1024 * 1024 // ~limite de corpo da serverless function
+
     try {
-      // 1. Envia o arquivo direto ao Vercel Blob (sem passar pela serverless
-      //    function — contorna o limite de ~4,5 MB que causava "Failed to fetch")
+      // 1. Tenta enviar o arquivo direto ao Vercel Blob (suporta arquivos grandes)
       const blob = await upload(file.name, file, {
         access: 'public',
         handleUploadUrl: `/api/tecnico/fechamentos/${closingId}/invoice/blob-token`,
-        contentType: file.type,
+        contentType: file.type || 'application/octet-stream',
       })
 
       // 2. Registra a NF enviando apenas os metadados (JSON pequeno)
@@ -90,7 +118,7 @@ export default function InvoiceUploadForm({
           blobUrl:                blob.url,
           fileName:               file.name,
           fileSize:               file.size,
-          mimeType:               file.type,
+          mimeType:               file.type || 'application/pdf',
           invoiceNumber:          pendingData.invoiceNumber,
           competence:             pendingData.competence,
           value:                  pendingData.value,
@@ -106,11 +134,25 @@ export default function InvoiceUploadForm({
       }
       setSuccess(true)
       setTimeout(() => router.refresh(), 1500)
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Erro ao enviar. Tente novamente.'
-      // "Failed to fetch" e afins → mensagem clara para o técnico
-      const friendly = /failed to fetch|networkerror|load failed/i.test(msg)
-        ? 'Falha de conexão ao enviar o arquivo. Verifique sua internet e tente novamente. Se a NF for uma foto muito pesada, tente um arquivo menor.'
+    } catch (blobErr: unknown) {
+      // Fallback: se o Blob falhar e o arquivo for pequeno, envia pela serverless
+      if (file.size <= SERVER_LIMIT) {
+        try {
+          await sendViaServer(signedName, signedDocument, contractData)
+          setSuccess(true)
+          setTimeout(() => router.refresh(), 1500)
+          return
+        } catch (serverErr: unknown) {
+          const m = serverErr instanceof Error ? serverErr.message : 'Erro ao enviar.'
+          setError(m)
+          return
+        } finally {
+          setLoading(false)
+        }
+      }
+      const msg = blobErr instanceof Error ? blobErr.message : 'Erro ao enviar. Tente novamente.'
+      const friendly = /failed to fetch|networkerror|load failed|timeout/i.test(msg)
+        ? 'Falha ao enviar o arquivo. Verifique sua internet e tente novamente. Se a NF for muito pesada (acima de ~4 MB), tente reduzir o tamanho do arquivo.'
         : msg
       setError(friendly)
     } finally {
