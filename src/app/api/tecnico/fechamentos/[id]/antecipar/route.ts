@@ -29,7 +29,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     return NextResponse.json({ error: 'Antecipação disponível apenas quando o pagamento estiver liberado' }, { status: 400 })
   }
 
-  if (closing.advance) {
+  // Bloqueia apenas se já houver solicitação PENDENTE ou APROVADA.
+  // Se foi RECUSADA, o técnico pode solicitar novamente (reabre a mesma).
+  if (closing.advance && closing.advance.status !== 'REJECTED') {
     return NextResponse.json({ error: 'Já existe uma solicitação de antecipação para este fechamento' }, { status: 409 })
   }
 
@@ -42,20 +44,28 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const feeValue      = parseFloat((closing.totalValue * FEE_PERCENT / 100).toFixed(2))
   const netValue      = parseFloat((closing.totalValue - feeValue).toFixed(2))
 
-  const advance = await prisma.paymentAdvance.create({
-    data: {
-      closingId:     closing.id,
-      technicianId:  profile.id,
-      originalValue: closing.totalValue,
-      feePercent:    FEE_PERCENT,
-      feeValue,
-      netValue,
-      status:        'PENDING',
-      signedAt:      new Date(),
-      signedName:    parsed.data.signedName,
-      signedCnpj:    parsed.data.signedCnpj,
-    },
-  })
+  const data = {
+    originalValue: closing.totalValue,
+    feePercent:    FEE_PERCENT,
+    feeValue,
+    netValue,
+    status:        'PENDING',
+    signedAt:      new Date(),
+    signedName:    parsed.data.signedName,
+    signedCnpj:    parsed.data.signedCnpj,
+    adminNotes:    null, // limpa o motivo da recusa anterior
+  }
+
+  // Re-solicitação: atualiza a antecipação recusada de volta para PENDENTE.
+  // Caso contrário, cria uma nova.
+  const advance = closing.advance
+    ? await prisma.paymentAdvance.update({
+        where: { closingId: closing.id },
+        data,
+      })
+    : await prisma.paymentAdvance.create({
+        data: { closingId: closing.id, technicianId: profile.id, ...data },
+      })
 
   return NextResponse.json(advance, { status: 201 })
 }

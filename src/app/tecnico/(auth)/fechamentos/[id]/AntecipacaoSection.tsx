@@ -42,8 +42,10 @@ export default function AntecipacaoSection({ closingId, totalValue, techName, te
   const netValue = parseFloat((totalValue - feeValue).toFixed(2))
   const fmt = (v: number) => `R$ ${v.toFixed(2).replace('.', ',')}`
 
-  // Already requested — show status
-  if (advance) {
+  const isRejected = advance?.status === 'REJECTED'
+
+  // Já solicitada (pendente/aprovada) — mostra status. Recusada → permite reenviar.
+  if (advance && !isRejected) {
     return (
       <div className="card p-6">
         <div className="flex items-center gap-3 mb-4">
@@ -116,8 +118,14 @@ export default function AntecipacaoSection({ closingId, totalValue, techName, te
       >
         <Zap size={17} className="text-emerald-500 flex-shrink-0" />
         <div className="flex-1">
-          <span className="font-semibold text-dark text-sm">Solicitar antecipação de pagamento</span>
-          <p className="text-xs text-slate-400 mt-0.5">Receba agora com desconto de {FEE}% · {fmt(netValue)} líquido</p>
+          <span className="font-semibold text-dark text-sm">
+            {isRejected ? 'Solicitar antecipação novamente' : 'Solicitar antecipação de pagamento'}
+          </span>
+          <p className="text-xs text-slate-400 mt-0.5">
+            {isRejected
+              ? 'Sua solicitação anterior foi recusada — você pode tentar de novo'
+              : `Receba agora com desconto de ${FEE}% · ${fmt(netValue)} líquido`}
+          </p>
         </div>
         {open ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
       </button>

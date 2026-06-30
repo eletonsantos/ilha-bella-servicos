@@ -67,8 +67,10 @@ export default function AntecipacaoCard({ closing, techName, techCnpj, advance }
     }
   }
 
-  /* ── Se já tem solicitação, mostra status ── */
-  if (advance) {
+  const isRejected = advance?.status === 'REJECTED'
+
+  /* ── Já tem solicitação pendente ou aprovada → mostra status (sem reenvio) ── */
+  if (advance && !isRejected) {
     const cfg = STATUS_CONFIG[advance.status] ?? STATUS_CONFIG.PENDING
     return (
       <div className="card p-6">
@@ -134,13 +136,25 @@ export default function AntecipacaoCard({ closing, techName, techCnpj, advance }
           </div>
         </div>
 
+        {/* Aviso de recusa anterior — técnico pode solicitar de novo */}
+        {isRejected && (
+          <div className="mb-4 flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+            <XCircle size={16} className="text-red-500 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-red-700">
+              <p className="font-semibold">Sua antecipação anterior foi recusada.</p>
+              {advance?.adminNotes && <p className="text-xs text-red-600 mt-0.5">Motivo: {advance.adminNotes}</p>}
+              <p className="text-xs text-red-600 mt-1">Você pode solicitar novamente abaixo.</p>
+            </div>
+          </div>
+        )}
+
         {!open && (
           <button
             onClick={() => setOpen(true)}
             className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-xl transition-all"
           >
             <Zap size={16} />
-            Deseja antecipar?
+            {isRejected ? 'Solicitar antecipação novamente' : 'Deseja antecipar?'}
           </button>
         )}
       </div>
